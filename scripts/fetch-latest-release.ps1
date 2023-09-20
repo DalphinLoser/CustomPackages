@@ -172,9 +172,8 @@ $packageArgs = @{
   validExitCodes= @(0, 3010, 1641)
   silentArgs    = $silentArgs
 }
-Install-ChocolateyPackage @\$packageArgs
+Install-ChocolateyPackage @packageArgs
 "@
-
 
 Out-File -InputObject $installScriptContent -FilePath ".\tools\chocolateyInstall.ps1" -Encoding utf8
 
