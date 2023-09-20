@@ -113,8 +113,6 @@ $packageArgs = @{
   silentArgs    = $silentArgs
 }
 
-Write-Host "Package arguments: $packageArgs"
-
 # Create a nuspec file for the package
 $nuspec = @"
 <?xml version="1.0"?>
@@ -135,10 +133,12 @@ $nuspec = @"
 "@
 Out-File -InputObject $nuspec -FilePath "./scripts/$packageName.nuspec" -Encoding utf8
 
+Write-Debug "Nuspec file created at: $nuspec"
+
 Write-LogHeader "Creating Chocolatey Package"
 
 # Check for Nuspec File
-if (!(Test-Path "$packageName.nuspec")) {
+if (!(Test-Path "./scripts/$packageName.nuspec")) {
     Write-Error "Nuspec file not found."
     exit 1
 }
