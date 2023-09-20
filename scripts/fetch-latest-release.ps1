@@ -154,7 +154,7 @@ $nuspec = @"
     <owners>$author</owners>
     <description>$description</description>
     <projectUrl>$repo</projectUrl>
-    <packageSourceUrl>$repo</packageSourceUrl>
+    <packageSourceUrl>$url</packageSourceUrl>
     <licenseUrl>$repo/blob/master/LICENSE</licenseUrl>
     <tags>protonvpn vpn</tags>
   </metadata>
