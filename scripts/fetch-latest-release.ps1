@@ -124,5 +124,5 @@ Out-File -InputObject $nuspec -FilePath "./scripts/$packageName.nuspec" -Encodin
 Write-Host "Nuspec file: $packageName.nuspec"
 
 # Create a Chocolatey package (uncomment when ready to use)
-New-ChocolateyPackage @packageArgs -Force -Verbose
+choco pack @packageArgs -Force -Verbose
 
