@@ -176,6 +176,9 @@ if (-not (Test-Path $nuspecPath)) {
     Write-Error "Nuspec file not found at: $nuspecPath"
     exit 1
 }
+else {
+    Write-Host "Nuspec file found at: $nuspecPath"
+}
 
 # Create Chocolatey package
 try {
