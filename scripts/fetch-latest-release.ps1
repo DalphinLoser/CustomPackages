@@ -1,5 +1,15 @@
 $ErrorActionPreference = 'Stop'
 
+# Function to print a log section header
+Function Write-LogHeader {
+    param (
+        [string]$Message
+    )
+    Write-Host "`n=== [ $Message ] ===`n"
+}
+
+Write-LogHeader "Initializing Script"
+
 Function Get-LatestReleaseInfo {
     param (
         [string]$repo
@@ -56,19 +66,23 @@ Function Get-SilentArgs {
     }
 }
 
+Write-LogHeader "Fetching Latest Release Info"
+
 # Initialize repository URL
 $repo = "https://github.com/maah/ProtonVPN-win-app"
 
 # Fetch latest release information
 $latestReleaseInfo = Get-LatestReleaseInfo -repo $repo
 if ($null -eq $latestReleaseInfo) {
-    return
+    exit 1
 }
+
+Write-LogHeader "Selecting Asset"
 
 # Select the best asset based on supported types
 $selectedAsset = Select-Asset -assets $latestReleaseInfo.assets
 if ($null -eq $selectedAsset) {
-    return
+    exit 1
 }
 
 # Determine file type from asset name
@@ -121,8 +135,21 @@ $nuspec = @"
 "@
 Out-File -InputObject $nuspec -FilePath "./scripts/$packageName.nuspec" -Encoding utf8
 
-Write-Host "Nuspec file: $packageName.nuspec"
+Write-LogHeader "Creating Chocolatey Package"
 
-# Create a Chocolatey package (uncomment when ready to use)
-choco pack @packageArgs -Force -Verbose
+# Check for Nuspec File
+if (!(Test-Path "$packageName.nuspec")) {
+    Write-Error "Nuspec file not found."
+    exit 1
+}
 
+# Print package arguments for debugging
+Write-Host "Package Args: $($packageArgs | Out-String)"
+
+# Create Chocolatey package
+try {
+    choco pack "$packageName.nuspec" --version $version --force --verbose
+} catch {
+    Write-Error "Failed to create Chocolatey package."
+    exit 1
+}
