@@ -160,7 +160,7 @@ Out-File -InputObject $nuspec -FilePath $nuspecPath -Encoding utf8
 Write-Host "Nuspec file created at: $nuspecPath"
 
 $installScriptContent = @"
-\$ErrorActionPreference = 'Stop';
+$ErrorActionPreference = 'Stop';
 
 # Prepare Chocolatey package arguments
 $packageArgs = @{
@@ -172,8 +172,9 @@ $packageArgs = @{
   validExitCodes= @(0, 3010, 1641)
   silentArgs    = $silentArgs
 }
-Install-ChocolateyPackage @packageArgs
+Install-ChocolateyPackage @\$packageArgs
 "@
+
 
 Out-File -InputObject $installScriptContent -FilePath ".\tools\chocolateyInstall.ps1" -Encoding utf8
 
