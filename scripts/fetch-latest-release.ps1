@@ -104,7 +104,7 @@ if ($null -eq $latestReleaseInfo) {
     exit 1
 }
 
-write-host "Latest Release Info: $latestReleaseInfo"
+write-host "Latest Release URL: $latestReleaseUrl"
 
 Write-LogHeader "Selecting Asset"
 
