@@ -130,17 +130,7 @@ $url = $selectedAsset.browser_download_url
 
 Write-Host "Download URL: $url"
 
-# Prepare Chocolatey package arguments
-$toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$packageArgs = @{
-  packageName   = $packageName
-  unzipLocation = $toolsDir
-  fileType      = $fileType
-  url           = $url
-  softwareName  = "$githubRepo*"
-  validExitCodes= @(0, 3010, 1641)
-  silentArgs    = $silentArgs
-}
+
 
 # Create a nuspec file for the package
 $nuspec = @"
@@ -165,11 +155,30 @@ $nuspecPath = Join-Path $toolsDir "$packageName.nuspec"
 Out-File -InputObject $nuspec -FilePath $nuspecPath -Encoding utf8
 Write-Host "Nuspec file created at: $nuspecPath"
 
+New-Item -Path ".\tools" -ItemType "directory" -Force
+$installScriptContent = @"
+\$ErrorActionPreference = 'Stop';
+
+# Prepare Chocolatey package arguments
+$toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
+$packageArgs = @{
+  packageName   = $packageName
+  unzipLocation = $toolsDir
+  fileType      = $fileType
+  url           = $url
+  softwareName  = "$githubRepo*"
+  validExitCodes= @(0, 3010, 1641)
+  silentArgs    = $silentArgs
+}
+Install-ChocolateyPackage @packageArgs
+"@
+
+Out-File -InputObject $installScriptContent -FilePath ".\tools\chocolateyInstall.ps1" -Encoding utf8
+
 Write-LogHeader "Creating Chocolatey Package"
 Write-Host "Tools Directory: $toolsDir"
 Write-Host "Nuspec Path: $nuspecPath"
 Write-Host "Working Directory: $(Get-Location)"
-Write-Host "Package Args: $($packageArgs | Out-String)"
 
 # Check for Nuspec File
 if (-not (Test-Path $nuspecPath)) {
