@@ -23,11 +23,22 @@ jobs:
       shell: pwsh
 
     - name: Execute PowerShell Script
-      run: .\scripts\powershell\fetch-latest-release.ps1
+      run: .\scripts\fetch-latest-release.ps1
       shell: pwsh
 
     - name: Upload Chocolatey Package as Artifact
       uses: actions/upload-artifact@v2
       with:
         name: chocolatey-package
-        path: path/to/your/package.nupkg  # Replace with the path where your .nupkg file is generated
+        path: ./scripts/powershell/*.nupkg
+
+    - name: Commit and Push .nupkg File
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ./packages/*.nupkg  # Updated to the actual path
+        git commit -m "Add new Chocolatey package"
+        git push
+      shell: pwsh
+
+
