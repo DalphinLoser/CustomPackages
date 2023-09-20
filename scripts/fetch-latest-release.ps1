@@ -104,6 +104,8 @@ if ($null -eq $latestReleaseInfo) {
     exit 1
 }
 
+write-host "Latest Release Info: $($latestReleaseInfo | Out-String)"
+
 Write-LogHeader "Selecting Asset"
 
 # Select the best asset based on supported types
@@ -131,7 +133,7 @@ Write-Host "Download URL: $url"
 # Prepare Chocolatey package arguments
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 $packageArgs = @{
-  packageName   = $packageName
+  packageName   = $githubRepo
   unzipLocation = $toolsDir
   fileType      = $fileType
   url           = $url
@@ -145,7 +147,7 @@ $nuspec = @"
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>$packageName</id>
+    <id>$githubRepo</id>
     <title>$packageName</title>
     <version>$version</version>
     <authors>$author</authors>
@@ -179,7 +181,9 @@ if (-not (Test-Path $nuspecPath)) {
 try {
     # Move to the directory containing the .nuspec file
     Set-Location -Path $toolsDir
+    write-host "Moved to: $(Get-Location)"
     # Create the Chocolatey package
+    Write-Host "Creating Chocolatey package..."
     choco pack $nuspecPath -Force -Verbose
 } catch {
     Write-Error "Failed to create Chocolatey package."
