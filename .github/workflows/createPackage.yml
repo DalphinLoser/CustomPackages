@@ -16,7 +16,7 @@ jobs:
 
     - name: Validate Directory Structure and Files
       run: |
-        if (!(Test-Path -Path "./scripts/create-package.ps1")) {
+        if (!(Test-Path -Path "./scripts/fetch-latest-release.ps1")) {
           Write-Error "Required PowerShell script does not exist."
           exit 1
         }
