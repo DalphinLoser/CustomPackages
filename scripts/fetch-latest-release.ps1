@@ -52,19 +52,46 @@ Function Select-Asset {
 }
 
 Function Get-SilentArgs {
+    [CmdletBinding()]
     param (
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('exe', 'msi', '7z', 'zip', 'msu', 'msp')]
         [string]$fileType
     )
+
+    Write-Host "Determining silent installation arguments for $fileType..."
+
+    $silentArgs = ''
+    
     switch ($fileType) {
-        'exe' { return '/S' }
-        'msi' { return '/qn /norestart' }
-        '7z'  { return '-y' }
-        'zip' { return '-y' }
-        'msu' { return '/quiet /norestart' }
-        'msp' { return '/qn /norestart' }
-        default { return '' }
+        'exe' { 
+            $silentArgs = '/S'  # Silent installation
+        }
+        'msi' { 
+            $silentArgs = '/qn /norestart'  # Quiet mode, no user input, no restart
+        }
+        '7z'  { 
+            $silentArgs = '-y'  # Assume yes on all queries
+        }
+        'zip' { 
+            $silentArgs = '-y'  # Assume yes on all queries (Note: Not standard for ZIP)
+        }
+        'msu' { 
+            $silentArgs = '/quiet /norestart'  # Quiet mode, no restart
+        }
+        'msp' { 
+            $silentArgs = '/qn /norestart'  # Quiet mode, no restart
+        }
+        default { 
+            Write-Error "Unsupported file type: $fileType"
+            return ''
+        }
     }
+
+    Write-Host "Silent installation arguments for {$fileType}: $silentArgs"
+    return $silentArgs
 }
+
 
 Write-LogHeader "Fetching Latest Release Info"
 
@@ -131,24 +158,29 @@ $nuspec = @"
   </metadata>
 </package>
 "@
-Out-File -InputObject $nuspec -FilePath "./scripts/$packageName.nuspec" -Encoding utf8
-
-Write-Debug "Nuspec file created at: $nuspec"
+# Create a nuspec file for the package
+$nuspecPath = Join-Path $toolsDir "$packageName.nuspec"
+Out-File -InputObject $nuspec -FilePath $nuspecPath -Encoding utf8
+Write-Host "Nuspec file created at: $nuspecPath"
 
 Write-LogHeader "Creating Chocolatey Package"
+Write-Host "Tools Directory: $toolsDir"
+Write-Host "Nuspec Path: $nuspecPath"
+Write-Host "Working Directory: $(Get-Location)"
+Write-Host "Package Args: $($packageArgs | Out-String)"
 
 # Check for Nuspec File
-if (!(Test-Path "./scripts/$packageName.nuspec")) {
-    Write-Error "Nuspec file not found."
+if (-not (Test-Path $nuspecPath)) {
+    Write-Error "Nuspec file not found at: $nuspecPath"
     exit 1
 }
 
-# Print package arguments for debugging
-Write-Host "Package Args: $($packageArgs | Out-String)"
-
 # Create Chocolatey package
 try {
-    choco pack "$packageName.nuspec" --version $version --force --verbose
+    # Move to the directory containing the .nuspec file
+    Set-Location -Path $toolsDir
+    # Create the Chocolatey package
+    choco pack $nuspecPath -Force -Verbose
 } catch {
     Write-Error "Failed to create Chocolatey package."
     exit 1
