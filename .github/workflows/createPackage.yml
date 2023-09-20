@@ -62,13 +62,10 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
-        # Add the .nupkg files from the correct folder
         git add ./packages/*.nupkg
-        
-        # Commit and push
         git commit -m "Add new Chocolatey package"
-        git push
+        git push https://${{ secrets.GIT_PAT }}@github.com/YourUsername/YourRepo.git
       shell: pwsh
+    
 
 
