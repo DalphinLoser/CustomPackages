@@ -64,7 +64,7 @@ jobs:
         git config --local user.name "GitHub Action"
         git add ./packages/*.nupkg
         git commit -m "Add new Chocolatey package"
-        git push https://${{ secrets.GIT_PAT }}@github.com/YourUsername/YourRepo.git
+        git push https://${{ secrets.GIT_PAT }}@github.com/DalphinLoser/CustomPackages.git
       shell: pwsh
     
 
