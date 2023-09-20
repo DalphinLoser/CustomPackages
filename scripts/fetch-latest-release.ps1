@@ -130,7 +130,7 @@ $url = $selectedAsset.browser_download_url
 
 Write-Host "Download URL: $url"
 
-
+$toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 
 # Create a nuspec file for the package
 $nuspec = @"
@@ -160,7 +160,6 @@ $installScriptContent = @"
 \$ErrorActionPreference = 'Stop';
 
 # Prepare Chocolatey package arguments
-$toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 $packageArgs = @{
   packageName   = $packageName
   unzipLocation = $toolsDir
