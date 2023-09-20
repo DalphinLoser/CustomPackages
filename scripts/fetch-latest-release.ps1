@@ -104,7 +104,7 @@ if ($null -eq $latestReleaseInfo) {
     exit 1
 }
 
-write-host "Latest Release Info: $($latestReleaseInfo | Out-String)"
+write-host "Latest Release Info: $latestReleaseInfo"
 
 Write-LogHeader "Selecting Asset"
 
@@ -133,11 +133,11 @@ Write-Host "Download URL: $url"
 # Prepare Chocolatey package arguments
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 $packageArgs = @{
-  packageName   = $githubRepo
+  packageName   = $packageName
   unzipLocation = $toolsDir
   fileType      = $fileType
   url           = $url
-  softwareName  = "$packageName*"
+  softwareName  = "$githubRepo*"
   validExitCodes= @(0, 3010, 1641)
   silentArgs    = $silentArgs
 }
@@ -147,7 +147,7 @@ $nuspec = @"
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>$githubRepo</id>
+    <id>$packageName</id>
     <title>$packageName</title>
     <version>$version</version>
     <authors>$author</authors>
