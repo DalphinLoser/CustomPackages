@@ -130,7 +130,11 @@ $url = $selectedAsset.browser_download_url
 
 Write-Host "Download URL: $url"
 
-$toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
+# Explicitly set the tools directory
+$toolsDir = Join-Path (Get-Location) "tools"
+
+# Create the tools directory
+New-Item -Path $toolsDir -ItemType "directory" -Force
 
 # Create a nuspec file for the package
 $nuspec = @"
@@ -155,7 +159,6 @@ $nuspecPath = Join-Path $toolsDir "$packageName.nuspec"
 Out-File -InputObject $nuspec -FilePath $nuspecPath -Encoding utf8
 Write-Host "Nuspec file created at: $nuspecPath"
 
-New-Item -Path ".\tools" -ItemType "directory" -Force
 $installScriptContent = @"
 \$ErrorActionPreference = 'Stop';
 
