@@ -1,0 +1,33 @@
+name: CreatePackage
+
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Chocolatey
+      run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+      shell: pwsh
+
+    - name: Validate Directory Structure and Files
+      run: |
+        if (!(Test-Path -Path "./scripts/create-package.ps1")) {
+          Write-Error "Required PowerShell script does not exist."
+          exit 1
+        }
+      shell: pwsh
+
+    - name: Execute PowerShell Script
+      run: .\scripts\powershell\fetch-latest-release.ps1
+      shell: pwsh
+
+    - name: Upload Chocolatey Package as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: chocolatey-package
+        path: path/to/your/package.nupkg  # Replace with the path where your .nupkg file is generated
