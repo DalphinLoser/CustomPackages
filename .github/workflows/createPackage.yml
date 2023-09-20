@@ -45,12 +45,12 @@ jobs:
 
     - name: List files in scripts directory
       run: |
-        Get-ChildItem -Path "./scripts/"
+        Get-ChildItem -Path "./tools/"
       shell: pwsh
     
     - name: Move .nupkg files to packages directory
       run: |
-        Move-Item -Path "./scripts/*.nupkg" -Destination "./packages/"
+        Move-Item -Path "./tools/*.nupkg" -Destination "./packages/"
       shell: pwsh
     
     - name: List files in packages directory
