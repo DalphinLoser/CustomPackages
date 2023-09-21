@@ -159,7 +159,7 @@ $nuspecPath = Join-Path $toolsDir "$packageName.nuspec"
 Out-File -InputObject $nuspec -FilePath $nuspecPath -Encoding utf8
 Write-Host "Nuspec file created at: $nuspecPath"
 
-$installScriptContent = @"
+$installScriptContent = @'
 $ErrorActionPreference = 'Stop';
 
 # Prepare Chocolatey package arguments
@@ -173,7 +173,7 @@ $packageArgs = @{
   silentArgs    = $silentArgs
 }
 Install-ChocolateyPackage @packageArgs
-"@
+'@
 
 Out-File -InputObject $installScriptContent -FilePath ".\tools\chocolateyInstall.ps1" -Encoding utf8
 
