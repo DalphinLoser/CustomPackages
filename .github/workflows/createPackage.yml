@@ -43,7 +43,7 @@ jobs:
       run: .\scripts\fetch-latest-release.ps1
       shell: pwsh
 
-    - name: List files in scripts directory
+    - name: List files in tools directory
       run: |
         Get-ChildItem -Path "./tools/"
       shell: pwsh
