@@ -65,7 +65,7 @@ Function Get-SilentArgs {
     
     switch ($fileType) {
         'exe' { 
-            $silentArgs = '/S'  # Silent installation
+            $silentArgs = '/SP- /VERYSILENT /NORESTART'  # Silent installation
         }
         'msi' { 
             $silentArgs = '/qn /norestart'  # Quiet mode, no user input, no restart
@@ -155,11 +155,11 @@ $nuspec = @"
 </package>
 "@
 # Create a nuspec file for the package
-$nuspecPath = Join-Path $toolsDir "$packageName.nuspec"
+$nuspecPath = Join-Path $toolsDir "$githubRepo.nuspec"
 Out-File -InputObject $nuspec -FilePath $nuspecPath -Encoding utf8
 Write-Host "Nuspec file created at: $nuspecPath"
 
-$installScriptContent = @'
+$installScriptContent = @"
 $ErrorActionPreference = 'Stop';
 
 # Prepare Chocolatey package arguments
@@ -169,13 +169,13 @@ $packageArgs = @{
   fileType      = $fileType
   url           = $url
   softwareName  = "$githubRepo*"
-  validExitCodes= @(0, 3010, 1641)
   silentArgs    = $silentArgs
+  validExitCodes= @(0)
 }
 Install-ChocolateyPackage @packageArgs
-'@
-
-Out-File -InputObject $installScriptContent -FilePath ".\tools\chocolateyInstall.ps1" -Encoding utf8
+"@
+Set-Location -Path $toolsDir
+Out-File -InputObject $installScriptContent -FilePath ".\chocolateyInstall.ps1" -Encoding utf8
 
 Write-LogHeader "Creating Chocolatey Package"
 Write-Host "Tools Directory: $toolsDir"
