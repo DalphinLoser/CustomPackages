@@ -48,12 +48,20 @@ jobs:
     - name: Identify Parent Directory, Move .nupkg Files, and Copy to Packages
       id: identify_parent
       run: |
-        $toolsParentPath = (Get-Item "./tools/").Parent.FullName
-        $parentDirName = (Get-Item $toolsParentPath).Name
-        Move-Item -Path "./tools/*.nupkg" -Destination "$toolsParentPath/"
-        Copy-Item -Path $toolsParentPath -Destination "./packages/$parentDirName" -Recurse
-        echo "parentDirName=$parentDirName" | Out-File -FilePath $env:GITHUB_ENV -Append
+        # Dynamically find 'tools' directory and identify its parent directory
+        $toolsParentPath = (Get-ChildItem -Recurse -Directory -Filter "tools").FullName | Select-Object -First 1 | Split-Path
+    
+        if ($null -ne $toolsParentPath) {
+          $parentDirName = (Get-Item $toolsParentPath).Name
+          Move-Item -Path "$toolsParentPath/tools/*.nupkg" -Destination "$toolsParentPath/"
+          Copy-Item -Path $toolsParentPath -Destination "./packages/$parentDirName" -Recurse
+          echo "parentDirName=$parentDirName" | Out-File -FilePath $env:GITHUB_ENV -Append
+        } else {
+          Write-Error "The tools directory does not exist. Aborting."
+          exit 1
+        }
       shell: pwsh
+
 
     - name: Conditionally Commit and Push
       run: |
