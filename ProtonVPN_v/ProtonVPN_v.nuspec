@@ -1,0 +1,15 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ProtonVPN_v</id>
+    <title>https://github.com/maah/ProtonVPN-win-app</title>
+    <version>3.1.1</version>
+    <authors>maah</authors>
+    <owners>maah</owners>
+    <description>ProtonVPN Windows app with automatic qBittorrent port forwarding support and custom commands on port changes</description>
+    <projectUrl>https://github.com/maah/ProtonVPN-win-app</projectUrl>
+    <packageSourceUrl>https://github.com/maah/ProtonVPN-win-app/releases/download/3.1.1/ProtonVPN_v3.1.1.exe</packageSourceUrl>
+    <licenseUrl>https://github.com/maah/ProtonVPN-win-app/blob/master/LICENSE</licenseUrl>
+    <tags></tags>
+  </metadata>
+</package>

@@ -284,6 +284,17 @@ Write-LogHeader "Getting Asset Info"
 # Select the best asset based on supported types
 Write-Host "Selecting asset..." 
 $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets
+
+# Determine file type from asset name
+Write-Host "Determining file type from asset name..."
+$fileType = Get-Filetype -p_fileName $selectedAsset.name
+Write-Host "File type: $fileType" -ForegroundColor Cyan
+
+# Determine silent installation arguments based on file type
+Write-Host "Determining silent installation arguments for $fileType... (" -NoNewline; Write-Host "poorly" -ForegroundColor Yellow -NoNewline; Write-Host ")"
+$silentArgs = Get-SilentArgs -p_fileType $fileType
+Write-Host "Silent installation arguments for {$fileType}: $silentArgs" -ForegroundColor Cyan
+
 # Create package metadata object
 $packageMetadata        = [PSCustomObject]@{
     PackageName         = $selectedAsset.name -replace '\.[^.]+$'
@@ -307,16 +318,6 @@ Write-Host
 if ($packageMetadata.PackageName -match $packageMetadata.Version) {
     $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
 }
-
-# Determine file type from asset name
-Write-Host "Determining file type from asset name..."
-$fileType = Get-Filetype -p_fileName $selectedAsset.name
-Write-Host "File type: $fileType" -ForegroundColor Cyan
-
-# Determine silent installation arguments based on file type
-Write-Host "Determining silent installation arguments for $fileType... (" -NoNewline; Write-Host "poorly" -ForegroundColor Yellow -NoNewline; Write-Host ")"
-$silentArgs = Get-SilentArgs -p_fileType $fileType
-Write-Host "Silent installation arguments for {$fileType}: $silentArgs" -ForegroundColor Cyan
 
 Write-Host
 Write-Host "Download URL: " -NoNewline
