@@ -32,19 +32,21 @@ jobs:
           exit 1
         }
         Write-Host "PowerShell script found at $scriptPath"
-
+    
+        $packagesDirRelative = "./packages"
         Write-Host "Validating that the packages directory exists..."
-        $packagesDir = Resolve-Path "./packages"
-        if (!(Test-Path -Path $packagesDir)) {
+        if (!(Test-Path -Path $packagesDirRelative)) {
           Write-Host "Packages directory does not exist. Creating it now..."
-          New-Item -ItemType Directory -Path $packagesDir
+          New-Item -ItemType Directory -Path $packagesDirRelative
+          $packagesDir = Resolve-Path $packagesDirRelative
           $packagesDirExistsInRepo = $false
         }
         else {
+          $packagesDir = Resolve-Path $packagesDirRelative
           Write-Host "Packages directory found at $packagesDir"
           $packagesDirExistsInRepo = $true
         }
-
+    
         echo "scriptPath=$scriptPath" | Out-File -FilePath $env:GITHUB_ENV -Append
         echo "packagesDir=$packagesDir" | Out-File -FilePath $env:GITHUB_ENV -Append
         echo "packagesDirExistsInRepo=$packagesDirExistsInRepo" | Out-File -FilePath $env:GITHUB_ENV -Append
