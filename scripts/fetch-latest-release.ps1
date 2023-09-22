@@ -421,7 +421,7 @@ Write-Host "Sanitized Version: $sanitizedVersion"
 # Some of these should be renamed for clarity
 # Create package metadata object
 $packageMetadata        = [PSCustomObject]@{
-    PackageName         = $selectedAsset.name -replace '\.[^.]+$'
+    PackageName         = "${githubUser}.${githubRepoName}"
     Version             = $sanitizedVersion
     Author              = $latestReleaseInfo.author.login
     Description         = $description
@@ -432,6 +432,7 @@ $packageMetadata        = [PSCustomObject]@{
     SilentArgs          = $silentArgs
     IconUrl             = $iconUrl
     GithubRepoName      = $githubRepoName
+    GithubAuthorName    = $githubUser
 }
 Write-Host "Selected asset: $($packageMetadata.PackageName)" -ForegroundColor Cyan
 
