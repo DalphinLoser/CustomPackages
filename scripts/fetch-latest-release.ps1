@@ -66,16 +66,51 @@ function Select-Asset {
     )
 
     # Validation check for the assets
-    $f_supportedTypes = @('exe', 'msi', '7z', 'zip', 'msu', 'msp')
+    $f_supportedTypes = @('exe', 'msi')
+
     # Select the first asset that matches a supported type
-    $f_selectedAsset = $p_assets | Where-Object { $_.name -match '\.([^.]+)$' } | Sort-Object { $f_supportedTypes.IndexOf($matches[1]) } | Select-Object -First 1
+    $f_selectedAsset = $p_assets | 
+        Where-Object { 
+            if ($_.name -match '\.([^.]+)$') {
+                return $f_supportedTypes -contains $matches[1]
+            }
+            return $false
+        } |
+        Sort-Object { $f_supportedTypes.IndexOf($matches[1]) } |
+        Select-Object -First 1
+
     # Validation check for the selected asset
     if ($null -eq $f_selectedAsset) {
-        Write-Error "No suitable asset (.exe, .msi, .zip, .7z, .msu, .msp) found for the latest release."
+        Write-Error "No suitable asset (.exe, .msi) found for the latest release."
         exit 1
     }
 
     return $f_selectedAsset
+}
+function ConvertTo-SanitizedNugetVersion {
+    param (
+        [string]$p_rawVersion
+    )
+    
+    # Step 1: Trim leading and trailing whitespaces and remove non-numeric leading characters
+    $f_cleanVersion = $p_rawVersion.Trim()
+    $f_cleanVersion = $f_cleanVersion -replace '^[^0-9]*', ''
+    
+    # Step 2: Split into numeric and label parts
+    $f_numeric = if ($f_cleanVersion -match '^[0-9.]+') { $matches[0] } else { '' }
+    $f_label = if ($f_cleanVersion -match '[^-+0-9.]+([-.+].*)$') { $matches[1] } else { '' }
+    
+    # Step 3: Sanitize numeric part to only include numerals and periods
+    $f_numeric = $f_numeric -replace '[^0-9.]', ''
+    
+    # Step 4: Sanitize labels to only include alphanumerics and hyphens
+    $f_label = $f_label -replace '[^-a-zA-Z0-9.+]', ''
+    
+    # Step 5: Reassemble the version string
+    $f_sanitizedVersion = "$f_numeric$f_label"
+    
+    # Return the sanitized version string
+    return $f_sanitizedVersion
 }
 function Get-RepoDescription {
     param (
@@ -214,7 +249,7 @@ function New-NuspecFile {
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>$($p_Metadata.PackageName)</id>
-    <title>$($p_Metadata.PackageName)</title>
+    <title>$($p_Metadata.GithubRepoName)</title>
     <version>$($p_Metadata.Version)</version>
     <authors>$($p_Metadata.Author)</authors>
     <owners>$($p_Metadata.Author)</owners>
@@ -266,7 +301,7 @@ function New-InstallScript {
     packageName   = "$($p_Metadata.PackageName)"
     fileType      = "$($p_Metadata.FileType)"
     url           = "$($p_Metadata.Url)"
-    softwareName  = "$($p_Metadata.PackageName)"
+    softwareName  = "$($p_Metadata.GithubRepoName)"
     silentArgs    = "$($p_Metadata.SilentArgs)"
     validExitCodes= @(0)
 }
@@ -275,25 +310,6 @@ Install-ChocolateyPackage @packageArgs
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
     return $f_installScriptPath
-}
-function Get-MostRecentValidRelease {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$p_releaseUrl
-    )
-    # Loop through release names until a release of a valid format is found
-    $f_releaseName = ''
-    $f_releaseNumber = 0
-    while ($f_releaseName -eq '') {
-        $f_releaseNumber++
-        $f_releaseName = "v$f_releaseNumber"
-        $f_releaseUrl = $p_releaseUrl -replace '/releases/latest', "/releases/tag/$f_releaseName"
-        $f_releaseInfo = (Invoke-WebRequest -Uri $f_releaseUrl).Content | ConvertFrom-Json
-        if ($null -eq $f_releaseInfo -or $f_releaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
-            $f_releaseName = ''
-        }
-    }
-
 }
 function Get-MostRecentValidRelease {
     param (
@@ -331,17 +347,16 @@ function Get-MostRecentValidRelease {
     Write-Host "No valid release found."
     return $null
 }
-
 #endregion
 ###################################################################################################
 Write-LogHeader "Fetching Latest Release Info"
 #region Get Latest Release Info
 
 # TODO Replace URL with variable
-$repo = "https://github.com/maah/ProtonVPN-win-app"
+$repo = "https://github.com/LizardByte/Sunshine"
 $githubUser = $repo.Split('/')[3]
-$githubRepo = $repo.Split('/')[4]
-$initialRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepo}"
+$githubRepoName = $repo.Split('/')[4]
+$initialRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
 $latestReleaseUrl = Get-MostRecentValidRelease -p_repoUrl $initialRepoUrl
 if ($null -ne $validReleaseApiUrl) {
     Write-Host "API URL of the most recent valid release is $latestReleaseUrl"
@@ -365,6 +380,7 @@ Write-LogHeader "Getting Asset Info"
 # Select the best asset based on supported types
 Write-Host "Selecting asset..." 
 $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets
+Write-Host "Selected asset: $($selectedAsset.name)" -ForegroundColor Cyan
 
 # Determine file type from asset name
 Write-Host "Determining file type from asset name..."
@@ -382,10 +398,15 @@ $rootRepoInfo = Get-RootRepository -p_repoUrl $initialRepoUrl
 # Use the avatar URL from the root repository's owner
 $iconUrl = $rootRepoInfo.owner.avatar_url
 
+$rawVersion = $latestReleaseInfo.tag_name
+$sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
+Write-Host "Sanitized Version: $sanitizedVersion"
+
+# Some of these should be renamed for clarity
 # Create package metadata object
 $packageMetadata        = [PSCustomObject]@{
     PackageName         = $selectedAsset.name -replace '\.[^.]+$'
-    Version             = $latestReleaseInfo.tag_name
+    Version             = $sanitizedVersion
     Author              = $latestReleaseInfo.author.login
     Description         = $description
     VersionDescription  = $latestReleaseInfo.body -replace "\r\n", " "
@@ -394,6 +415,7 @@ $packageMetadata        = [PSCustomObject]@{
     FileType            = $fileType
     SilentArgs          = $silentArgs
     IconUrl             = $iconUrl
+    GithubRepoName      = $githubRepoName
 }
 Write-Host "Selected asset: $($packageMetadata.PackageName)" -ForegroundColor Cyan
 
