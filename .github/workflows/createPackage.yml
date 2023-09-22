@@ -78,5 +78,5 @@ jobs:
 
         # Commit and push
         git commit -m "Add new parent directory package"
-        git push
+        git push -f
       shell: pwsh
