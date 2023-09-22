@@ -70,7 +70,7 @@ jobs:
         Copy-Item -Path "$env:tempDir/*" -Destination "$env:packagesDir" -Recurse -Force
       shell: pwsh
 
-    - name: Stage the packages directory and its contents for commit
+    - name: Commit the Changes to the Packages Directory and Push Them to GitHub
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -80,4 +80,7 @@ jobs:
         
         # Commit the changes
         git commit -m "Update packages" || echo "No changes to commit."
+
+        # Push the changes
+        git push
       shell: pwsh
