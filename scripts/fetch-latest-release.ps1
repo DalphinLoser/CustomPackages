@@ -83,11 +83,10 @@ function Get-RepoDescription {
         [string]$p_latestReleaseUrl
     )
     # Remove /release/latest from the URL
-    $f_repoInfoUrl = $p_latestReleaseUrl -replace '/releases/latest'
-    Write-Host "Fetching repository description from GitHub... ($f_repoInfoUrl)"
+    Write-Host "Fetching repository description from GitHub... ($p_latestReleaseUrl)"
 
     # Fetch and parse latest release data
-    $f_repoInfo = (Invoke-WebRequest -Uri $f_repoInfoUrl).Content | ConvertFrom-Json
+    $f_repoInfo = (Invoke-WebRequest -Uri $p_latestReleaseUrl).Content | ConvertFrom-Json
     
     # Validation check for the API call
     if ($null -eq $f_repoInfo -or $f_repoInfo.PSObject.Properties.Name -notcontains 'description') {
@@ -173,6 +172,22 @@ function Get-LatestReleaseInfo {
 
     return $f_latestReleaseInfo
 }
+function Get-RootRepository {
+    # If the repo is a fork, find the original repo in the fork chain then use that repo's root's profile picture as the icon
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$p_repoInfo
+    )
+
+    # Check if the repository is a fork
+    if ($p_repoInfo.fork -eq $true) {
+        # If it's a fork, recurse into its parent
+        return (Get-RootRepository -repoUrl $p_repoInfo.parent.url)
+    } else {
+        # If it's not a fork, return the current repository info
+        return $p_repoInfo
+    }
+}
 function New-NuspecFile {
     param (
         [Parameter(Mandatory=$true)]
@@ -193,14 +208,16 @@ function New-NuspecFile {
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>$($p_Metadata.PackageName)</id>
-    <title>$($p_Metadata.Repo)</title>
+    <title>$($p_Metadata.PackageName)</title>
     <version>$($p_Metadata.Version)</version>
     <authors>$($p_Metadata.Author)</authors>
     <owners>$($p_Metadata.Author)</owners>
     <description>$($p_Metadata.Description)</description>
     <projectUrl>$($p_Metadata.Repo)</projectUrl>
     <packageSourceUrl>$($p_Metadata.Url)</packageSourceUrl>
+    <releaseNotes>$($p_Metadata.VersionDescription)</releaseNotes>
     <licenseUrl>$($p_Metadata.Repo)/blob/master/LICENSE</licenseUrl>
+    <iconUrl>$($p_Metadata.IconUrl)</iconUrl>
     <tags></tags>
   </metadata>
 </package>
@@ -249,7 +266,6 @@ function New-InstallScript {
 }
 Install-ChocolateyPackage @packageArgs
 "@
-    # TODO: Specify the path to the install script to be one above the tools directory
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
     return $f_installScriptPath
@@ -264,6 +280,7 @@ $repo = "https://github.com/maah/ProtonVPN-win-app"
 $githubUser = $repo.Split('/')[3]
 $githubRepo = $repo.Split('/')[4]
 $latestReleaseUrl = "https://api.github.com/repos/${githubUser}/${githubRepo}/releases/latest"
+$initialRepoUrl = $latestReleaseUrl -replace '/releases/latest'
 
 # Fetch repository description
 $description = Get-RepoDescription -p_latestReleaseUrl $latestReleaseUrl
@@ -295,6 +312,12 @@ Write-Host "Determining silent installation arguments for $fileType... (" -NoNew
 $silentArgs = Get-SilentArgs -p_fileType $fileType
 Write-Host "Silent installation arguments for {$fileType}: $silentArgs" -ForegroundColor Cyan
 
+# Find the root repository
+$rootRepoInfo = Get-RootRepository -repoUrl $initialRepoUrl
+
+# Use the avatar URL from the root repository's owner
+$iconUrl = $rootRepoInfo.owner.avatar_url
+
 # Create package metadata object
 $packageMetadata        = [PSCustomObject]@{
     PackageName         = $selectedAsset.name -replace '\.[^.]+$'
@@ -306,6 +329,7 @@ $packageMetadata        = [PSCustomObject]@{
     Repo                = $repo
     FileType            = $fileType
     SilentArgs          = $silentArgs
+    IconUrl             = $iconUrl
 }
 Write-Host "Selected asset: $($packageMetadata.PackageName)" -ForegroundColor Cyan
 
