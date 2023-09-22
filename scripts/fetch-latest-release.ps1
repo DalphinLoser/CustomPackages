@@ -102,7 +102,7 @@ function Get-Filetype {
         [string]$p_fileName
     )
     
-    if ($p_fileName -match '\.(exe|msi|msu|msp)$') {
+    if ($p_fileName -match '\.(exe|msi)$') {
         # Return the file type from the file name
         return $matches[1]
         } 
@@ -117,7 +117,7 @@ function Get-SilentArgs {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateSet('exe', 'msi', 'msu', 'msp')]
+        [ValidateSet('exe', 'msi')]
         [string]$p_fileType
     )
 
@@ -130,20 +130,21 @@ function Get-SilentArgs {
         'msi' { 
             $f_silentArgs = '/quiet /qn /norestart'  # Quiet mode, no user input, no restart
         }
-        <# Zip Not Currently Supported
+        <# These Types Are Not Currently Supported
         '7z'  { 
             $f_silentArgs = '-y'  # Assume yes on all queries
         }
         'zip' { 
             $f_silentArgs = '-y'  # Assume yes on all queries (Note: Not standard for ZIP)
         }
-        #>
+        
         'msu' { 
             $f_silentArgs = '/quiet /norestart'  # Quiet mode, no restart
         }
         'msp' { 
             $f_silentArgs = '/qn /norestart'  # Quiet mode, no restart
         }
+        #>
         default { 
             Write-Error "Unsupported file type: $p_fileType"
             exit 1
@@ -157,11 +158,6 @@ function Get-LatestReleaseInfo {
         [Parameter(Mandatory=$true)]
         [string]$p_latestReleaseUrl
     )
-    # Validate constructed URL
-    if ($p_latestReleaseUrl -notmatch "https://api.github.com/repos/.*/.*/releases/latest") {
-        Write-Error "Invalid GitHub release URL: $p_latestReleaseUrl"
-        return $null
-    }
     
     # Fetch and parse latest release data
     $f_latestReleaseInfo = (Invoke-WebRequest -Uri $p_latestReleaseUrl).Content | ConvertFrom-Json
@@ -175,19 +171,27 @@ function Get-LatestReleaseInfo {
     return $f_latestReleaseInfo
 }
 function Get-RootRepository {
-    # If the repo is a fork, find the original repo in the fork chain then use that repo's root's profile picture as the icon
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_repoInfo
+        [string]$p_repoUrl
     )
+    
+    # Fetch the repository information
+    try {
+        $repoInfo = (Invoke-WebRequest -Uri $p_repoUrl).Content | ConvertFrom-Json
+    }
+    catch {
+        Write-Error "Failed to fetch repository information."
+        return $null
+    }
 
     # Check if the repository is a fork
-    if ($p_repoInfo.fork -eq $true) {
+    if ($repoInfo.fork -eq $true) {
         # If it's a fork, recurse into its parent
-        return (Get-RootRepository -repoUrl $p_repoInfo.parent.url)
+        return (Get-RootRepository -p_repoUrl $repoInfo.parent.url)
     } else {
         # If it's not a fork, return the current repository info
-        return $p_repoInfo
+        return $repoInfo
     }
 }
 function New-NuspecFile {
@@ -272,6 +276,62 @@ Install-ChocolateyPackage @packageArgs
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
     return $f_installScriptPath
 }
+function Get-MostRecentValidRelease {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$p_releaseUrl
+    )
+    # Loop through release names until a release of a valid format is found
+    $f_releaseName = ''
+    $f_releaseNumber = 0
+    while ($f_releaseName -eq '') {
+        $f_releaseNumber++
+        $f_releaseName = "v$f_releaseNumber"
+        $f_releaseUrl = $p_releaseUrl -replace '/releases/latest', "/releases/tag/$f_releaseName"
+        $f_releaseInfo = (Invoke-WebRequest -Uri $f_releaseUrl).Content | ConvertFrom-Json
+        if ($null -eq $f_releaseInfo -or $f_releaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
+            $f_releaseName = ''
+        }
+    }
+
+}
+function Get-MostRecentValidRelease {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$p_repoUrl,
+        [string[]]$validFileTypes = @('.exe', '.msi')
+    )
+
+    try {
+        $f_releasesInfo = (Invoke-WebRequest -Uri "$p_repoUrl/releases").Content | ConvertFrom-Json
+    }
+    catch {
+        Write-Error "Failed to fetch release information."
+        return $null
+    }
+
+    if ($null -eq $f_releasesInfo -or $f_releasesInfo.Count -eq 0) {
+        Write-Host "No releases found."
+        return $null
+    }
+
+    foreach ($release in $f_releasesInfo) {
+        if ($null -eq $release.assets -or $release.assets.Count -eq 0) {
+            continue
+        }
+
+        foreach ($asset in $release.assets) {
+            $extension = $asset.name -replace '.*(\..+)$', '$1'
+            if ($validFileTypes -contains $extension) {
+                return $release.url
+            }
+        }
+    }
+
+    Write-Host "No valid release found."
+    return $null
+}
+
 #endregion
 ###################################################################################################
 Write-LogHeader "Fetching Latest Release Info"
@@ -281,9 +341,11 @@ Write-LogHeader "Fetching Latest Release Info"
 $repo = "https://github.com/maah/ProtonVPN-win-app"
 $githubUser = $repo.Split('/')[3]
 $githubRepo = $repo.Split('/')[4]
-$latestReleaseUrl = "https://api.github.com/repos/${githubUser}/${githubRepo}/releases/latest"
-$initialRepoUrl = $latestReleaseUrl -replace '/releases/latest'
-
+$initialRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepo}"
+$latestReleaseUrl = Get-MostRecentValidRelease -p_repoUrl $initialRepoUrl
+if ($null -ne $validReleaseApiUrl) {
+    Write-Host "API URL of the most recent valid release is $latestReleaseUrl"
+}
 # Fetch repository description
 $description = Get-RepoDescription -p_latestReleaseUrl $initialRepoUrl
 
@@ -315,7 +377,7 @@ $silentArgs = Get-SilentArgs -p_fileType $fileType
 Write-Host "Silent installation arguments for {$fileType}: $silentArgs" -ForegroundColor Cyan
 
 # Find the root repository
-$rootRepoInfo = Get-RootRepository -repoUrl $initialRepoUrl
+$rootRepoInfo = Get-RootRepository -p_repoUrl $initialRepoUrl
 
 # Use the avatar URL from the root repository's owner
 $iconUrl = $rootRepoInfo.owner.avatar_url
