@@ -102,7 +102,7 @@ function Get-Filetype {
         [string]$p_fileName
     )
     
-    if ($p_fileName -match '\.(exe|msi|zip|7z|msu|msp)$') {
+    if ($p_fileName -match '\.(exe|msi|msu|msp)$') {
         # Return the file type from the file name
         return $matches[1]
         } 
@@ -117,7 +117,7 @@ function Get-SilentArgs {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateSet('exe', 'msi', '7z', 'zip', 'msu', 'msp')]
+        [ValidateSet('exe', 'msi', 'msu', 'msp')]
         [string]$p_fileType
     )
 
@@ -130,12 +130,14 @@ function Get-SilentArgs {
         'msi' { 
             $f_silentArgs = '/quiet /qn /norestart'  # Quiet mode, no user input, no restart
         }
+        <# Zip Not Currently Supported
         '7z'  { 
             $f_silentArgs = '-y'  # Assume yes on all queries
         }
         'zip' { 
             $f_silentArgs = '-y'  # Assume yes on all queries (Note: Not standard for ZIP)
         }
+        #>
         'msu' { 
             $f_silentArgs = '/quiet /norestart'  # Quiet mode, no restart
         }
