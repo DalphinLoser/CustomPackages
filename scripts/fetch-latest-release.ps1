@@ -120,6 +120,10 @@ function Get-RepoDescription {
     # Remove /release/latest from the URL
     Write-Host "Fetching repository description from GitHub... ($p_latestReleaseUrl)"
 
+    $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
+    Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
+    Write-Host $rateLimitInfo
+
     # Fetch and parse latest release data
     $f_repoInfo = (Invoke-WebRequest -Uri $p_latestReleaseUrl).Content | ConvertFrom-Json
     
@@ -194,6 +198,10 @@ function Get-LatestReleaseInfo {
         [string]$p_latestReleaseUrl
     )
     
+    $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
+    Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
+    Write-Host $rateLimitInfo
+
     # Fetch and parse latest release data
     $f_latestReleaseInfo = (Invoke-WebRequest -Uri $p_latestReleaseUrl).Content | ConvertFrom-Json
     
@@ -213,6 +221,10 @@ function Get-RootRepository {
     
     # Fetch the repository information
     try {
+        $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
+        Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
+        Write-Host $rateLimitInfo
+
         $repoInfo = (Invoke-WebRequest -Uri $p_repoUrl).Content | ConvertFrom-Json
     }
     catch {
@@ -319,6 +331,10 @@ function Get-MostRecentValidRelease {
     )
 
     try {
+        $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
+        Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
+        Write-Host $rateLimitInfo
+        
         $f_releasesInfo = (Invoke-WebRequest -Uri "$p_repoUrl/releases").Content | ConvertFrom-Json
     }
     catch {
