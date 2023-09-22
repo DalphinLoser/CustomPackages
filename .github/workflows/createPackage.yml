@@ -31,7 +31,7 @@ jobs:
           Write-Error "Required PowerShell script does not exist."
           exit 1
         }
-        else { scriptPath = Resolve-Path $scriptPath }
+        else { $scriptPath = Resolve-Path $scriptPath }
         Write-Host "PowerShell script found at $scriptPath"
     
         $packagesDirRelative = "./packages"
