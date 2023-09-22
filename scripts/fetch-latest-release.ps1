@@ -285,7 +285,7 @@ $latestReleaseUrl = "https://api.github.com/repos/${githubUser}/${githubRepo}/re
 $initialRepoUrl = $latestReleaseUrl -replace '/releases/latest'
 
 # Fetch repository description
-$description = Get-RepoDescription -p_latestReleaseUrl $latestReleaseUrl
+$description = Get-RepoDescription -p_latestReleaseUrl $initialRepoUrl
 
 # Display repository description
 Write-Host "Repository Description: $description"
