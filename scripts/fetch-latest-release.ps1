@@ -369,7 +369,7 @@ Write-LogHeader "Fetching Latest Release Info"
 #region Get Latest Release Info
 
 # TODO Replace URL with variable
-$repo = "https://github.com/maah/ProtonVPN-win-app"
+$repo = "https://github.com/BlackPearlOrigin/blackpearlorigin"
 $githubUser = $repo.Split('/')[3]
 $githubRepoName = $repo.Split('/')[4]
 $initialRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
