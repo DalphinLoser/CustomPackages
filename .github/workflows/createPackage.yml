@@ -2,6 +2,7 @@ name: CreatePackage
 
 on:
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: windows-latest
@@ -15,8 +16,6 @@ jobs:
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
           Write-Host "Chocolatey is not installed. Installing now..."
           Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-          
-          # Verify installation
           if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
             Write-Error "Failed to install Chocolatey. Aborting."
             exit 1
@@ -32,43 +31,44 @@ jobs:
         }
       shell: pwsh
 
-    - name: Create packages directory if not exists
+    - name: Check for packages directory and set environment variable
       run: |
-        if (-not (Test-Path -Path "./packages/")) {
+        if (Test-Path -Path "./packages/") {
+          echo "PACKAGES_EXISTS=true" | Out-File -FilePath $env:GITHUB_ENV -Append
+        } else {
+          echo "PACKAGES_EXISTS=false" | Out-File -FilePath $env:GITHUB_ENV -Append
           New-Item -Path "./packages/" -ItemType Directory
         }
       shell: pwsh
-      
+
     - name: Execute PowerShell Script
       run: .\scripts\fetch-latest-release.ps1
       shell: pwsh
 
-    - name: List files in tools directory
+    - name: Identify Parent Directory, Move .nupkg Files, and Copy to Packages
+      id: identify_parent
       run: |
-        Get-ChildItem -Path "./tools/"
-      shell: pwsh
-    
-    - name: Move .nupkg files to packages directory
-      run: |
-        Move-Item -Path "./tools/*.nupkg" -Destination "./packages/"
-      shell: pwsh
-    
-    - name: List files in packages directory
-      run: |
-        Get-ChildItem -Path "./packages/"
+        $toolsParentPath = (Get-Item "./tools/").Parent.FullName
+        $parentDirName = (Get-Item $toolsParentPath).Name
+        Move-Item -Path "./tools/*.nupkg" -Destination "$toolsParentPath/"
+        Copy-Item -Path $toolsParentPath -Destination "./packages/$parentDirName" -Recurse
+        echo "parentDirName=$parentDirName" | Out-File -FilePath $env:GITHUB_ENV -Append
       shell: pwsh
 
-    - name: Commit and Push .nupkg File
+    - name: Conditionally Commit and Push
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
-        # Add the .nupkg files from the correct folder
-        git add ./packages/*.nupkg
-        
+
+        if ($env:PACKAGES_EXISTS -eq "true") {
+          # Add only the new parent directory under packages
+          git add "./packages/${{ env.parentDirName }}/"
+        } else {
+          # Add the entire packages directory
+          git add "./packages/"
+        }
+
         # Commit and push
-        git commit -m "Add new Chocolatey package"
+        git commit -m "Add new parent directory package"
         git push
       shell: pwsh
-
-
