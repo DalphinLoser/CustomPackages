@@ -23,60 +23,58 @@ jobs:
         }
       shell: pwsh
 
-    - name: Validate Directory Structure and Files
+    - name: Validate That The PowerShell Script and Packages Directory Exist. Save them as Environment Variables
       run: |
-        if (!(Test-Path -Path "./scripts/fetch-latest-release.ps1")) {
+        Write-Host "Validating that the PowerShell script and packages directory exist..."
+        $scriptPath = "./scripts/fetch-latest-release.ps1"
+        if (!(Test-Path -Path $scriptPath)) {
           Write-Error "Required PowerShell script does not exist."
           exit 1
         }
-      shell: pwsh
+        Write-Host "PowerShell script found at $scriptPath"
 
-    - name: Check for packages directory and set environment variable
-      run: |
-        if (Test-Path -Path "./packages/") {
-          echo "PACKAGES_EXISTS=true" | Out-File -FilePath $env:GITHUB_ENV -Append
-        } else {
-          echo "PACKAGES_EXISTS=false" | Out-File -FilePath $env:GITHUB_ENV -Append
-          New-Item -Path "./packages/" -ItemType Directory
+        Write-Host "Validating that the packages directory exists..."
+        $packagesDir = Resolve-Path "./packages"
+        if (!(Test-Path -Path $packagesDir)) {
+          Write-Host "Packages directory does not exist. Creating it now..."
+          New-Item -ItemType Directory -Path $packagesDir
+          $packagesDirExistsInRepo = $false
         }
-      shell: pwsh
-
-    - name: Execute PowerShell Script
-      run: .\scripts\fetch-latest-release.ps1
-      shell: pwsh
-
-    - name: Identify Parent Directory, Move .nupkg Files, and Copy to Packages
-      id: identify_parent
-      run: |
-        # Dynamically find 'tools' directory and identify its parent directory
-        $toolsParentPath = (Get-ChildItem -Recurse -Directory -Filter "tools").FullName | Select-Object -First 1 | Split-Path
-    
-        if ($null -ne $toolsParentPath) {
-          $parentDirName = (Get-Item $toolsParentPath).Name
-          Move-Item -Path "$toolsParentPath/tools/*.nupkg" -Destination "$toolsParentPath/"
-          Copy-Item -Path $toolsParentPath -Destination "./packages/$parentDirName" -Recurse
-          echo "parentDirName=$parentDirName" | Out-File -FilePath $env:GITHUB_ENV -Append
-        } else {
-          Write-Error "The tools directory does not exist. Aborting."
-          exit 1
+        else {
+          Write-Host "Packages directory found at $packagesDir"
+          $packagesDirExistsInRepo = $true
         }
+
+        echo "scriptPath=$scriptPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+        echo "packagesDir=$packagesDir" | Out-File -FilePath $env:GITHUB_ENV -Append
+        echo "packagesDirExistsInRepo=$packagesDirExistsInRepo" | Out-File -FilePath $env:GITHUB_ENV -Append
       shell: pwsh
 
+    - name: Create Temp Directory For Building and add it to the Environment Variables
+      run: |
+        $tempDir = New-Item -ItemType Directory -Path "./temp"
+        echo "tempDir=$tempDir" | Out-File -FilePath $env:GITHUB_ENV -Append
+      shell: pwsh
 
-    - name: Conditionally Commit and Push
+    - name: Navigate to the Temp Directory Then Execute The PowerShell Script
+      run: |
+        cd $env:tempDir
+        & $env:scriptPath
+      shell: pwsh
+
+    - name: Copy Everything Fron The Temp Directory to The Packages Directory
+      run: |
+        Copy-Item -Path "$env:tempDir/*" -Destination "$env:packagesDir" -Recurse -Force
+      shell: pwsh
+
+    - name: Stage the packages directory and its contents for commit
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-
-        if ($env:PACKAGES_EXISTS -eq "true") {
-          # Add only the new parent directory under packages
-          git add "./packages/${{ env.parentDirName }}/"
-        } else {
-          # Add the entire packages directory
-          git add "./packages/"
-        }
-
-        # Commit and push
-        git commit -m "Add new parent directory package"
-        git push -f
+        
+        # Stage the packages directory and all its contents
+        git add $env:packagesDir
+        
+        # Commit the changes
+        git commit -m "Update packages" || echo "No changes to commit."
       shell: pwsh

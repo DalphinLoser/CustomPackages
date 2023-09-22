@@ -1,6 +1,59 @@
 $ErrorActionPreference = 'Stop'
 ###################################################################################################
 #region Functions
+function Format-Json {
+    # Function to format and print JSON recursively, allowing for nested lists
+    param (
+        [Parameter(Mandatory=$true)]
+        [psobject]$json,
+        
+        [Parameter(Mandatory=$false)]
+        [int]$depth = 0
+    )
+
+    # Color scale from dark blue to light blue
+    $colorScale = @('DarkBlue', 'Blue', 'RoyalBlue', 'DodgerBlue', 'LightSkyBlue')
+
+    if ($null -eq $json) {
+        Write-Host "Received null json object."
+        return
+    }
+
+    $currentColor = $colorScale[$depth % $colorScale.Length]
+
+    if ($json -is [pscustomobject]) {
+        $properties = $json.PSObject.Properties
+        if ($null -eq $properties) {
+            Write-Host "No properties found in object."
+            return
+        }
+
+        $properties | ForEach-Object {
+            if ($null -eq $_) {
+                Write-Host "Null property found."
+                return
+            }
+
+            Write-Host $_.Name -ForegroundColor $currentColor -NoNewline
+            if ($_.Value -is [pscustomobject] -or $_.Value -is [System.Collections.ArrayList]) {
+                Write-Host ":"
+                Format-Json -json $_.Value -depth ($depth + 1)
+            } else {
+                Write-Host ": $($_.Value)" -ForegroundColor White
+            }
+        }
+    } elseif ($json -is [System.Collections.ArrayList]) {
+        $json | ForEach-Object {
+            if ($_ -is [pscustomobject] -or $_ -is [System.Collections.ArrayList]) {
+                Format-Json -json $_ -depth ($depth + 1)
+            } else {
+                Write-Host $_ -ForegroundColor White
+            }
+        }
+    } else {
+        Write-Host "Unsupported type: $($json.GetType().FullName)"
+    }
+}
 function Write-LogHeader {
     param (
         [string]$Message
@@ -129,7 +182,7 @@ function New-NuspecFile {
         [string]$p_packageDir
     )
 
-    # Validation (for demonstration, expand as needed)
+    # Validation
     if (-not $p_Metadata.PackageName -or -not $p_Metadata.Repo -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
         Write-Error "Missing mandatory metadata for nuspec file."
         return
@@ -152,7 +205,7 @@ function New-NuspecFile {
   </metadata>
 </package>
 "@
-    # TODO: Specify the path to the nuspec file to be one above the tools directory
+
     $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata.PackageName).nuspec"
     try {
         Out-File -InputObject $f_nuspec -FilePath $f_nuspecPath -Encoding utf8
@@ -171,6 +224,11 @@ function New-InstallScript {
         [Parameter(Mandatory=$true)]
         [string]$p_toolsDir
     )
+
+    Write-Host
+    Write-Host "Package Metadata From Install Script Method:" -ForegroundColor DarkYellow
+    Format-Json -json $p_Metadata
+    Write-Host
 
     # Validation
     if (-not $p_Metadata.PackageName -or -not $p_Metadata.Repo -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
@@ -240,6 +298,11 @@ $packageMetadata        = [PSCustomObject]@{
 }
 Write-Host "Selected asset: $($packageMetadata.PackageName)" -ForegroundColor Cyan
 
+Write-Host
+Write-Host "Package Metadata:" -ForegroundColor DarkYellow
+Format-Json -json $packageMetadata
+Write-Host
+
 # If the name contains the version number exactly, remove the version number from the package name
 if ($packageMetadata.PackageName -match $packageMetadata.Version) {
     $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
@@ -261,68 +324,6 @@ Write-Host "$($packageMetadata.Url)" -ForegroundColor Blue
 Write-Host
 
 #endregion
-###################################################################################################
-<# Json Debugging
-Write-LogHeader "JSON Debugging"
-#region JSON Debugging
-# Function to format and print JSON recursively, allowing for nested lists
-function Format-Json {
-    param (
-        [Parameter(Mandatory=$true)]
-        [psobject]$json,
-        
-        [Parameter(Mandatory=$false)]
-        [int]$depth = 0
-    )
-
-    # Color scale from dark blue to light blue
-    $colorScale = @('DarkBlue', 'Blue', 'RoyalBlue', 'DodgerBlue', 'LightSkyBlue')
-
-    if ($null -eq $json) {
-        Write-Host "Received null json object."
-        return
-    }
-
-    $currentColor = $colorScale[$depth % $colorScale.Length]
-
-    if ($json -is [pscustomobject]) {
-        $properties = $json.PSObject.Properties
-        if ($null -eq $properties) {
-            Write-Host "No properties found in object."
-            return
-        }
-
-        $properties | ForEach-Object {
-            if ($null -eq $_) {
-                Write-Host "Null property found."
-                return
-            }
-
-            Write-Host $_.Name -ForegroundColor $currentColor -NoNewline
-            if ($_.Value -is [pscustomobject] -or $_.Value -is [System.Collections.ArrayList]) {
-                Write-Host ":"
-                Format-Json -json $_.Value -depth ($depth + 1)
-            } else {
-                Write-Host ": $($_.Value)" -ForegroundColor White
-            }
-        }
-    } elseif ($json -is [System.Collections.ArrayList]) {
-        $json | ForEach-Object {
-            if ($_ -is [pscustomobject] -or $_ -is [System.Collections.ArrayList]) {
-                Format-Json -json $_ -depth ($depth + 1)
-            } else {
-                Write-Host $_ -ForegroundColor White
-            }
-        }
-    } else {
-        Write-Host "Unsupported type: $($json.GetType().FullName)"
-    }
-}
-
-Write-Host "Latest Release Info:"
-Format-Json $latestReleaseInfo
-#endregion
-#>
 ###################################################################################################
 Write-LogHeader "Creating Nuspec File and Install Script"
 #region Create Nuspec File and Install Script
