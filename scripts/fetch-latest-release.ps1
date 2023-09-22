@@ -264,7 +264,6 @@ function New-NuspecFile {
     <title>$($p_Metadata.GithubRepoName)</title>
     <version>$($p_Metadata.Version)</version>
     <authors>$($p_Metadata.Author)</authors>
-    <owners>$($p_Metadata.Author)</owners>
     <description>$($p_Metadata.Description)</description>
     <projectUrl>$($p_Metadata.Repo)</projectUrl>
     <packageSourceUrl>$($p_Metadata.Url)</packageSourceUrl>
@@ -423,7 +422,7 @@ Write-Host "Sanitized Version: $sanitizedVersion"
 $packageMetadata        = [PSCustomObject]@{
     PackageName         = "${githubUser}.${githubRepoName}"
     Version             = $sanitizedVersion
-    Author              = $latestReleaseInfo.author.login
+    Author              = $githubUser
     Description         = $description
     VersionDescription  = $latestReleaseInfo.body -replace "\r\n", " "
     Url                 = $selectedAsset.browser_download_url
@@ -432,7 +431,6 @@ $packageMetadata        = [PSCustomObject]@{
     SilentArgs          = $silentArgs
     IconUrl             = $iconUrl
     GithubRepoName      = $githubRepoName
-    GithubAuthorName    = $githubUser
 }
 Write-Host "Selected asset: $($packageMetadata.PackageName)" -ForegroundColor Cyan
 
