@@ -362,13 +362,42 @@ function Get-MostRecentValidRelease {
     Write-Host "No valid release found."
     return $null
 }
+function Get-LocalExeMetadata {
+    param (
+        [string]$ExePath
+    )
+    Write-Host "Fetching metadata from local .exe file... ($ExePath)" -ForegroundColor DarkYellow
+    # Validate the path
+    if (-not (Test-Path $ExePath)) {
+        Write-Error "File not found at: $ExePath"
+        exit 1
+    }
+    # Get the metadata
+    return [System.Diagnostics.FileVersionInfo]::GetVersionInfo($ExePath)
+}
+function Get-RepoExeMetadata {
+    
+
+    
+}
 #endregion
 ###################################################################################################
 Write-LogHeader "Fetching Latest Release Info"
 #region Get Latest Release Info
 
+# Check if URL is provided
+if ($args.Length -eq 0) {
+    Write-Error "Please provide a URL as an argument."
+    exit 1
+}
+# Check if the url is a github repo url
+if ($args[0] -notmatch '^*https?://github.com/[^/]+/[^/]+ *$') {
+    Write-Error "Please provide a valid GitHub repository URL."
+    exit 1
+}
+
 # TODO Replace URL with variable
-$repo = "https://github.com/maah/ProtonVPN-win-app"
+$repo = $args[0]
 $githubUser = $repo.Split('/')[3]
 $githubRepoName = $repo.Split('/')[4]
 $initialRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
@@ -389,13 +418,38 @@ Write-Host "Latest Release URL: $latestReleaseUrl"
 
 #endregion
 ###################################################################################################
-Write-LogHeader "Getting Asset Info"
-#region Get Asset Info
+# Function to validate if a value is a non-zero version
+function IsValidVersion($version) {
+    $cleanVersion = -join ($version -split '\D')  # Remove non-digits
+    return ([int]$cleanVersion -gt 0)
+}
 
-# Select the best asset based on supported types
-Write-Host "Selecting asset..." 
+# Initialize a dictionary to hold the final metadata
+$finalMetadata = @{}
+
+# Get the asset
 $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets
 Write-Host "Selected asset: $($selectedAsset.name)" -ForegroundColor Cyan
+
+#Download the file if it is less than 300MB
+if ($selectedAsset.size -lt 314572800) {
+    # Download the asset and save its path
+    
+    $downloadedAssetPath = Join-Path (Get-Location).Path $selectedAsset.name
+    Write-Host "Downloading asset from url: $($selectedAsset.browser_download_url) to path: $($downloadedAssetPath))"
+    $webClient = New-Object System.Net.WebClient
+    $webClient.DownloadFile($selectedAsset.browser_download_url, $downloadedAssetPath)
+    Write-Host "Asset downloaded to: $downloadedAssetPath" -ForegroundColor Cyan
+}
+else {
+    Write-Host "Asset is too large to download. Skipping download."
+}
+
+# Get metadata from .exe
+$exeMetadata = Get-LocalExeMetadata -ExePath $downloadedAssetPath
+$finalMetadata['ExeMetadata'] = $exeMetadata
+
+
 
 # Determine file type from asset name
 Write-Host "Determining file type from asset name..."
@@ -432,13 +486,106 @@ $packageMetadata        = [PSCustomObject]@{
     IconUrl             = $iconUrl
     GithubRepoName      = $githubRepoName
 }
+$finalMetadata['PackageMetadata'] = $packageMetadata
+
+
+Add-Type -AssemblyName System.Drawing
+function ExtractAndListIcons {
+    param (
+        [string]$exePath
+    )
+
+    $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exePath)
+    $iconSizes = $icon.SplitIcon()
+
+    Write-Host "Available icon sizes:"
+
+    $maxSize = 0
+    $bestIcon = $null
+
+    foreach ($singleIcon in $iconSizes) {
+        $size = $singleIcon.Size
+        Write-Host "$($size.Width) x $($size.Height)"
+
+        $totalPixels = $size.Width * $size.Height
+
+        if ($totalPixels -gt $maxSize) {
+            $maxSize = $totalPixels
+            $bestIcon = $singleIcon
+        }
+    }
+
+    Write-Host "Extracting highest quality icon: $($bestIcon.Size.Width) x $($bestIcon.Size.Height)"
+
+    $bitmap = $bestIcon.ToBitmap()
+    $iconSavePath = Join-Path (Get-Location).Path "BestIcon.png"
+    $bitmap.Save($iconSavePath, [System.Drawing.Imaging.ImageFormat]::Png)
+
+    return $iconSavePath
+}
+
+ExtractAndListIcons $downloadedAssetPath
+
+
+
+# Prioritize and Merge Metadata with Value Validation
+$priorityOrder = @('ExeMetadata', 'PackageMetadata')
+$mergedMetadata = @{}
+
+foreach ($source in $priorityOrder) {
+    $sourceMetadata = $finalMetadata[$source]
+    foreach ($key in $sourceMetadata.Keys) {
+        $value = $sourceMetadata[$key]
+        
+        # Skip if value is null or empty
+        if ([string]::IsNullOrEmpty($value)) {
+            continue
+        }
+        
+        # Skip if value is zero and is numeric
+        if ($value -is [int] -or $value -is [double]) {
+            if ($value -eq 0) {
+                continue
+            }
+        }
+        
+        # Special handling for version numbers
+        if ($key -match 'version' -or $key -match 'ver') {
+            if (-not (IsValidVersion $value)) {
+                continue
+            }
+        }
+        
+        # If the key doesn't exist in the merged metadata, then add it
+        if (-not $mergedMetadata.ContainsKey($key)) {
+            $mergedMetadata[$key] = $value
+        }
+    }
+}
+
+# $mergedMetadata contains the prioritized metadata. Use it to fill the $packageMetadata object
+$packageMetadata = [PSCustomObject]@{
+    PackageName         = 
+    if ($mergedMetadata.ContainsKey('PackageName')) { $mergedMetadata['PackageName'] } else { "${githubUser}.${githubRepoName}" }
+    Version             = if ($mergedMetadata.ContainsKey('Version')) { $mergedMetadata['Version'] } else { $sanitizedVersion }
+    Author              = if ($mergedMetadata.ContainsKey('Author')) { $mergedMetadata['Author'] } else { $githubUser }
+    Description         = if ($mergedMetadata.ContainsKey('Description')) { $mergedMetadata['Description'] } else { $description }
+    VersionDescription  = if ($mergedMetadata.ContainsKey('VersionDescription')) { $mergedMetadata['VersionDescription'] } else { $latestReleaseInfo.body -replace "\r\n", " " }
+    Url                 = if ($mergedMetadata.ContainsKey('Url')) { $mergedMetadata['Url'] } else { $selectedAsset.browser_download_url }
+    Repo                = if ($mergedMetadata.ContainsKey('Repo')) { $mergedMetadata['Repo'] } else { $repo }
+    FileType            = if ($mergedMetadata.ContainsKey('FileType')) { $mergedMetadata['FileType'] } else { $fileType }
+    SilentArgs          = if ($mergedMetadata.ContainsKey('SilentArgs')) { $mergedMetadata['SilentArgs'] } else { $silentArgs }
+    IconUrl             = if ($mergedMetadata.ContainsKey('IconUrl')) { $mergedMetadata['IconUrl'] } else { $iconUrl }
+    GithubRepoName      = if ($mergedMetadata.ContainsKey('GithubRepoName')) { $mergedMetadata['GithubRepoName'] } else { $githubRepoName }
+}
+
+
 Write-Host "Selected asset: $($packageMetadata.PackageName)" -ForegroundColor Cyan
 
 Write-Host
 Write-Host "Package Metadata:" -ForegroundColor DarkYellow
 Format-Json -json $packageMetadata
 Write-Host
-
 # If the name contains the version number exactly, remove the version number from the package name
 if ($packageMetadata.PackageName -match $packageMetadata.Version) {
     $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
@@ -448,6 +595,20 @@ Write-Host
 Write-Host "Download URL: " -NoNewline
 Write-Host "$($packageMetadata.Url)" -ForegroundColor Blue
 Write-Host
+
+# Display the merged metadata with color-coding
+Write-Host "Merged Metadata:" -ForegroundColor DarkYellow
+
+foreach ($key in $mergedMetadata.Keys) {
+    $value = $mergedMetadata[$key]
+    $source = $metadataSource[$key]
+    
+    # Choose a color based on the source
+    $color = if ($source -eq 'ExeMetadata') { 'Green' } else { 'Cyan' }
+
+    Write-Host "{$key}: $value" -ForegroundColor $color
+}
+exit 1
 
 #endregion
 ###################################################################################################
