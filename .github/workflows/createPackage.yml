@@ -2,7 +2,10 @@ name: CreatePackage
 
 on:
   workflow_dispatch:
-
+    inputs:
+      repoUrl:
+        description: 'GitHub Repository URL or Direct Asset Download URL'
+        required: true
 jobs:
   build:
     runs-on: windows-latest
@@ -62,7 +65,7 @@ jobs:
     - name: Navigate to the Temp Directory Then Execute The PowerShell Script
       run: |
         cd $env:tempDir
-        & $env:scriptPath
+        & $env:scriptPath -repoUrl $env:repoUrl
       shell: pwsh
 
     - name: Copy Everything Fron The Temp Directory to The Packages Directory

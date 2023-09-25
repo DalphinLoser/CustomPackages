@@ -62,26 +62,34 @@ function Write-LogHeader {
 }
 function Select-Asset {
     param (
-        [array]$p_assets
+        [array]$p_assets,
+        [Parameter(Mandatory=$false)]
+        [string]$p_assetName
     )
 
     # Validation check for the assets
-    $f_supportedTypes = @('exe', 'msi')
+    $f_supportedTypes = @('exe', 'msi', 'zip')
 
-    # Select the first asset that matches a supported type
-    $f_selectedAsset = $p_assets | 
-        Where-Object { 
-            if ($_.name -match '\.([^.]+)$') {
-                return $f_supportedTypes -contains $matches[1]
-            }
-            return $false
-        } |
-        Sort-Object { $f_supportedTypes.IndexOf($matches[1]) } |
-        Select-Object -First 1
+    # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
+    if (-not [string]::IsNullOrEmpty($p_assetName)) {
+        Write-Host "Selecting asset with name: `"$p_assetName`""
+        $f_selectedAsset = $p_assets | Where-Object { $_.name -eq $p_assetName }
+    } else {
+        Write-Host "Selecting first asset with supported type: $f_supportedTypes"
+        $f_selectedAsset = $p_assets | 
+            Where-Object { 
+                if ($_.name -match '\.([^.]+)$') {
+                    return $f_supportedTypes -contains $matches[1]
+                }
+                return $false
+            } |
+            Sort-Object { $f_supportedTypes.IndexOf($matches[1]) } |
+            Select-Object -First 1
+    }
 
     # Validation check for the selected asset
     if ($null -eq $f_selectedAsset) {
-        Write-Error "No suitable asset (.exe, .msi) found for the latest release."
+        Write-Error "No suitable asset (.exe, .msi) found for the latest release. "
         exit 1
     }
 
@@ -112,40 +120,29 @@ function ConvertTo-SanitizedNugetVersion {
     # Return the sanitized version string
     return $f_sanitizedVersion
 }
-function Get-RepoDescription {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$p_latestReleaseUrl
-    )
-    # Remove /release/latest from the URL
-    Write-Host "Fetching repository description from GitHub... ($p_latestReleaseUrl)"
-
-    $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
-    Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
-    Write-Host $rateLimitInfo
-
-    # Fetch and parse latest release data
-    $f_repoInfo = (Invoke-WebRequest -Uri $p_latestReleaseUrl).Content | ConvertFrom-Json
-    
-    # Validation check for the API call
-    if ($null -eq $f_repoInfo -or $f_repoInfo.PSObject.Properties.Name -notcontains 'description') {
-        Write-Error "Failed to fetch valid release information from GitHub."
-        exit 1
-    }
-
-    return $f_repoInfo.description
-}
 function Get-Filetype {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_fileName
+        [string]$p_fileName,
+        [string[]]$p_acceptedExtensions = $acceptedExtensions
     )
     
-    if ($p_fileName -match '\.(exe|msi)$') {
-        # Return the file type from the file name
-        return $matches[1]
-        } 
-    else { 
+    $found = $false
+
+    # Iterate through the accepted extensions and check if the file name ends with one of them
+    foreach ($ext in $p_acceptedExtensions) {
+        if ($p_fileName.EndsWith($ext, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $found = $true
+            break
+        }
+    }
+    
+    if ($found) {
+        # The file name ends with one of the accepted extensions
+        Write-Host "File name ends with an accepted extension."
+        # return the extension that was found
+        return $ext
+    } else {
         Write-Error "Unsupported file type: $p_fileName"
         exit 1
     }
@@ -156,7 +153,6 @@ function Get-SilentArgs {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateSet('exe', 'msi')]
         [string]$p_fileType
     )
 
@@ -169,14 +165,13 @@ function Get-SilentArgs {
         'msi' { 
             $f_silentArgs = '/quiet /qn /norestart'  # Quiet mode, no user input, no restart
         }
-        <# These Types Are Not Currently Supported
-        '7z'  { 
-            $f_silentArgs = '-y'  # Assume yes on all queries
-        }
         'zip' { 
             $f_silentArgs = '-y'  # Assume yes on all queries (Note: Not standard for ZIP)
         }
-        
+        <# These Types Are Not Currently Supported
+        '7z'  { 
+            $f_silentArgs = '-y'  # Assume yes on all queries
+        }        
         'msu' { 
             $f_silentArgs = '/quiet /norestart'  # Quiet mode, no restart
         }
@@ -195,22 +190,26 @@ function Get-SilentArgs {
 function Get-LatestReleaseInfo {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_latestReleaseUrl
+        [string]$p_baseRepoUrl
     )
-    
-    $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
-    Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
-    Write-Host $rateLimitInfo
+
+    # Fetch rate limit information
+    #$rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
+    #Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
+    #Write-Host $rateLimitInfo
 
     # Fetch and parse latest release data
-    $f_latestReleaseInfo = (Invoke-WebRequest -Uri $p_latestReleaseUrl).Content | ConvertFrom-Json
+    $f_latestReleaseInfo = (Invoke-WebRequest -Uri $p_baseRepoUrl).Content | ConvertFrom-Json
     
     # Validation check for the API call
     if ($null -eq $f_latestReleaseInfo -or $f_latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
-        Write-Error "Failed to fetch valid release information from GitHub."
+        Write-Error "Failed to fetch valid release information from GitHub. URL used: $p_baseRepoUrl"
         exit 1
     }
-
+    #Write-Host "Latest Release Info: " -NoNewline -ForegroundColor DarkYellow
+    #Format-Json -json $f_latestReleaseInfo
+    Write-Host "Returning latest release info for $($f_latestReleaseInfo.tag_name)" -ForegroundColor Green
+    Write-Host "Latest Release Assets: $($f_latestReleaseInfo.assets) " -ForegroundColor DarkYellow
     return $f_latestReleaseInfo
 }
 function Get-RootRepository {
@@ -252,7 +251,7 @@ function New-NuspecFile {
 
     # Validation
     if (-not $p_Metadata.PackageName -or -not $p_Metadata.Repo -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
-        Write-Error "Missing mandatory metadata for nuspec file."
+        Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.Repo), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
         return
     }
 
@@ -322,21 +321,40 @@ Install-ChocolateyPackage @packageArgs
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
     return $f_installScriptPath
 }
-function Get-MostRecentValidRelease {
+function Confirm-DirectoryExists {
     param (
+        [Parameter(Mandatory=$true)]
+        [string]$p_path,
+        [Parameter(Mandatory=$true)]
+        [string]$p_name
+    )
+    
+    Write-Host "Checking for $p_name directory..."
+    if (-not (Test-Path $p_path)) {
+        Write-Host "No $p_name directory found, creating $p_name directory..."
+        New-Item -Path $p_path -ItemType Directory | Out-Null
+        Write-Host "$p_name directory created at: $p_path" -ForegroundColor Cyan
+    }
+    else {
+        Write-Host "$p_name directory found at: $p_path" -ForegroundColor Cyan
+    }
+}
+<# Get-MostRecentValidRelease: This is useful if releases do not always contain valid assets
+function Get-MostRecentValidRelease {
+    param ( # Parameter declarations
         [Parameter(Mandatory=$true)]
         [string]$p_repoUrl,
         [string[]]$validFileTypes = @('.exe', '.msi')
     )
 
-    try {
+    try { # Fetch the release information
         $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
         Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
         Write-Host $rateLimitInfo
         
         $f_releasesInfo = (Invoke-WebRequest -Uri "$p_repoUrl/releases").Content | ConvertFrom-Json
     }
-    catch {
+    catch { # Write an error if the API call fails
         Write-Error "Failed to fetch release information."
         return $null
     }
@@ -346,6 +364,7 @@ function Get-MostRecentValidRelease {
         return $null
     }
 
+    # Iterate through the releases and return the URL of the first release that contains a valid asset
     foreach ($release in $f_releasesInfo) {
         if ($null -eq $release.assets -or $release.assets.Count -eq 0) {
             continue
@@ -362,30 +381,60 @@ function Get-MostRecentValidRelease {
     Write-Host "No valid release found."
     return $null
 }
+#>
 #endregion
 ###################################################################################################
 Write-LogHeader "Fetching Latest Release Info"
 #region Get Latest Release Info
 
-# TODO Replace URL with variable
-$repo = "https://github.com/maah/ProtonVPN-win-app"
-$githubUser = $repo.Split('/')[3]
-$githubRepoName = $repo.Split('/')[4]
-$initialRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
-$latestReleaseUrl = Get-MostRecentValidRelease -p_repoUrl $initialRepoUrl
+# Check if URL is provided
+if ($args.Length -eq 0) {
+    Write-Error "Please provide a URL as an argument."
+    exit 1
+}
+
+# Create a variable to store accepted extensions
+$acceptedExtensions = @('exe', 'msi', 'zip')
+
+# Check if the URL is a GitHub repository URL
+if ($args[0] -match '^https?://github.com/[^/]+/[^/]+') {
+    $repo = $args[0]
+    $urlParts = $repo -split '/'
+    
+    $githubUser = $urlParts[3]
+    $githubRepoName = $urlParts[4]
+    $baseRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
+    Write-Host "GitHub User: $githubUser"
+    Write-Host "GitHub Repo Name: $githubRepoName"
+    Write-Host "Base Repo URL: $baseRepoUrl"
+
+    # Further check for release tag and asset name
+    if ($urlParts.Length -gt 7 -and $urlParts[5] -eq 'releases' -and $urlParts[6] -eq 'download') {
+        $tag = $urlParts[7]
+        $specifiedAssetName = $urlParts[-1]
+        Write-Host "Release tag detected: $tag"
+        Write-Host "Asset name detected: $specifiedAssetName"
+
+    }
+} else {
+    Write-Error "Please provide a valid GitHub repository URL."
+    exit 1
+}
+
+<# This is useful if releases do not always contain valid assets 
+ex: releases sometimes containin only updates for specific versions such as linux only releases
+
+$latestReleaseUrl = Get-MostRecentValidRelease -p_repoUrl $baseRepoUrl
 if ($null -ne $validReleaseApiUrl) {
     Write-Host "API URL of the most recent valid release is $latestReleaseUrl"
 }
-# Fetch repository description
-$description = Get-RepoDescription -p_latestReleaseUrl $initialRepoUrl
-
-# Display repository description
-Write-Host "Repository Description: $description"
+#>
 
 # Fetch latest release information
 Write-Host "Fetching latest release information from GitHub..."
-$latestReleaseInfo = Get-LatestReleaseInfo -p_latestReleaseUrl $latestReleaseUrl
-Write-Host "Latest Release URL: $latestReleaseUrl"
+Write-Host "Latest Release URL: $baseRepoUrl/releases/latest"
+$latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl "$baseRepoUrl/releases/latest"
+Write-Host "Base Release URL: $baseRepoUrl"
 
 #endregion
 ###################################################################################################
@@ -393,9 +442,20 @@ Write-LogHeader "Getting Asset Info"
 #region Get Asset Info
 
 # Select the best asset based on supported types
-Write-Host "Selecting asset..." 
-$selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets
+Write-Host "Selecting asset..."
+# Check if asset name is provided and print it if it is
+if (-not [string]::IsNullOrEmpty($specifiedAssetName)) {
+    Write-Host "Specified Asset Name: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $specifiedAssetName
+}
+$selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_assetName $specifiedAssetName
 Write-Host "Selected asset: $($selectedAsset.name)" -ForegroundColor Cyan
+
+# Set the description using latest release
+$description = $latestReleaseInfo.body
+
+# Display repository description
+Write-Host "Repository Description: $description"
 
 # Determine file type from asset name
 Write-Host "Determining file type from asset name..."
@@ -408,7 +468,7 @@ $silentArgs = Get-SilentArgs -p_fileType $fileType
 Write-Host "Silent installation arguments for {$fileType}: $silentArgs" -ForegroundColor Cyan
 
 # Find the root repository
-$rootRepoInfo = Get-RootRepository -p_repoUrl $initialRepoUrl
+$rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl
 
 # Use the avatar URL from the root repository's owner
 $iconUrl = $rootRepoInfo.owner.avatar_url
@@ -417,10 +477,26 @@ $rawVersion = $latestReleaseInfo.tag_name
 $sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
 Write-Host "Sanitized Version: $sanitizedVersion"
 
+# If specifiedasset is not null or empty print it
+if (-not [string]::IsNullOrEmpty($specifiedAssetName)) {
+        # If the asset name contains the version number, remove it.
+    if ($specifiedAssetName -match $tag) {
+        $cleanedSpecifiedAssetName = $specifiedAssetName -replace $tag, ''
+        # Split by . and remove the last element if it is a valid extension
+        $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Split('.') | Where-Object { $_ -notin $acceptedExtensions }
+    }   
+    else {
+        cleanedSpecifiedAssetName = $specifiedAssetName
+    }
+    #clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
+    $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
+    Write-Host "Specified Asset Name -Version Tag: $cleanedSpecifiedAssetName"
+}
+
 # Some of these should be renamed for clarity
 # Create package metadata object
 $packageMetadata        = [PSCustomObject]@{
-    PackageName         = "${githubUser}.${githubRepoName}"
+    PackageName         = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
     Version             = $sanitizedVersion
     Author              = $githubUser
     Description         = $description
@@ -459,28 +535,13 @@ $packageDir = Join-Path (Get-Location).Path $packageMetadata.PackageName
 
 Write-Host "Checking for package directory..."
 # Create the tools directory if it doesn't exist
-if (-not (Test-Path $packageDir)) {
-    Write-Host "No pacakge directory found, creating pacakge directory..."
-    New-Item -Path $packageDir -ItemType Directory | Out-Null
-    Write-Host "Pacakge directory created at: $packageDir" -ForegroundColor Cyan
-}
-else {
-    Write-Host "Tools directory found at: $toolsDir" -ForegroundColor Cyan
-}
+Confirm-DirectoryExists -p_path $packageDir -p_name 'package'
 
 # Explicitly set the path to the tools directory
 $toolsDir = Join-Path $packageDir "tools"
 
-Write-Host "Checking for tools directory..."
 # Create the tools directory if it doesn't exist
-if (-not (Test-Path $toolsDir)) {
-    Write-Host "No tools directory found, creating tools directory..."
-    New-Item -Path $toolsDir -ItemType Directory | Out-Null
-    Write-Host "Tools directory created at: $toolsDir" -ForegroundColor Cyan
-}
-else {
-    Write-Host "Tools directory found at: $toolsDir" -ForegroundColor Cyan
-}
+Confirm-DirectoryExists -p_path $toolsDir -p_name 'tools'
 
 Write-Host "Creating nuspec file..."
 $nuspecPath = New-NuspecFile -p_Metadata $packageMetadata -p_packageDir $packageDir
