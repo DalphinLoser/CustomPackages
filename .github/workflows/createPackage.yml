@@ -11,6 +11,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
+
+    - name: Set Repo URL as Environment Variable
+      run: |
+        echo "repoUrl=${{ github.event.inputs.repoUrl }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+      shell: pwsh
+
     - name: Checkout code
       uses: actions/checkout@v4
 
