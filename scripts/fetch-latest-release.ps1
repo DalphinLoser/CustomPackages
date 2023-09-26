@@ -17,10 +17,10 @@ function Get-Favicon {
         if ($faviconRelativeLink -match "^/") {
             # Convert to absolute URL
             $faviconAbsoluteLink = "$p_homepage$faviconRelativeLink"
-            Write-Host "    Favicon URL: $faviconAbsoluteLink"
+            Write-Host "    Favicon Absolute URL: $faviconAbsoluteLink"
             return $faviconAbsoluteLink
         } else {
-            Write-Host "    Favicon URL: $faviconRelativeLink"
+            Write-Host "    Favicon Relative URL: $faviconRelativeLink"
             return $faviconRelativeLink
         }
     } else {
