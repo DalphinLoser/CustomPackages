@@ -1,6 +1,22 @@
 $ErrorActionPreference = 'Stop'
 ###################################################################################################
 #region Functions
+function Find-IcoInRepo {
+    param (
+        [string]$owner,
+        [string]$repo
+    )
+
+    $query = "extension:ico repo:$owner/$repo"
+    $apiUrl = "https://api.github.com/search/code?q=$query"
+    $searchResults = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+
+    if ($searchResults.total_count -gt 0) {
+        return $searchResults.items[0].path
+    }
+
+    return $null
+}
 function Get-Favicon {
     param (
         [Parameter(Mandatory=$true)]
@@ -661,6 +677,14 @@ function Get-AssetInfo {
         $iconUrl = Get-Favicon -p_homepage $homepage
         Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor DarkYellow
         Write-Host $iconUrl
+    }
+    else{
+        $icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName
+
+        if ($icoPath) {
+            $iconUrl = "https://raw.githubusercontent.com/$owner/$repo/main/$icoPath"
+            Write-Host "Found ICO file in Repo: $iconUrl"
+        }
     }
     else {
         $iconUrl = $rootRepoInfo.owner.avatar_url
