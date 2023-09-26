@@ -709,9 +709,6 @@ function Get-AssetInfo {
     Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $rootRepoInfo.url
     
-    Write-Host "Default Branch: " -NoNewline -ForegroundColor DarkYellow
-    $baseRepoUrl_Info.default_branch
-
     Write-Host "Default Branch (Root): " -NoNewline -ForegroundColor DarkYellow
     $rootRepoInfo.default_branch
     
@@ -725,7 +722,7 @@ function Get-AssetInfo {
         Write-Host $iconUrl
     }
     # If the root repository has a logo, use that as the icon
-    elseif ($icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $baseRepoUrl_Info.default_branch) {
+    elseif ($icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $rootRepoInfo.default_branch) {
         $iconUrl = "https://raw.githubusercontent.com/$($p_urls.githubUser)/$($p_urls.githubRepoName)/main/$icoPath"
         Write-Host "    Found ICO file in Repo: $iconUrl"
     }
