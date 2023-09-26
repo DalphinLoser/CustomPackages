@@ -678,8 +678,8 @@ function Get-AssetInfo {
     $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
     Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $rootRepoInfo.url
-    # Use the avatar URL from the root repository's owner
-
+    
+    # Get the icon
     if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
         $homepage = $rootRepoInfo.homepage
         # Get the favicon from the homepage
@@ -687,20 +687,16 @@ function Get-AssetInfo {
         Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor DarkYellow
         Write-Host $iconUrl
     }
-    else{
-        $icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName
-
-        if ($icoPath) {
-            $iconUrl = "https://raw.githubusercontent.com/$owner/$repo/main/$icoPath"
-            Write-Host "Found ICO file in Repo: $iconUrl"
-        }
+    elseif ($icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName) {
+        $iconUrl = "https://raw.githubusercontent.com/$owner/$repo/main/$icoPath"
+        Write-Host "Found ICO file in Repo: $iconUrl"
     }
     else {
         $iconUrl = $rootRepoInfo.owner.avatar_url
         Write-Host "    Icon URL: " -NoNewline -ForegroundColor DarkYellow
         Write-Host $iconUrl
     }
-
+    
     # If the owner of the root repository is an organization, use the organization name as package name
     if ($rootRepoInfo.owner.type -eq 'Organization') {
         $orgName = $rootRepoInfo.owner.login
