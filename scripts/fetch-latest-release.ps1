@@ -24,7 +24,7 @@ function Get-Favicon {
             return $faviconAbsoluteLink
         } else {
             Write-Host "    Favicon Relative URL: $f_homepageTld$faviconRelativeLink"
-            return $f_homepageTld$faviconRelativeLink
+            return "$f_homepageTld$faviconRelativeLink"
         }
     } else {
         Write-Host "No favicon link found in HTML"
