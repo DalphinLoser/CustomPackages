@@ -310,6 +310,11 @@ function New-NuspecFile {
         Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.ProjectUrl), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
         return
     }
+    
+    Write-Host"THE VALUE OF P_METADATA.PROJECTURL IS: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $p_Metadata.ProjectUrl
+    Write-Host "THE VALUE OF P_METADATA.URL IS: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $p_Metadata.Url
 
     $f_nuspec = @"
 <?xml version="1.0"?>
@@ -566,8 +571,6 @@ function Get-AssetInfo {
     $tag = $null
     $specifiedAssetName = $null
 
-
-
     Write-Host "    Writing Content of p_urls" -ForegroundColor DarkYellow
     # Check if specifiedasset is null or empty
     if (-not [string]::IsNullOrEmpty($p_urls.specifiedAssetName)) {
@@ -695,6 +698,9 @@ function Get-AssetInfo {
         IconUrl             = $iconUrl
         GithubRepoName      = $githubRepoName
     }
+
+    Write-Host "The value of PROJECTURL is: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $packageMetadata.ProjectUrl
 
     # If the name contains the version number exactly, remove the version number from the package name
     if ($packageMetadata.PackageName -match $packageMetadata.Version) {
