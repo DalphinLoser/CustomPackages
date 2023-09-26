@@ -518,8 +518,11 @@ function Get-AssetInfo {
     # Set the description using latest release
 
     # Get the home repo info from the API
-    $repoHomeInfo = ($repoHomeInfo = Invoke-RestMethod -Uri $repo).Content | ConvertFrom-Json
+    $repoHomeInfo = Invoke-RestMethod -Uri $repo
+    Write-Host "Repo Home Info: " -NoNewline -ForegroundColor DarkYellow
+    Format-Json -json $repoHomeInfo
     $description = $repoHomeInfo.description
+    
 
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_urls $p_urls
