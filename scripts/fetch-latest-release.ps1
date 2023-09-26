@@ -325,7 +325,21 @@ function New-InstallScript {
         return
     }
     
-    $f_installScriptContent = @"
+# Choose the appropriate Chocolatey function based on FileType
+    $f_installScriptContent = if ($p_Metadata.FileType -eq "zip") {
+@"
+`$ErrorActionPreference = 'Stop';
+
+`$packageArgs = @{
+    packageName     = "$($p_Metadata.PackageName)"
+    url             = "$($p_Metadata.Url)"
+    unzipLocation = "$env:USERPROFILE\\AutoPackages\\$($p_Metadata.PackageName)"
+}
+
+Install-ChocolateyZipPackage @packageArgs
+"@
+    } else {
+        $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 
 `$packageArgs = @{
@@ -338,6 +352,9 @@ function New-InstallScript {
 }
 Install-ChocolateyPackage @packageArgs
 "@
+    }
+
+    
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
     return $f_installScriptPath
