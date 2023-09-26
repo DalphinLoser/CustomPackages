@@ -16,6 +16,8 @@ function Find-IcoInRepo {
     Write-Host "ENTERING Find-IcoInRepo function" -ForegroundColor Yellow
     $token = $env:GITHUB_TOKEN
 
+    Write-Host "Default branch recieved: $defaultBranch"
+
     if (-not $token) {
         Write-Host "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding." -ForegroundColor Red
         return
@@ -706,6 +708,12 @@ function Get-AssetInfo {
     $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
     Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $rootRepoInfo.url
+    
+    Write-Host "Default Branch: " -NoNewline -ForegroundColor DarkYellow
+    $baseRepoUrl_Info.default_branch
+
+    Write-Host "Default Branch (Root): " -NoNewline -ForegroundColor DarkYellow
+    $rootRepoInfo.default_branch
     
     # Get the icon
     # If the root repository has a homepage, use that as the icon
