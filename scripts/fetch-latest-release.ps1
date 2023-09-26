@@ -6,7 +6,7 @@ function Find-IcoInRepo {
         [string]$owner,
         [string]$repo
     )
-    
+    Write-Host "ENTERING Find-IcoInRepo function" -ForegroundColor Yellow
     $token = $env:GITHUB_TOKEN
     $headers = @{
         "Authorization" = "Bearer $token"
@@ -14,13 +14,17 @@ function Find-IcoInRepo {
     }
 
     $apiUrl = "https://api.github.com/repos/$owner/$repo/git/trees/main?recursive=1"
+    Write-Host "    API URL: $apiUrl"
     $repoContents = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+    Write-Host "    Repo Contents: $repoContents"
 
     $icoFile = $repoContents.tree | Where-Object { $_.path -match '\.ico$' } | Select-Object -First 1
 
     if ($icoFile) {
+        Write-Host "    Found ICO file in repo: $($icoFile.path)"
         return $icoFile.path
     }
+    Write-Host "EXITING Find-IcoInRepo function (None Found)" -ForegroundColor Green
     return $null
 }
 
