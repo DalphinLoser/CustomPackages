@@ -6,33 +6,24 @@ function Find-IcoInRepo {
         [string]$owner,
         [string]$repo
     )
-    Write-Host "ENTERING Find-IcoInRepo function" -ForegroundColor Yellow
+    
     $token = $env:GITHUB_TOKEN
-
     $headers = @{
         "Authorization" = "Bearer $token"
         "User-Agent"    = "PowerShell"
     }
 
-    $query = "extension:ico%20repo:$owner/$repo"
-    $apiUrl = "https://api.github.com/search/code?q=$query"
-    
-    Write-Host "Query URL: $apiUrl" -ForegroundColor Cyan
+    $apiUrl = "https://api.github.com/repos/$owner/$repo/git/trees/main?recursive=1"
+    $repoContents = Invoke-RestMethod -Uri $apiUrl -Headers $headers
 
-    $webResponse = Invoke-WebRequest -Uri $apiUrl -Headers $headers
-    $response = $webResponse.Content | ConvertFrom-Json
+    $icoFile = $repoContents.tree | Where-Object { $_.path -match '\.ico$' } | Select-Object -First 1
 
-    Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Cyan
-    Write-Host "Response Content:" -ForegroundColor Cyan
-    Write-Host $webResponse.Content
-
-    if ($response.total_count -gt 0) {
-        Write-Host "EXITING Find-IcoInRepo function (Found)" -ForegroundColor Green
-        return $response.items[0].path
+    if ($icoFile) {
+        return $icoFile.path
     }
-    Write-Host "EXITING Find-IcoInRepo function (Not Found)" -ForegroundColor Yellow
     return $null
 }
+
 
 function Get-Favicon {
     param (
