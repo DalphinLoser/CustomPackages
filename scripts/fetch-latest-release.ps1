@@ -156,7 +156,7 @@ function Get-Filetype {
         [string]$p_fileName,
         [string[]]$p_acceptedExtensions = $acceptedExtensions
     )
-    Write-Host "Starting Get-Filetype function" -ForegroundColor
+    Write-Host "Starting Get-Filetype function" -ForegroundColor Yellow
 
     $found = $false
 
