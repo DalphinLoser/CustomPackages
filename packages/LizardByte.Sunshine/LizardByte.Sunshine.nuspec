@@ -87,7 +87,7 @@
 - (Build/Windows) Unstripped binaries are now provided as a debuginfo package to support crash dump debugging
 - (Config) Config directories are now created recursively</releaseNotes>
     <licenseUrl>https://github.com/LizardByte/Sunshine/blob/master/LICENSE</licenseUrl>
-    <iconUrl>https://app.lizardbyte.devassets/images/favicon.ico</iconUrl>
+    <iconUrl>https://app.lizardbyte.dev/assets/images/favicon.ico</iconUrl>
     <tags></tags>
   </metadata>
 </package>
