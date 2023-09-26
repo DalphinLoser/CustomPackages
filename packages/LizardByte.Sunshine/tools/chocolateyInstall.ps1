@@ -1,11 +1,10 @@
 $ErrorActionPreference = 'Stop';
+$toolsDir   = Join-Path $(Get-ToolsLocation) $env:ChocolateyPackageName
 
 $packageArgs = @{
-    packageName   = "LizardByte.Sunshine"
-    fileType      = "exe"
-    url           = "https://github.com/LizardByte/Sunshine/releases/download/v0.20.0/sunshine-windows-installer.exe"
-    softwareName  = "Sunshine"
-    silentArgs    = "/S /s /Q /q /SP- /VERYSILENT /NORESTART /quiet /silent"
-    validExitCodes= @(0)
+    packageName     = "LizardByte.Sunshine"
+    url             = "https://github.com/LizardByte/Sunshine/releases/download/v0.20.0/sunshine-debuginfo-win32.zip"
+    unzipLocation   = $toolsDir
 }
-Install-ChocolateyPackage @packageArgs
+
+Install-ChocolateyZipPackage @packageArgs
