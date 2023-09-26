@@ -121,6 +121,7 @@ function Select-Asset {
         exit 1
     }
 
+    Write-Host "Returning Selected Asset" -ForegroundColor Green
     return $f_selectedAsset
 }
 function ConvertTo-SanitizedNugetVersion {
@@ -146,6 +147,7 @@ function ConvertTo-SanitizedNugetVersion {
     $f_sanitizedVersion = "$f_numeric$f_label"
     
     # Return the sanitized version string
+    Write-Host "Returning Sanitized Version" -ForegroundColor Green
     return $f_sanitizedVersion
 }
 function Get-Filetype {
@@ -213,6 +215,7 @@ function Get-SilentArgs {
         }
     }
 
+    Write-Host "Returning Silent Args" -ForegroundColor Green
     return $f_silentArgs
 }
 function Get-LatestReleaseInfo {
@@ -242,16 +245,23 @@ function Get-LatestReleaseInfo {
         exit 1
     }
 
+    $assetCount = ($f_latestReleaseInfo.assets | Measure-Object).Count
     Write-Host "Type of 'assets' field: $($f_latestReleaseInfo.assets.GetType().FullName)"
     Write-Host "Is 'assets' field null? $($null -eq $f_latestReleaseInfo.assets)"
-    Write-Host "Is 'assets' field empty? ($f_latestReleaseInfo.assets.Count -eq 0)"
+    Write-Host "Is 'assets' field empty? ($assetCount -eq 0)"
 
-    Write-Host "Returning latest release info for $($f_latestReleaseInfo.tag_name)"
-    Write-Host "Latest Release Assets: $($f_latestReleaseInfo.assets)"
-    Write-Host "Exiting Get-LatestReleaseInfo function"
-    
+    if ($assetCount -gt 0) {
+        Write-Host "Listing assets:"
+        $f_latestReleaseInfo.assets | ForEach-Object {
+            Write-Host $_.name
+        }
+    }
+
+    Write-Host "Tag Name: $($f_latestReleaseInfo.tag_name)"
+    Write-Host "Returning latest release info" -ForegroundColor Green
     return $f_latestReleaseInfo
 }
+
 
 function Get-RootRepository {
     param (
@@ -278,6 +288,7 @@ function Get-RootRepository {
         return (Get-RootRepository -p_repoUrl $repoInfo.parent.url)
     } else {
         # If it's not a fork, return the current repository info
+        Write-Host "Returning root repository info" -ForegroundColor Green
         return $repoInfo
     }
 }
@@ -323,6 +334,8 @@ function New-NuspecFile {
         Write-Error "Failed to create nuspec file at: $f_nuspecPath"
         exit 1
     }
+    Write-Host "Nuspec file created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host $f_nuspecPath
     return $f_nuspecPath
 }
 function New-InstallScript {
@@ -383,6 +396,8 @@ Install-ChocolateyPackage @packageArgs
     
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
+    Write-Host "Install script created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host $f_installScriptPath
     return $f_installScriptPath
 }
 function Confirm-DirectoryExists {
@@ -522,11 +537,26 @@ function Get-AssetInfo {
         [hashtable]$p_urls
     )
 
+    # Check if specifiedasset is null or empty
+    if (-not [string]::IsNullOrEmpty($p_urls.specifiedAssetName)) {
+        Write-Host "Tag: " -NoNewline -ForegroundColor Magenta
+        Write-Host $tag
+        $specifiedAssetName = $p_urls.specifiedAssetName
+        Write-Host "Specified Asset Name: " -NoNewline -ForegroundColor Magenta
+        Write-Host $specifiedAssetName
+    }
+
     $repo = $p_urls.repo
+    Write-Host "Repo: " -NoNewline -ForegroundColor Magenta
+    Write-Host $repo
     $githubUser = $p_urls.githubUser
+    Write-Host "GitHub User: " -NoNewline -ForegroundColor Magenta
+    Write-Host $githubUser
     $githubRepoName = $p_urls.githubRepoName
+    Write-Host "GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
+    Write-Host $githubRepoName
     $tag = $p_urls.tag
-    $specifiedAssetName = $p_urls.specifiedAssetName
+    
 
     # Validation check for the asset
     if ($null -eq $latestReleaseInfo_GETINFO) {
@@ -541,28 +571,60 @@ function Get-AssetInfo {
     
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -p_assets $latestReleaseInfo_GETINFO.assets -p_urls $p_urls
+    Write-Host "Selected asset: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $selectedAsset.name
 
     # Determine file type from asset name
     $fileType = Get-Filetype -p_fileName $selectedAsset.name
+    Write-Host "File type: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $fileType
     # Determine silent installation arguments based on file type
     $silentArgs = Get-SilentArgs -p_fileType $fileType
+    Write-Host "Silent arguments: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $silentArgs
 
     # Find the root repository
     # get the url from the latest release info and replace everything after the repo name with nothing
     $baseRepoUrl_Info = $latestReleaseInfo_GETINFO.url -replace '/releases/.*', ''
+    Write-Host "Base Repo URL: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $baseRepoUrl_Info
     $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
+    Write-Host "Root Repo URL: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $rootRepoInfo.url
     # Use the avatar URL from the root repository's owner
     $iconUrl = $rootRepoInfo.owner.avatar_url
+    Write-Host "Icon URL: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $iconUrl
 
     # Get the description
     $descriptionInfo = (Invoke-WebRequest -Uri $baseRepoUrl_Info).Content | ConvertFrom-Json
     $description = $descriptionInfo.description
+    # If the description is null, try to get it from the root repository
+    if ($null -eq $descriptionInfo.description) {
+        $description = $rootRepoInfo.description
+        # If the description is still null, get content of the readme
+        if (null -eq $rootRepoInfo.description){
+            $readmeInfo = (Invoke-WebRequest -Uri "$baseRepoUrl_Info/readme").Content | ConvertFrom-Json
+            $description = $readmeInfo.content
+            # If the readme content is null, print message that description could not be found
+            if ($null -eq $readmeInfo.content) {
+                Write-Host "Description could not be found."
+                $description = "Description could not be found."
+            }
+        }
+    }
+    Write-Host "Description: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $description
 
 
     # Get the latest release version number
     $rawVersion = $latestReleaseInfo_GETINFO.tag_name
+    Write-Host "Raw Version: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $rawVersion
     # Sanitize the version number
     $sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
+    Write-Host "Sanitized Version: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $sanitizedVersion
 
     # If specifiedasset is not null or empty print it
     if (-not [string]::IsNullOrEmpty($specifiedAssetName)) {
@@ -577,7 +639,8 @@ function Get-AssetInfo {
     }
     #clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
     $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
-    Write-Host "Specified Asset Name -Version Tag: $cleanedSpecifiedAssetName"
+    Write-Host "Cleaned Specified Asset Name: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $cleanedSpecifiedAssetName
     }
 
     # Create package metadata object
@@ -600,7 +663,7 @@ function Get-AssetInfo {
         $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
     }
 
-    # Return the asset metadata object
+    Write-Host "Returning Metadata" -ForegroundColor Green
     return $packageMetadata
 }
 function Initialize-URLs{
@@ -616,22 +679,30 @@ function Initialize-URLs{
         $githubUser = $urlParts[3]
         $githubRepoName = $urlParts[4]
         $baseRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
-        Write-Host "GitHub User: $githubUser"
-        Write-Host "GitHub Repo Name: $githubRepoName"
-        Write-Host "Base Repo URL: $baseRepoUrl"
+        Write-Host "GitHub User: " -NoNewline -ForegroundColor Magenta
+        Write-Host $githubUser
+        Write-Host "GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
+        Write-Host $githubRepoName
+        Write-Host "Base Repo URL: " -NoNewline -ForegroundColor Magenta
+        Write-Host $baseRepoUrl
+        
 
         # Further check for release tag and asset name
         if ($urlParts.Length -gt 7 -and $urlParts[5] -eq 'releases' -and $urlParts[6] -eq 'download') {
             $tag = $urlParts[7]
             $specifiedAssetName = $urlParts[-1]
-            Write-Host "Release tag detected: $tag"
-            Write-Host "Asset name detected: $specifiedAssetName"
+            Write-Host "Release tag detected: " -NoNewline -ForegroundColor Magenta
+            Write-Host $tag
+            Write-Host "Asset name detected: " -NoNewline -ForegroundColor Magenta
+            Write-Host $specifiedAssetName
         }
     } else {
         Write-Error "Please provide a valid GitHub repository URL. URL provided: $p_repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
         exit 1
     }
+
     # Return all of the urls as a hashtable
+    Write-Host "Returning URLs Hashtable" -ForegroundColor Green
     return @{
         repo = $repo
         githubUser = $githubUser
@@ -730,6 +801,18 @@ function Initialize-GithubPackage{
     #region Get Asset Info
 
     # Get the asset metadata
+    Write-Host "Passing Latest Release Info to Get-AssetInfo: " -ForegroundColor Yellow
+    # Write the content of latestReleaseInfo_GHP one per line with the key in Cyan and the value in white
+    $latestReleaseInfo_GHP.PSObject.Properties | ForEach-Object {
+        Write-Host "$($_.Name): " -NoNewline -ForegroundColor Cyan
+        Write-Host $_.Value
+    }
+    Write-Host "Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
+    # Write the content of the hashtable one per line
+    $urls.GetEnumerator() | ForEach-Object {
+        Write-Host "$($_.Key): " -NoNewline -ForegroundColor Cyan
+        Write-Host $_.Value
+    }
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
 
     Write-Host "Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
