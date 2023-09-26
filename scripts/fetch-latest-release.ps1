@@ -121,7 +121,7 @@ function Select-Asset {
         exit 1
     }
 
-    Write-Host "Returning Selected Asset" -ForegroundColor Green
+    Write-Host "EXITING Selected Asset" -ForegroundColor Green
     return $f_selectedAsset
 }
 function ConvertTo-SanitizedNugetVersion {
@@ -147,7 +147,7 @@ function ConvertTo-SanitizedNugetVersion {
     $f_sanitizedVersion = "$f_numeric$f_label"
     
     # Return the sanitized version string
-    Write-Host "Returning Sanitized Version" -ForegroundColor Green
+    Write-Host "EXITING Sanitized Version" -ForegroundColor Green
     return $f_sanitizedVersion
 }
 function Get-Filetype {
@@ -156,7 +156,7 @@ function Get-Filetype {
         [string]$p_fileName,
         [string[]]$p_acceptedExtensions = $acceptedExtensions
     )
-    Write-Host "Starting Get-Filetype function" -ForegroundColor Yellow
+    Write-Host "ENTERING Get-Filetype function" -ForegroundColor Yellow
 
     $found = $false
 
@@ -186,7 +186,7 @@ function Get-SilentArgs {
         [Parameter(Mandatory=$true)]
         [string]$p_fileType
     )
-    Write-Host "Starting Get-SilentArgs function" -ForegroundColor Yellow
+    Write-Host "ENTERING Get-SilentArgs function" -ForegroundColor Yellow
     
     $f_silentArgs = ''
     
@@ -217,7 +217,7 @@ function Get-SilentArgs {
         }
     }
 
-    Write-Host "Returning Silent Args" -ForegroundColor Green
+    Write-Host "EXITING Silent Args" -ForegroundColor Green
     return $f_silentArgs
 }
 function Get-LatestReleaseInfo {
@@ -226,7 +226,7 @@ function Get-LatestReleaseInfo {
         [string]$p_baseRepoUrl
     )
 
-    Write-Host "    Starting Get-LatestReleaseInfo function" -ForegroundColor Yellow
+    Write-Host "    ENTERING Get-LatestReleaseInfo function" -ForegroundColor Yellow
     Write-Host "    Target GitHub API URL: $p_baseRepoUrl"
 
     Write-Host "    Initiating web request to GitHub API..."
@@ -260,7 +260,7 @@ function Get-LatestReleaseInfo {
     }
 
     Write-Host "    Tag Name: $($f_latestReleaseInfo.tag_name)"
-    Write-Host "Returning latest release info" -ForegroundColor Green
+    Write-Host "EXITING latest release info" -ForegroundColor Green
     return $f_latestReleaseInfo
 }
 
@@ -270,7 +270,9 @@ function Get-RootRepository {
         [Parameter(Mandatory=$true)]
         [string]$p_repoUrl
     )
-    Write-Host "Starting Get-RootRepository function" -ForegroundColor Yellow
+    Write-Host "ENTERING Get-RootRepository function" -ForegroundColor Yellow
+    Write-Host "    Getting root repository for: " -NoNewline -ForegroundColor Cyan
+    Write-Host $p_repoUrl
     # Fetch the repository information
     try {
         #$rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
@@ -278,6 +280,8 @@ function Get-RootRepository {
         #Write-Host $rateLimitInfo
 
         $repoInfo = (Invoke-WebRequest -Uri $p_repoUrl).Content | ConvertFrom-Json
+        Write-Host "    Repository information fetched successfully: " -NoNewline -ForegroundColor Cyan
+        $repoInfo
     }
     catch {
         Write-Error "Failed to fetch repository information."
@@ -290,7 +294,7 @@ function Get-RootRepository {
         return (Get-RootRepository -p_repoUrl $repoInfo.parent.url)
     } else {
         # If it's not a fork, return the current repository info
-        Write-Host "Returning root repository info" -ForegroundColor Green
+        Write-Host "EXITING root repository info" -ForegroundColor Green
         return $repoInfo
     }
 }
@@ -302,7 +306,7 @@ function New-NuspecFile {
         [Parameter(Mandatory=$true)]
         [string]$p_packageDir
     )
-    Write-Host "Starting New-NuspecFile function" -ForegroundColor Yellow
+    Write-Host "ENTERING New-NuspecFile function" -ForegroundColor Yellow
     # Validation
     if (-not $p_Metadata.PackageName -or -not $p_Metadata.ProjectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
         Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.ProjectUrl), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
@@ -338,7 +342,7 @@ function New-NuspecFile {
     }
     Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Cyan
     Write-Host $f_nuspecPath
-    Write-Host "Returning Nuspec Path" -ForegroundColor Green
+    Write-Host "EXITING Nuspec Path" -ForegroundColor Green
     return $f_nuspecPath
 }
 function New-InstallScript {
@@ -349,7 +353,7 @@ function New-InstallScript {
         [Parameter(Mandatory=$true)]
         [string]$p_toolsDir
     )
-    Write-Host "Starting New-InstallScript function" -ForegroundColor Yellow
+    Write-Host "ENTERING New-InstallScript function" -ForegroundColor Yellow
     Write-Host
     #Write-Host "    Package Metadata From Install Script Method:" -ForegroundColor DarkYellow
     #Format-Json -json $p_Metadata
@@ -401,7 +405,7 @@ Install-ChocolateyPackage @packageArgs
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
     Write-Host "    Install script created at: " -NoNewline -ForegroundColor Cyan
     Write-Host $f_installScriptPath
-    Write-Host "Returning Install Script Path" -ForegroundColor Green
+    Write-Host "EXITING Install Script Path" -ForegroundColor Green
     return $f_installScriptPath
 }
 function Confirm-DirectoryExists {
@@ -411,7 +415,7 @@ function Confirm-DirectoryExists {
         [Parameter(Mandatory=$true)]
         [string]$p_name
     )
-    Write-Host "Starting Confirm-DirectoryExists function" -ForegroundColor Yellow
+    Write-Host "ENTERING Confirm-DirectoryExists function" -ForegroundColor Yellow
     Write-Host "    Checking for $p_name directory..."
     if (-not (Test-Path $p_path)) {
         Write-Host "    No $p_name directory found, creating $p_name directory..."
@@ -424,7 +428,7 @@ function Confirm-DirectoryExists {
     Write-Host "Exiting Confirm-DirectoryExists function" -ForegroundColor Green
 }
 function Get-Updates {
-    Write-Host "Starting Get-Updates function" -ForegroundColor Yellow
+    Write-Host "ENTERING Get-Updates function" -ForegroundColor Yellow
     # Get all of the names of the folders in the packages directory
     Write-LogHeader "   Checking for updates"
     
@@ -515,7 +519,7 @@ function New-ChocolateyPackage {
         [Parameter(Mandatory=$true)]
         [string]$p_packageDir
     )
-    Write-Host "Starting New-ChocolateyPackage function" -ForegroundColor Yellow
+    Write-Host "ENTERING New-ChocolateyPackage function" -ForegroundColor Yellow
     # Check for Nuspec File
     Write-Host "    Checking for nuspec file..."
     if (-not (Test-Path $p_nuspecPath)) {
@@ -543,7 +547,7 @@ function Get-AssetInfo {
         [Parameter(Mandatory=$true)]
         [hashtable]$p_urls
     )
-    Write-Host "Starting Get-AssetInfo function" -ForegroundColor Yellow
+    Write-Host "ENTERING Get-AssetInfo function" -ForegroundColor Yellow
     # Initialize variables
     $tag = $null
     $specifiedAssetName = $null
@@ -678,7 +682,7 @@ function Get-AssetInfo {
         $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
     }
 
-    Write-Host "Returning Metadata" -ForegroundColor Green
+    Write-Host "EXITING Metadata" -ForegroundColor Green
     return $packageMetadata
 }
 function Initialize-URLs{
@@ -686,7 +690,7 @@ function Initialize-URLs{
         [Parameter(Mandatory=$true)]
         [string]$p_repoUrl
     )
-    Write-Host "Starting Initialize-URLs function" -ForegroundColor Yellow
+    Write-Host "ENTERING Initialize-URLs function" -ForegroundColor Yellow
     # Check if the URL is a GitHub repository URL
     if ($p_repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
         $repo = $p_repoUrl
@@ -718,7 +722,7 @@ function Initialize-URLs{
     }
 
     # Return all of the urls as a hashtable
-    Write-Host "Returning URLs Hashtable" -ForegroundColor Green
+    Write-Host "EXITING URLs Hashtable" -ForegroundColor Green
     return @{
         repo = $repo
         githubUser = $githubUser
@@ -783,7 +787,7 @@ function Initialize-GithubPackage{
         Write-Error "Please provide a URL as an argument."
         exit 1
     }
-    Write-Host "Starting Initialize-GithubPackage function" -ForegroundColor Yellow
+    Write-Host "ENTERING Initialize-GithubPackage function" -ForegroundColor Yellow
     Write-Host "    Input Received: $repoUrl"
 
     ###################################################################################################
