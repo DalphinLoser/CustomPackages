@@ -275,13 +275,8 @@ function Get-RootRepository {
     Write-Host $p_repoUrl
     # Fetch the repository information
     try {
-        #$rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
-        #Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
-        #Write-Host $rateLimitInfo
-
         $repoInfo = (Invoke-WebRequest -Uri $p_repoUrl).Content | ConvertFrom-Json
         Write-Host "    Repository information fetched successfully: " -NoNewline -ForegroundColor Cyan
-        $repoInfo
     }
     catch {
         Write-Error "Failed to fetch repository information."
@@ -291,13 +286,15 @@ function Get-RootRepository {
     # Check if the repository is a fork
     if ($repoInfo.fork -eq $true) {
         # If it's a fork, recurse into its parent
-        return (Get-RootRepository -p_repoUrl $repoInfo.parent.url)
+        $rootRepo = Get-RootRepository -p_repoUrl $repoInfo.parent.url
+        return $rootRepo
     } else {
         # If it's not a fork, return the current repository info
         Write-Host "EXITING root repository info" -ForegroundColor Green
         return $repoInfo
     }
 }
+
 function New-NuspecFile {
     param (
         [Parameter(Mandatory=$true)]
