@@ -515,18 +515,6 @@ function Get-AssetInfo {
     #Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
     #Write-Host $rateLimitInfo
     
-    # Set the description using latest release
-
-    # Get the home repo info from the API
-    # Remove everything after the repo name from the repo url
-    $repoHomeAPI = $repo -replace '/releases/.*', ''
-    $repoHomeInfo = Invoke-RestMethod -Uri $repoHomeAPI
-    Write-Host "Repo: $repoHomeAPI"
-    Write-Host "Repo Home Info: " -NoNewline -ForegroundColor DarkYellow
-    Format-Json -json $repoHomeInfo
-    $description = $repoHomeInfo.description
-    
-
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_urls $p_urls
 
@@ -541,6 +529,10 @@ function Get-AssetInfo {
     $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
     # Use the avatar URL from the root repository's owner
     $iconUrl = $rootRepoInfo.owner.avatar_url
+
+    # Get the description
+    $descriptionInfo = (Invoke-WebRequest -Uri $baseRepoUrl_Info).Content | ConvertFrom-Json
+    $description = $descriptionInfo.description
 
 
     # Get the latest release version number
