@@ -543,11 +543,15 @@ function Get-AssetInfo {
 
     # Check if specifiedasset is null or empty
     if (-not [string]::IsNullOrEmpty($p_urls.specifiedAssetName)) {
-        Write-Host "Tag: " -NoNewline -ForegroundColor Magenta
-        Write-Host $tag
         $specifiedAssetName = $p_urls.specifiedAssetName
         Write-Host "Specified Asset Name: " -NoNewline -ForegroundColor Magenta
         Write-Host $specifiedAssetName
+    }
+
+    if (-not [string]::IsNullOrEmpty($p_urls.tag)) {
+        $tag = $p_urls.tag
+        Write-Host "Tag: " -NoNewline -ForegroundColor Magenta
+        Write-Host $tag
     }
 
     $repo = $p_urls.repo
@@ -558,9 +562,7 @@ function Get-AssetInfo {
     Write-Host $githubUser
     $githubRepoName = $p_urls.githubRepoName
     Write-Host "GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
-    Write-Host $githubRepoName
-    $tag = $p_urls.tag
-    
+    Write-Host $githubRepoName    
 
     # Validation check for the asset
     if ($null -eq $latestReleaseInfo_GETINFO) {
