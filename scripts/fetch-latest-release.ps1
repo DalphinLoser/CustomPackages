@@ -271,8 +271,8 @@ function New-NuspecFile {
     )
 
     # Validation
-    if (-not $p_Metadata.PackageName -or -not $p_Metadata.Repo -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
-        Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.Repo), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
+    if (-not $p_Metadata.PackageName -or -not $p_Metadata.projectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
+        Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.projectUrl), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
         return
     }
 
@@ -285,10 +285,10 @@ function New-NuspecFile {
     <version>$($p_Metadata.Version)</version>
     <authors>$($p_Metadata.Author)</authors>
     <description>$($p_Metadata.Description)</description>
-    <projectUrl>$($p_Metadata.Repo)</projectUrl>
+    <projectUrl>$($p_Metadata.projectUrl)</projectUrl>
     <packageSourceUrl>$($p_Metadata.Url)</packageSourceUrl>
     <releaseNotes>$($p_Metadata.VersionDescription)</releaseNotes>
-    <licenseUrl>$($p_Metadata.Repo)/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>$($p_Metadata.projectUrl)/blob/master/LICENSE</licenseUrl>
     <iconUrl>$($p_Metadata.IconUrl)</iconUrl>
     <tags></tags>
   </metadata>
@@ -305,6 +305,16 @@ function New-NuspecFile {
     }
     return $f_nuspecPath
 }
+funtion Update-NuspecFile {
+    param (
+        [Parameter(Mandatory=$true)]
+        [PSCustomObject]$p_Metadata,
+
+        [Parameter(Mandatory=$true)]
+        [string]$p_packageDir
+    )
+    
+}
 function New-InstallScript {
     param (
         [Parameter(Mandatory=$true)]
@@ -320,7 +330,7 @@ function New-InstallScript {
     Write-Host
 
     # Validation
-    if (-not $p_Metadata.PackageName -or -not $p_Metadata.Repo -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
+    if (-not $p_Metadata.PackageName -or -not $p_Metadata.projectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
         Write-Error "Missing mandatory metadata for install script."
         return
     }
@@ -361,7 +371,6 @@ function Confirm-DirectoryExists {
     }
 }
 function Get-Updates {
-
 
     # Get all of the names of the folders in the packages directory
     Write-LogHeader "Checking for updates"
@@ -440,6 +449,7 @@ function Get-Updates {
         if ($latestReleaseUrl -ne $packageSourceUrl) {
             Write-Host "Updating metadata for $package"
             # Get the asset metadata
+            Initialize-URLs -p_repoUrl $latestReleaseUrl -p_specifiedAssetName $specifiedAssetName
             $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -specifiedAssetName $specifiedAssetName
             # Create the nuspec file and install script
             $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir "$f_packageDir/$package"
@@ -560,6 +570,35 @@ function Get-AssetInfo {
     # Return the asset metadata object
     return $packageMetadata
 }
+function Initialize-URLs{
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$p_repoUrl
+    )
+    # Check if the URL is a GitHub repository URL
+    if ($p_repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
+        $repo = $p_repoUrl
+        $urlParts = $repo -split '/'
+        
+        $githubUser = $urlParts[3]
+        $githubRepoName = $urlParts[4]
+        $baseRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
+        Write-Host "GitHub User: $githubUser"
+        Write-Host "GitHub Repo Name: $githubRepoName"
+        Write-Host "Base Repo URL: $baseRepoUrl"
+
+        # Further check for release tag and asset name
+        if ($urlParts.Length -gt 7 -and $urlParts[5] -eq 'releases' -and $urlParts[6] -eq 'download') {
+            $tag = $urlParts[7]
+            $specifiedAssetName = $urlParts[-1]
+            Write-Host "Release tag detected: $tag"
+            Write-Host "Asset name detected: $specifiedAssetName"
+        }
+    } else {
+        Write-Error "Please provide a valid GitHub repository URL. URL provided: $p_repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
+        exit 1
+    }
+}
 <# Get-MostRecentValidRelease: This is useful if releases do not always contain valid assets
 function Get-MostRecentValidRelease {
     param ( # Parameter declarations
@@ -619,29 +658,9 @@ function Initialize-GithubPackage{
     Write-LogHeader "Fetching Latest Release Info"
     #region Get Latest Release Info
 
-    # Check if the URL is a GitHub repository URL
-    if ($repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
-        $repo = $repoUrl
-        $urlParts = $repo -split '/'
-        
-        $githubUser = $urlParts[3]
-        $githubRepoName = $urlParts[4]
-        $baseRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
-        Write-Host "GitHub User: $githubUser"
-        Write-Host "GitHub Repo Name: $githubRepoName"
-        Write-Host "Base Repo URL: $baseRepoUrl"
 
-        # Further check for release tag and asset name
-        if ($urlParts.Length -gt 7 -and $urlParts[5] -eq 'releases' -and $urlParts[6] -eq 'download') {
-            $tag = $urlParts[7]
-            $specifiedAssetName = $urlParts[-1]
-            Write-Host "Release tag detected: $tag"
-            Write-Host "Asset name detected: $specifiedAssetName"
-        }
-    } else {
-        Write-Error "Please provide a valid GitHub repository URL. URL provided: $repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
-        exit 1
-    }
+    Initialize-URLs -p_repoUrl $repoUrl
+
 
     # Create a variable to store accepted extensions
     
