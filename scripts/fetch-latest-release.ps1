@@ -710,6 +710,9 @@ function Initialize-GithubPackage{
     # Get the asset metadata
     $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -p_urls $urls
 
+    Write-Host "Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
+    Format-Json -json $myMetadata
+
     # Set the path to the package directory and create it if it doesn't exist
     $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
     Confirm-DirectoryExists -p_path $packageDir -p_name 'package'
