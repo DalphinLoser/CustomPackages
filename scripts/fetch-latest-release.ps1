@@ -3,31 +3,45 @@ $ErrorActionPreference = 'Stop'
 #region Functions
 function Find-IcoInRepo {
     param (
+        [Parameter(Mandatory=$true)]
         [string]$owner,
+
+        [Parameter(Mandatory=$true)]
         [string]$repo
     )
+
     Write-Host "ENTERING Find-IcoInRepo function" -ForegroundColor Yellow
     $token = $env:GITHUB_TOKEN
+
+    if (-not $token) {
+        Write-Host "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding." -ForegroundColor Red
+        return
+    }
+
     $headers = @{
         "Authorization" = "Bearer $token"
         "User-Agent"    = "PowerShell"
     }
 
-    $apiUrl = "https://api.github.com/repos/$owner/$repo/git/trees/main?recursive=1"
-    Write-Host "    API URL: $apiUrl"
-    $repoContents = Invoke-RestMethod -Uri $apiUrl -Headers $headers
-    Write-Host "    Repo Contents: $repoContents"
+    $query = "extension:ico%20repo:$owner/$repo"
+    $apiUrl = "https://api.github.com/search/code?q=$query"
+    
+    Write-Host "Query URL: $apiUrl" -ForegroundColor Cyan
 
-    $icoFile = $repoContents.tree | Where-Object { $_.path -match '\.ico$' } | Select-Object -First 1
+    $webResponse = Invoke-WebRequest -Uri $apiUrl -Headers $headers
+    $response = $webResponse.Content | ConvertFrom-Json
 
-    if ($icoFile) {
-        Write-Host "    Found ICO file in repo: $($icoFile.path)"
-        return $icoFile.path
+    Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Cyan
+    Write-Host "Response Content:" -ForegroundColor Cyan
+    Write-Host $webResponse.Content
+
+    if ($response.total_count -gt 0) {
+        Write-Host "EXITING Find-IcoInRepo function (Found)" -ForegroundColor Green
+        return $response.items[0].path
     }
-    Write-Host "EXITING Find-IcoInRepo function (None Found)" -ForegroundColor Green
+    Write-Host "EXITING Find-IcoInRepo function (Not Found)" -ForegroundColor Yellow
     return $null
 }
-
 
 function Get-Favicon {
     param (
