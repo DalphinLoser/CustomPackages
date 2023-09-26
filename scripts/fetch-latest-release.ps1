@@ -9,7 +9,9 @@ function Find-IcoInRepo {
 
     $query = "extension:ico repo:$owner/$repo"
     $apiUrl = "https://api.github.com/search/code?q=$query"
-    $searchResults = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+    
+    $response = Invoke-WebRequest -Uri $apiUrl
+    $searchResults = $response.Content | ConvertFrom-Json
 
     if ($searchResults.total_count -gt 0) {
         return $searchResults.items[0].path
@@ -17,6 +19,7 @@ function Find-IcoInRepo {
 
     return $null
 }
+
 function Get-Favicon {
     param (
         [Parameter(Mandatory=$true)]
