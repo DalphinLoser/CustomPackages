@@ -221,18 +221,49 @@ function Get-LatestReleaseInfo {
         [string]$p_baseRepoUrl
     )
 
-    # Fetch and parse latest release data
-    $f_latestReleaseInfo = (Invoke-WebRequest -Uri $p_baseRepoUrl).Content | ConvertFrom-Json
-    
-    # Validation check for the API call
-    if ($null -eq $f_latestReleaseInfo -or $f_latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
-        Write-Error "Failed to fetch valid release information from GitHub. URL used: $p_baseRepoUrl"
+    Write-Host "Starting Get-LatestReleaseInfo function" -ForegroundColor Cyan
+    Write-Host "Target GitHub API URL: $p_baseRepoUrl" -ForegroundColor Yellow
+
+    # Fetch latest release data
+    Write-Host "Initiating web request to GitHub API..." -ForegroundColor Yellow
+    $f_webResponse = Invoke-WebRequest -Uri $p_baseRepoUrl -Method Get
+
+    # Debug: Outputting HTTP Status Code
+    Write-Host "HTTP Status Code: $($f_webResponse.StatusCode)" -ForegroundColor Yellow
+
+    # Check HTTP status code
+    if ($f_webResponse.StatusCode -ne 200) {
+        Write-Error "Received a $($f_webResponse.StatusCode) status code from GitHub. URL used: $p_baseRepoUrl"
         exit 1
     }
-    #Write-Host "Latest Release Info: " -NoNewline -ForegroundColor DarkYellow
-    #Format-Json -json $f_latestReleaseInfo
+
+    # Try to parse the JSON content
+    Write-Host "Attempting to parse JSON content..." -ForegroundColor Yellow
+    try {
+        $f_latestReleaseInfo = $f_webResponse.Content | ConvertFrom-Json
+    } catch {
+        Write-Error "Failed to parse JSON from GitHub response. URL used: $p_baseRepoUrl"
+        Write-Host "Raw Content: $($f_webResponse.Content)" -ForegroundColor Red
+        exit 1
+    }
+    
+    # Validation check for the API call
+    Write-Host "Validating received data..." -ForegroundColor Yellow
+    if ($null -eq $f_latestReleaseInfo -or $f_latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
+        Write-Error "Failed to fetch valid release information from GitHub. URL used: $p_baseRepoUrl"
+        Write-Host "Raw Content: $($f_webResponse.Content)" -ForegroundColor Red
+        exit 1
+    }
+
     Write-Host "Returning latest release info for $($f_latestReleaseInfo.tag_name)" -ForegroundColor Green
-    Write-Host "Latest Release Assets: $($f_latestReleaseInfo.assets) " -ForegroundColor DarkYellow
+
+    if ($f_latestReleaseInfo.assets) {
+        Write-Host "Latest Release Assets: $($f_latestReleaseInfo.assets)" -ForegroundColor DarkYellow
+    } else {
+        Write-Host "No assets found for the latest release." -ForegroundColor Red
+    }
+
+    Write-Host "Exiting Get-LatestReleaseInfo function" -ForegroundColor Cyan
     return $f_latestReleaseInfo
 }
 function Get-RootRepository {
@@ -427,7 +458,7 @@ function Get-Updates {
         Write-Host "Checking for updates for: $package" -ForegroundColor Magenta
     
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
-        $latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
+        $latestReleaseInfo_UP = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
         $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
@@ -449,7 +480,7 @@ function Get-Updates {
             exit 1
         }
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo.tag_name
+        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo_UP.tag_name
         Write-Host "Latest Release URL: $latestReleaseUrl_Update"
         # Compate the two urls
         # Compare the two URLs
@@ -499,7 +530,7 @@ function New-ChocolateyPackage {
 function Get-AssetInfo {
     param (
         [Parameter(Mandatory=$true)]
-        [PSCustomObject]$latestReleaseInfo,
+        [PSCustomObject]$latestReleaseInfo_GETINFO,
         [Parameter(Mandatory=$true)]
         [hashtable]$p_urls
     )
@@ -511,7 +542,7 @@ function Get-AssetInfo {
     $specifiedAssetName = $p_urls.specifiedAssetName
 
     # Validation check for the asset
-    if ($null -eq $latestReleaseInfo) {
+    if ($null -eq $latestReleaseInfo_GETINFO) {
         Write-Error "No assets found for the latest release. Latest Release Info is Null"
         exit 1
     }
@@ -522,7 +553,7 @@ function Get-AssetInfo {
     #Write-Host $rateLimitInfo
     
     # Select the best asset based on supported types
-    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_urls $p_urls
+    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo_GETINFO.assets -p_urls $p_urls
 
     # Determine file type from asset name
     $fileType = Get-Filetype -p_fileName $selectedAsset.name
@@ -531,7 +562,7 @@ function Get-AssetInfo {
 
     # Find the root repository
     # get the url from the latest release info and replace everything after the repo name with nothing
-    $baseRepoUrl_Info = $latestReleaseInfo.url -replace '/releases/.*', ''
+    $baseRepoUrl_Info = $latestReleaseInfo_GETINFO.url -replace '/releases/.*', ''
     $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
     # Use the avatar URL from the root repository's owner
     $iconUrl = $rootRepoInfo.owner.avatar_url
@@ -542,7 +573,7 @@ function Get-AssetInfo {
 
 
     # Get the latest release version number
-    $rawVersion = $latestReleaseInfo.tag_name
+    $rawVersion = $latestReleaseInfo_GETINFO.tag_name
     # Sanitize the version number
     $sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
 
@@ -568,7 +599,7 @@ function Get-AssetInfo {
         Version             = $sanitizedVersion
         Author              = $githubUser
         Description         = $description
-        VersionDescription  = $latestReleaseInfo.body -replace "\r\n", " "
+        VersionDescription  = $latestReleaseInfo_GETINFO.body -replace "\r\n", " "
         Url                 = $selectedAsset.browser_download_url
         ProjectUrl          = $repo
         FileType            = $fileType
@@ -701,7 +732,7 @@ function Initialize-GithubPackage{
     Write-Host "Fetching latest release information from GitHub..."
     $latestReleaseUrl = ($urls.baseRepoUrl + '/releases/latest')
     Write-Host "Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
-    $latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl $latestReleaseUrl
+    $latestReleaseInfo_GHP = Get-LatestReleaseInfo -p_baseRepoUrl $latestReleaseUrl
 
     #endregion
     ###################################################################################################
@@ -709,7 +740,7 @@ function Initialize-GithubPackage{
     #region Get Asset Info
 
     # Get the asset metadata
-    $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -p_urls $urls
+    $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
 
     Write-Host "Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
     Format-Json -json $myMetadata
