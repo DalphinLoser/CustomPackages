@@ -396,7 +396,7 @@ function Get-Updates {
     Write-Host "The packages directory is: $f_packageDir"
 
     # List the directories in the packages directory
-    $f_packageDirs = Get-ChildItem $f_packageDir -Directory
+    $f_packageDirs = Get-ChildItem -Path $f_packageDir -Directory
     Write-Host "The packages directory contains the following directories: $f_packageDirs"
 
     # for each item in the packages directory get the latest release info.
@@ -406,7 +406,14 @@ function Get-Updates {
             Write-Error "Path is not valid: $f_packageDir"
             exit 1
         }
-        
+
+        # Write the contents of the package directory to the console
+        Write-Host "The contents of the package directory are: $package"
+        # Find the nuspec file in the package directory
+        $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
+        # Write the name of the nuspec file to the console
+        Write-Host "The nuspec file is: $nuspecFile"
+
         Write-Host "Checking for updates for: " -NoNewline -ForegroundColor Magenta
         Write-Host $package # TODO: THIS IS BROKEN FIX THE PATH THING THEN IT WILL WORK
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
