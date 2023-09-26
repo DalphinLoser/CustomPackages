@@ -424,21 +424,21 @@ function Get-Updates {
             exit 1
         }
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-        $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo.tag_name
-        Write-Host "Latest Release URL: $latestReleaseUrl"
+        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo.tag_name
+        Write-Host "Latest Release URL: $latestReleaseUrl_Update"
         # Compate the two urls
         # Compare the two URLs
-        if ($latestReleaseUrl -eq $packageSourceUrl) {
+        if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
             Write-Host "The URLs are identical. No new version seems to be available."
         } else {
             Write-Host "The URLs are different. A new version appears to be available."
             Write-Host "Old URL: $packageSourceUrl"
-            Write-Host "New URL: $latestReleaseUrl"
+            Write-Host "New URL: $latestReleaseUrl_Update"
         }
         # If the URLs are different, update the metadata for the package
-        if ($latestReleaseUrl -ne $packageSourceUrl) {
+        if ($latestReleaseUrl_Update -ne $packageSourceUrl) {
             Write-Host "Updating metadata for $package"
-            Initialize-GithubPackage -repoUrl $latestReleaseUrl
+            Initialize-GithubPackage -repoUrl $latestReleaseUrl_Update
         } else {
             Write-Host "No updates found for $package"
         }
