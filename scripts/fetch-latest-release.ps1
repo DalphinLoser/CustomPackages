@@ -16,8 +16,8 @@ function Get-Favicon {
         # Check if link is relative
         if ($faviconRelativeLink -match "^/") {
             # Convert to absolute URL
-            Write-Host "    Favicon Relative Link: $($webRequest.BaseResponse.ResponseUri.Scheme)://$($webRequest.BaseResponse.ResponseUri.Host)$faviconRelativeLink"
-            return "$($webRequest.BaseResponse.ResponseUri.Scheme)://$($webRequest.BaseResponse.ResponseUri.Host)$faviconRelativeLink"
+            Write-Host "    Favicon Relative Link: $p_homepage + $faviconRelativeLink"
+            return "$p_homepage + $faviconRelativeLink"
         } else {
             Write-Host "    Favicon URL: $faviconRelativeLink"
             return $faviconRelativeLink
