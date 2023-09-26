@@ -537,6 +537,10 @@ function Get-AssetInfo {
         [hashtable]$p_urls
     )
 
+    # Initialize variables
+    $tag = $null
+    $specifiedAssetName = $null
+
     # Check if specifiedasset is null or empty
     if (-not [string]::IsNullOrEmpty($p_urls.specifiedAssetName)) {
         Write-Host "Tag: " -NoNewline -ForegroundColor Magenta
