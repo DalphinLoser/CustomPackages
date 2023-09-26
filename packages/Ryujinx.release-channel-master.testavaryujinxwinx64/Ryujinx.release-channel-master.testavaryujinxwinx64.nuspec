@@ -3,7 +3,7 @@
   <metadata>
     <id>Ryujinx.release-channel-master.testavaryujinxwinx64</id>
     <title>release-channel-master</title>
-    <version>1.1.1032</version>
+    <version>1.1.1031</version>
     <authors>Ryujinx</authors>
     <description>Ryujinx's Release channel: master</description>
     <projectUrl>https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1032/test-ava-ryujinx-1.1.1032-win_x64.zip</projectUrl>
