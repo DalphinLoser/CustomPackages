@@ -63,10 +63,12 @@ function Write-LogHeader {
 function Select-Asset {
     param (
         [array]$p_assets,
-        [Parameter(Mandatory=$false)]
-        [string]$p_assetName
+        [Parameter(Mandatory=$true)]
+        [hashtable]$p_urls
     )
 
+    $p_assetName = $p_urls.specifiedAssetName
+    $baseRepoUrl = $p_urls.baseRepoUrl
     # Validation check for the assets
     $f_supportedTypes = $acceptedExtensions
 
@@ -517,7 +519,7 @@ function Get-AssetInfo {
     $description = $latestReleaseInfo.body
 
     # Select the best asset based on supported types
-    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_assetName $specifiedAssetName
+    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_urls $p_urls
 
     # Determine file type from asset name
     $fileType = Get-Filetype -p_fileName $selectedAsset.name
