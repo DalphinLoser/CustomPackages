@@ -375,8 +375,10 @@ function Get-Updates {
     }
     # Get all of the names of the folders in the packages directory
 
-    # Go up two levels and find a directory named packages
-    $f_packageDir = Join-Path (Get-Location).Path "packages"
+    # Not a great way to do this. Change it if one day happens to be 27 hours long.
+    # Go up one level and then find a directory named packages
+    $f_packageDir = Join-Path (Get-Location).Path "..\packages"
+  
     Write-Host "The packages directory is: $f_packageDir"
 
 
