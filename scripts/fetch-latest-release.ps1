@@ -7,7 +7,10 @@ function Find-IcoInRepo {
         [string]$owner,
 
         [Parameter(Mandatory=$true)]
-        [string]$repo
+        [string]$repo,
+
+        [Parameter(Mandatory=$true)]
+        [string]$defaultBranch
     )
 
     Write-Host "ENTERING Find-IcoInRepo function" -ForegroundColor Yellow
@@ -24,7 +27,7 @@ function Find-IcoInRepo {
     }
 
     # Using the Trees API now
-    $apiUrl = "https://api.github.com/repos/$owner/$repo/git/trees/master?recursive=1"
+    $apiUrl = "https://api.github.com/repos/$owner/$repo/git/trees/$defaultBranch?recursive=1"
     Write-Host "Query URL: $apiUrl" -ForegroundColor Cyan
 
     try {
@@ -705,6 +708,7 @@ function Get-AssetInfo {
     Write-Host $rootRepoInfo.url
     
     # Get the icon
+    # If the root repository has a homepage, use that as the icon
     if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
         $homepage = $rootRepoInfo.homepage
         # Get the favicon from the homepage
@@ -712,10 +716,12 @@ function Get-AssetInfo {
         Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor DarkYellow
         Write-Host $iconUrl
     }
-    elseif ($icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName) {
+    # If the root repository has a logo, use that as the icon
+    elseif ($icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $baseRepoUrl_Info.default_branch) {
         $iconUrl = "https://raw.githubusercontent.com/$($p_urls.githubUser)/$($p_urls.githubRepoName)/main/$icoPath"
-        Write-Host "Found ICO file in Repo: $iconUrl"
+        Write-Host "    Found ICO file in Repo: $iconUrl"
     }
+    # If the root repository has an avatar, use that as the icon
     else {
         $iconUrl = $rootRepoInfo.owner.avatar_url
         Write-Host "    Icon URL: " -NoNewline -ForegroundColor DarkYellow
