@@ -12,7 +12,7 @@ function Format-Json {
     )
 
     # Color scale from dark blue to light blue
-    $colorScale = @('DarkBlue', 'Blue', 'RoyalBlue', 'DodgerBlue', 'LightSkyBlue')
+    $colorScale = @('DarkBlue', 'Blue', 'Yellow')
 
     if ($null -eq $json) {
         Write-Host "Received null json object."
@@ -68,12 +68,38 @@ function Select-Asset {
     )
 
     # Validation check for the assets
-    $f_supportedTypes = @('exe', 'msi', 'zip')
+    $f_supportedTypes = $acceptedExtensions
+
+    # Validate that assets is not null or empty
+    if ($null -eq $p_assets -or $p_assets.Count -eq 0) {
+        Write-Error "No assets found for the latest release. Assets is Null or Empty"
+        exit 1
+    }
 
     # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
     if (-not [string]::IsNullOrEmpty($p_assetName)) {
         Write-Host "Selecting asset with name: `"$p_assetName`""
         $f_selectedAsset = $p_assets | Where-Object { $_.name -eq $p_assetName }
+        # If there is no match for the asset name, throw an error
+        if ($null -eq $f_selectedAsset) {
+            # This is messy but works. Should be cleaned up.
+            # Try checking for the asset in all releases
+            Write-Host "No asset found in latest release with name: `"$p_assetName`". Checking all releases..."
+            $releasesUrl = "$baseRepoUrl/releases"
+            $releasesInfo = (Invoke-WebRequest -Uri $releasesUrl).Content | ConvertFrom-Json
+            foreach ($release in $releasesInfo) {
+                $f_selectedAsset = $release.assets | Where-Object { $_.name -eq $p_assetName }
+                if ($null -ne $f_selectedAsset) {
+                    Write-Host "Asset found in release: $($release.tag_name)"
+                    break
+                }
+            }
+            # If there is still no match, throw an error
+            if ($null -eq $f_selectedAsset) {
+                Write-Error "No asset found with name: `"$p_assetName`""
+                exit 1
+            }
+        }
     } else {
         Write-Host "Selecting first asset with supported type: $f_supportedTypes"
         $f_selectedAsset = $p_assets | 
@@ -89,7 +115,7 @@ function Select-Asset {
 
     # Validation check for the selected asset
     if ($null -eq $f_selectedAsset) {
-        Write-Error "No suitable asset (.exe, .msi) found for the latest release. "
+        Write-Error "No suitable asset found for the latest release. Selected Asset is Null"
         exit 1
     }
 
@@ -339,6 +365,51 @@ function Confirm-DirectoryExists {
         Write-Host "$p_name directory found at: $p_path" -ForegroundColor Cyan
     }
 }
+function Get-Updates {
+    if ($null -eq $latestReleaseInfo) {
+        Write-Error "No release information found."
+        exit 1
+    }
+    # Get all of the names of the folders in the packages directory
+    Write-Host "The packages directory is: $packageDir"
+
+
+    # for each item in the packages directory get the latest release info.
+    foreach ($package in (Get-ChildItem -Path $packageDir -Filter "*.nuspec")) {
+        # Validate that path is valid
+        if (-not (Test-Path $packageDir)) {
+            Write-Error "Path is not valid: $packageDir"
+            exit 1
+        }
+        Write-Host "Checking for updates for: " -NoNewline -ForegroundColor Magenta
+        Write-Host $package
+        # The repo owner is the first part of the package name and the repo name is the second part of the package name
+        $latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
+        # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
+        $nuspecFile = Get-ChildItem -Path "$packageDir\$package" -Filter "*.nuspec"
+        $nuspecFileContent = Get-Content -Path $nuspecFile -Raw
+        # Find the value of the packageSourceUrl field in the nuspec file
+        if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
+            $packageSourceUrl = $matches[1]
+        } else {
+            Write-Error "No <packageSourceUrl> tag found."
+            exit 1
+        }
+        
+        Write-Host "Package Source URL: $packageSourceUrl"
+        # Extract the old version number using regex. This assumes the version follows right after '/download/'
+        if ($packageSourceUrl -match '/download/([^/]+)/') {
+            $oldVersion = $matches[1]
+        } else {
+            Write-Error "Could not find the version number in the URL."
+            exit 1
+}
+        # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
+        $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo.tag_name
+        Write-Host "Latest Release URL: $latestReleaseUrl"
+        # Compate the two urls
+    }
+}
 <# Get-MostRecentValidRelease: This is useful if releases do not always contain valid assets
 function Get-MostRecentValidRelease {
     param ( # Parameter declarations
@@ -432,9 +503,9 @@ if ($null -ne $validReleaseApiUrl) {
 
 # Fetch latest release information
 Write-Host "Fetching latest release information from GitHub..."
-Write-Host "Latest Release URL: $baseRepoUrl/releases/latest"
-$latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl "$baseRepoUrl/releases/latest"
-Write-Host "Base Release URL: $baseRepoUrl"
+$latestReleaseUrl = "$baseRepoUrl/releases/latest"
+Write-Host "Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
+$latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl $latestReleaseUrl
 
 #endregion
 ###################################################################################################
@@ -447,8 +518,11 @@ Write-Host "Selecting asset..."
 if (-not [string]::IsNullOrEmpty($specifiedAssetName)) {
     Write-Host "Specified Asset Name: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $specifiedAssetName
+    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_assetName $specifiedAssetName
 }
-$selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_assetName $specifiedAssetName
+else {
+    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets
+}
 Write-Host "Selected asset: $($selectedAsset.name)" -ForegroundColor Cyan
 
 # Set the description using latest release
@@ -550,6 +624,17 @@ Write-Host "Nuspec file created at: $nuspecPath" -ForegroundColor Cyan
 Write-Host "Creating install script..."
 $installScriptPath = New-InstallScript -p_Metadata $packageMetadata -p_toolsDir $toolsDir
 Write-Host "Install script created at: $installScriptPath" -ForegroundColor Cyan
+
+# This is just here for testing
+# The function relies on variables currently set in this section
+# It should be changed to be standalone
+
+# Specifically keep the variables here but move the actions of this section and the next to their own function
+# That way they can be called individually
+
+# There may be errors in the get updates function related to the path. Check that first
+
+Get-Updates
 
 #endregion
 ###################################################################################################
