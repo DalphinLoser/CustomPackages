@@ -6,7 +6,7 @@ function Find-IcoInRepo {
         [string]$owner,
         [string]$repo
     )
-
+    Write-Host "ENTERING Find-IcoInRepo function" -ForegroundColor Yellow
     $token = $env:GITHUB_TOKEN
 
     $headers = @{
@@ -20,9 +20,10 @@ function Find-IcoInRepo {
     $response = (Invoke-WebRequest -Uri $apiUrl -Headers $headers).Content | ConvertFrom-Json
 
     if ($response.total_count -gt 0) {
+        Write-Host "EXITING Find-IcoInRepo function (Found)" -ForegroundColor Green
         return $response.items[0].path
     }
-
+    Write-Host "EXITING Find-IcoInRepo function (Bottom)" -ForegroundColor Red
     return $null
 }
 
