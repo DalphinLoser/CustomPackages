@@ -6,10 +6,10 @@
     <version>2.02</version>
     <authors>Y0URD34TH</authors>
     <description>Project GLD is a Game Library Manager/ Game Search and Game Downloader, That Supports Community Plugins Based in LUA to Download Games</description>
-    <projectUrl>https://github.com/Y0URD34TH/Project-GLD/</projectUrl>
+    <projectUrl>https://github.com/Y0URD34TH/Project-GLD</projectUrl>
     <packageSourceUrl>https://github.com/Y0URD34TH/Project-GLD/releases/download/Hotfix-V2.02/Project-GLD.exe</packageSourceUrl>
     <releaseNotes>*Small hotfix Update *New small features added  *Some padding fix in ui [copy and open download link drop down when right click in download button] [added option to start download externally]</releaseNotes>
-    <licenseUrl>https://github.com/Y0URD34TH/Project-GLD//blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/Y0URD34TH/Project-GLD/blob/master/LICENSE</licenseUrl>
     <iconUrl>https://avatars.githubusercontent.com/u/58450502?v=4</iconUrl>
     <tags></tags>
   </metadata>
