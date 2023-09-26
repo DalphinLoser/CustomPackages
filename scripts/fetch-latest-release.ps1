@@ -497,7 +497,6 @@ if ($repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
     exit 1
 }
 
-exit 1
 <# This is useful if releases do not always contain valid assets 
 ex: releases sometimes containin only updates for specific versions such as linux only releases
 
