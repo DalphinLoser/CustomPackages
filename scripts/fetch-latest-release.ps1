@@ -1,6 +1,31 @@
 $ErrorActionPreference = 'Stop'
 ###################################################################################################
 #region Functions
+function Get-Favicon {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$p_homepage
+    )
+    $webRequest = Invoke-WebRequest -Uri $p_homepage
+
+    # Use regex to find <link rel="icon" ...> or <link rel="shortcut icon" ...>
+    if ($webRequest.Content -match "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`"") {
+        $faviconRelativeLink = $matches[2]
+
+        # Check if link is relative
+        if ($faviconRelativeLink -match "^/") {
+            # Convert to absolute URL
+            Write-Host "Favicon URL: $($webRequest.BaseResponse.ResponseUri.Scheme)://$($webRequest.BaseResponse.ResponseUri.Host)$faviconRelativeLink"
+            return "$($webRequest.BaseResponse.ResponseUri.Scheme)://$($webRequest.BaseResponse.ResponseUri.Host)$faviconRelativeLink"
+        } else {
+            Write-Host "Favicon URL: $faviconRelativeLink"
+            return $faviconRelativeLink
+        }
+    } else {
+        Write-Host "No favicon link found in HTML"
+        return $null
+    }
+}
 function Format-Json {
     # Function to format and print JSON recursively, allowing for nested lists
     param (
@@ -627,6 +652,22 @@ function Get-AssetInfo {
     Write-Host "    Icon URL: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $iconUrl
 
+    # If the owner of the root repository is an organization, use the organization name as package name
+    if ($rootRepoInfo.owner.type -eq 'Organization') {
+        $githubRepoName = $rootRepoInfo.owner.login
+        Write-Host "    Updated GitHub Repo Name to Organization Name: " -NoNewline -ForegroundColor DarkYellow
+        Write-Host $githubRepoName
+    }
+    else {
+        # If the owner is not an organization, try to get the imagge from the website homepage if it is not null or empty
+        if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
+            $homepage = $rootRepoInfo.homepage
+            # Get the favicon from the homepage
+            $iconUrl = Get-Favicon -p_homepage $homepage
+
+        }
+    }
+
     # Get the description
     Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $rootRepoInfo
@@ -637,8 +678,7 @@ function Get-AssetInfo {
         if ([string]::IsNullOrEmpty($rootRepoInfo.description)){
             $readmeInfo = (Invoke-WebRequest -Uri "$($baseRepoUrl_Info.url/"readme")").Content | ConvertFrom-Json
             $description = $readmeInfo.content
-            # If the readme content is null, print message that description could not be found
-
+            Write-Host "    Description not found. Using readme content" -ForegroundColor DarkYellow
         }
         else {
             Write-Host "    Description could not be found."
