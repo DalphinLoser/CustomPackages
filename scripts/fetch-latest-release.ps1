@@ -10,7 +10,7 @@ function Get-Favicon {
     $webRequest = Invoke-WebRequest -Uri $p_homepage
 
     # Strip everything after the domain name
-    $p_homepage = $p_homepage -replace '^(https?://[^/]+).*', '$1'
+    $f_homepageTld = $p_homepage -replace '^(https?://[^/]+).*', '$1'
 
     # Use regex to find <link rel="icon" ...> or <link rel="shortcut icon" ...>
     if ($webRequest.Content -match "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`"") {
@@ -23,8 +23,8 @@ function Get-Favicon {
             Write-Host "    Favicon Absolute URL: $faviconAbsoluteLink"
             return $faviconAbsoluteLink
         } else {
-            Write-Host "    Favicon Relative URL: $faviconRelativeLink"
-            return $faviconRelativeLink
+            Write-Host "    Favicon Relative URL: $f_homepageTld$faviconRelativeLink"
+            return $f_homepageTld$faviconRelativeLink
         }
     } else {
         Write-Host "No favicon link found in HTML"
