@@ -156,7 +156,8 @@ function Get-Filetype {
         [string]$p_fileName,
         [string[]]$p_acceptedExtensions = $acceptedExtensions
     )
-    
+    Write-Host "Starting Get-Filetype function" -ForegroundColor
+
     $found = $false
 
     # Iterate through the accepted extensions and check if the file name ends with one of them
@@ -169,11 +170,11 @@ function Get-Filetype {
     
     if ($found) {
         # The file name ends with one of the accepted extensions
-        Write-Host "File name ends with an accepted extension."
+        Write-Host "    File name ends with an accepted extension."
         # return the extension that was found
         return $ext
     } else {
-        Write-Error "Unsupported file type: $p_fileName"
+        Write-Error "   Unsupported file type: $p_fileName"
         exit 1
     }
 }
@@ -185,7 +186,8 @@ function Get-SilentArgs {
         [Parameter(Mandatory=$true)]
         [string]$p_fileType
     )
-
+    Write-Host "Starting Get-SilentArgs function" -ForegroundColor Yellow
+    
     $f_silentArgs = ''
     
     switch ($p_fileType) {
@@ -210,7 +212,7 @@ function Get-SilentArgs {
         }
         #>
         default { 
-            Write-Error "Unsupported file type: $p_fileType"
+            Write-Error "   Unsupported file type: $p_fileType"
             exit 1
         }
     }
@@ -224,40 +226,40 @@ function Get-LatestReleaseInfo {
         [string]$p_baseRepoUrl
     )
 
-    Write-Host "Starting Get-LatestReleaseInfo function"
-    Write-Host "Target GitHub API URL: $p_baseRepoUrl"
+    Write-Host "    Starting Get-LatestReleaseInfo function" -ForegroundColor Yellow
+    Write-Host "    Target GitHub API URL: $p_baseRepoUrl"
 
-    Write-Host "Initiating web request to GitHub API..."
+    Write-Host "    Initiating web request to GitHub API..."
     $response = Invoke-WebRequest -Uri $p_baseRepoUrl
-    Write-Host "HTTP Status Code: $($response.StatusCode)"
+    Write-Host "    HTTP Status Code: $($response.StatusCode)"
 
-    Write-Host "Attempting to parse JSON content..."
+    Write-Host "    Attempting to parse JSON content..."
     $f_latestReleaseInfo = $response.Content | ConvertFrom-Json
 
-    Write-Host "Validating received data..."
+    Write-Host "    Validating received data..."
     if ($null -eq $f_latestReleaseInfo) {
-        Write-Error "Received data is null. URL used: $p_baseRepoUrl"
+        Write-Error "   Received data is null. URL used: $p_baseRepoUrl"
         exit 1
     }
 
     if ($f_latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
-        Write-Error "No 'tag_name' field in received data. URL used: $p_baseRepoUrl"
+        Write-Error "   No 'tag_name' field in received data. URL used: $p_baseRepoUrl"
         exit 1
     }
 
     $assetCount = ($f_latestReleaseInfo.assets | Measure-Object).Count
-    Write-Host "Type of 'assets' field: $($f_latestReleaseInfo.assets.GetType().FullName)"
-    Write-Host "Is 'assets' field null? $($null -eq $f_latestReleaseInfo.assets)"
-    Write-Host "Is 'assets' field empty? ($assetCount -eq 0)"
+    Write-Host "    Type of 'assets' field: $($f_latestReleaseInfo.assets.GetType().FullName)"
+    Write-Host "    Is 'assets' field null? $($null -eq $f_latestReleaseInfo.assets)"
+    Write-Host "    Is 'assets' field empty? ($assetCount -eq 0)"
 
     if ($assetCount -gt 0) {
-        Write-Host "Listing assets:"
+        Write-Host "    Listing assets:"
         $f_latestReleaseInfo.assets | ForEach-Object {
             Write-Host $_.name
         }
     }
 
-    Write-Host "Tag Name: $($f_latestReleaseInfo.tag_name)"
+    Write-Host "    Tag Name: $($f_latestReleaseInfo.tag_name)"
     Write-Host "Returning latest release info" -ForegroundColor Green
     return $f_latestReleaseInfo
 }
@@ -268,7 +270,7 @@ function Get-RootRepository {
         [Parameter(Mandatory=$true)]
         [string]$p_repoUrl
     )
-    
+    Write-Host "Starting Get-RootRepository function" -ForegroundColor Yellow
     # Fetch the repository information
     try {
         #$rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
@@ -300,7 +302,7 @@ function New-NuspecFile {
         [Parameter(Mandatory=$true)]
         [string]$p_packageDir
     )
-
+    Write-Host "Starting New-NuspecFile function" -ForegroundColor Yellow
     # Validation
     if (-not $p_Metadata.PackageName -or -not $p_Metadata.ProjectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
         Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.ProjectUrl), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
@@ -334,8 +336,9 @@ function New-NuspecFile {
         Write-Error "Failed to create nuspec file at: $f_nuspecPath"
         exit 1
     }
-    Write-Host "Nuspec file created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Cyan
     Write-Host $f_nuspecPath
+    Write-Host "Returning Nuspec Path" -ForegroundColor Green
     return $f_nuspecPath
 }
 function New-InstallScript {
@@ -346,9 +349,9 @@ function New-InstallScript {
         [Parameter(Mandatory=$true)]
         [string]$p_toolsDir
     )
-
+    Write-Host "Starting New-InstallScript function" -ForegroundColor Yellow
     Write-Host
-    Write-Host "Package Metadata From Install Script Method:" -ForegroundColor DarkYellow
+    Write-Host "    Package Metadata From Install Script Method:" -ForegroundColor DarkYellow
     Format-Json -json $p_Metadata
     Write-Host
 
@@ -396,8 +399,9 @@ Install-ChocolateyPackage @packageArgs
     
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
-    Write-Host "Install script created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host "    Install script created at: " -NoNewline -ForegroundColor Cyan
     Write-Host $f_installScriptPath
+    Write-Host "Returning Install Script Path" -ForegroundColor Green
     return $f_installScriptPath
 }
 function Confirm-DirectoryExists {
@@ -407,21 +411,22 @@ function Confirm-DirectoryExists {
         [Parameter(Mandatory=$true)]
         [string]$p_name
     )
-    
-    Write-Host "Checking for $p_name directory..."
+    Write-Host "Starting Confirm-DirectoryExists function" -ForegroundColor Yellow
+    Write-Host "    Checking for $p_name directory..."
     if (-not (Test-Path $p_path)) {
-        Write-Host "No $p_name directory found, creating $p_name directory..."
+        Write-Host "    No $p_name directory found, creating $p_name directory..."
         New-Item -Path $p_path -ItemType Directory | Out-Null
-        Write-Host "$p_name directory created at: $p_path" -ForegroundColor Cyan
+        Write-Host "    $p_name directory created at: $p_path" -ForegroundColor Cyan
     }
     else {
-        Write-Host "$p_name directory found at: $p_path" -ForegroundColor Cyan
+        Write-Host "    $p_name directory found at: $p_path" -ForegroundColor Cyan
     }
+    Write-Host "Exiting Confirm-DirectoryExists function" -ForegroundColor Green
 }
 function Get-Updates {
-
+    Write-Host "Starting Get-Updates function" -ForegroundColor Yellow
     # Get all of the names of the folders in the packages directory
-    Write-LogHeader "Checking for updates"
+    Write-LogHeader "   Checking for updates"
     
     # Not a great way to do this. Change it if one day happens to be 27 hours long.
 
@@ -436,12 +441,12 @@ function Get-Updates {
     } else {
         # If the directory is found, use it
         $f_packageDir = $possibleDir.FullName
-        Write-Host "Found 'packages' directory: $f_packageDir"
+        Write-Host "    Found 'packages' directory: $f_packageDir"
     }
 
     # List the directories in the packages directory
     $f_packageDirs = Get-ChildItem -Path $f_packageDir -Directory
-    Write-Host "The packages directory contains the following directories: $($f_packageDirs.Name -join ', ')"
+    Write-Host "    The packages directory contains the following directories: $($f_packageDirs.Name -join ', ')"
     
     # For each item in the packages directory, get the latest release info.
     foreach ($dirInfo in $f_packageDirs) {
@@ -457,7 +462,7 @@ function Get-Updates {
         # Find the nuspec file in the package directory
         $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
     
-        Write-Host "Checking for updates for: $package" -ForegroundColor Magenta
+        Write-Host "    Checking for updates for: $package" -ForegroundColor Magenta
     
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
         $latestReleaseInfo_UP = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
@@ -473,7 +478,7 @@ function Get-Updates {
             exit 1
         }
         
-        Write-Host "Package Source URL: $packageSourceUrl"
+        Write-Host "    Package Source URL: $packageSourceUrl"
         # Extract the old version number using regex. This assumes the version follows right after '/download/'
         if ($packageSourceUrl -match '/download/([^/]+)/') {
             $oldVersion = $matches[1]
@@ -483,24 +488,25 @@ function Get-Updates {
         }
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
         $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo_UP.tag_name
-        Write-Host "Latest Release URL: $latestReleaseUrl_Update"
+        Write-Host "    Latest Release URL: $latestReleaseUrl_Update"
         # Compate the two urls
         # Compare the two URLs
         if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
-            Write-Host "The URLs are identical. No new version seems to be available."
+            Write-Host "    The URLs are identical. No new version seems to be available."
         } else {
-            Write-Host "The URLs are different. A new version appears to be available."
-            Write-Host "Old URL: $packageSourceUrl"
-            Write-Host "New URL: $latestReleaseUrl_Update"
+            Write-Host "    The URLs are different. A new version appears to be available."
+            Write-Host "    Old URL: $packageSourceUrl"
+            Write-Host "    New URL: $latestReleaseUrl_Update"
         }
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl_Update -ne $packageSourceUrl) {
-            Write-Host "Updating metadata for $package"
+            Write-Host "    Updating metadata for $package"
             Initialize-GithubPackage -repoUrl $latestReleaseUrl_Update
         } else {
-            Write-Host "No updates found for $package"
+            Write-Host "    No updates found for $package"
         }
     }
+    Write-Host "Exiting Get-Updates function" -ForegroundColor Green
 }
 function New-ChocolateyPackage {
     param (
@@ -509,25 +515,26 @@ function New-ChocolateyPackage {
         [Parameter(Mandatory=$true)]
         [string]$p_packageDir
     )
-
+    Write-Host "Starting New-ChocolateyPackage function" -ForegroundColor Yellow
     # Check for Nuspec File
-    Write-Host "Checking for nuspec file..."
+    Write-Host "    Checking for nuspec file..."
     if (-not (Test-Path $p_nuspecPath)) {
         Write-Error "Nuspec file not found at: $p_nuspecPath"
         exit 1
     }
     else {
-        Write-Host "Nuspec file found at: $p_nuspecPath" -ForegroundColor Cyan
+        Write-Host "    Nuspec file found at: $p_nuspecPath" -ForegroundColor Cyan
     }
 
     # Create Chocolatey package
     try {
-        Write-Host "Creating Chocolatey package..."
+        Write-Host "    Creating Chocolatey package..."
         choco pack $p_nuspecPath -Force -Verbose --out $p_packageDir
     } catch {
         Write-Error "Failed to create Chocolatey package."
         exit 1
     }
+    Write-Host "Exiting New-ChocolateyPackage function" -ForegroundColor Green
 }
 function Get-AssetInfo {
     param (
@@ -536,32 +543,34 @@ function Get-AssetInfo {
         [Parameter(Mandatory=$true)]
         [hashtable]$p_urls
     )
-
+    Write-Host "Starting Get-AssetInfo function" -ForegroundColor Yellow
     # Initialize variables
     $tag = $null
     $specifiedAssetName = $null
 
+
+
+    Write-Host "    Writing Content of p_urls" -ForegroundColor DarkYellow
     # Check if specifiedasset is null or empty
     if (-not [string]::IsNullOrEmpty($p_urls.specifiedAssetName)) {
         $specifiedAssetName = $p_urls.specifiedAssetName
-        Write-Host "Specified Asset Name: " -NoNewline -ForegroundColor Magenta
+        Write-Host "        Specified Asset Name: " -NoNewline -ForegroundColor Magenta
         Write-Host $specifiedAssetName
     }
 
     if (-not [string]::IsNullOrEmpty($p_urls.tag)) {
         $tag = $p_urls.tag
-        Write-Host "Tag: " -NoNewline -ForegroundColor Magenta
+        Write-Host "    Tag: " -NoNewline -ForegroundColor Magenta
         Write-Host $tag
     }
-
     $repo = $p_urls.repo
-    Write-Host "Repo: " -NoNewline -ForegroundColor Magenta
+    Write-Host "        Repo: " -NoNewline -ForegroundColor Magenta
     Write-Host $repo
     $githubUser = $p_urls.githubUser
-    Write-Host "GitHub User: " -NoNewline -ForegroundColor Magenta
+    Write-Host "        GitHub User: " -NoNewline -ForegroundColor Magenta
     Write-Host $githubUser
     $githubRepoName = $p_urls.githubRepoName
-    Write-Host "GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
+    Write-Host "        GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
     Write-Host $githubRepoName    
 
     # Validation check for the asset
@@ -577,29 +586,29 @@ function Get-AssetInfo {
     
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -p_assets $latestReleaseInfo_GETINFO.assets -p_urls $p_urls
-    Write-Host "Selected asset: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Selected asset: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $selectedAsset.name
 
     # Determine file type from asset name
     $fileType = Get-Filetype -p_fileName $selectedAsset.name
-    Write-Host "File type: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    File type: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $fileType
     # Determine silent installation arguments based on file type
     $silentArgs = Get-SilentArgs -p_fileType $fileType
-    Write-Host "Silent arguments: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Silent arguments: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $silentArgs
 
     # Find the root repository
     # get the url from the latest release info and replace everything after the repo name with nothing
     $baseRepoUrl_Info = $latestReleaseInfo_GETINFO.url -replace '/releases/.*', ''
-    Write-Host "Base Repo URL: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Base Repo URL: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $baseRepoUrl_Info
     $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
-    Write-Host "Root Repo URL: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $rootRepoInfo.url
     # Use the avatar URL from the root repository's owner
     $iconUrl = $rootRepoInfo.owner.avatar_url
-    Write-Host "Icon URL: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Icon URL: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $iconUrl
 
     # Get the description
@@ -614,22 +623,22 @@ function Get-AssetInfo {
             $description = $readmeInfo.content
             # If the readme content is null, print message that description could not be found
             if ($null -eq $readmeInfo.content) {
-                Write-Host "Description could not be found."
+                Write-Host "    Description could not be found."
                 $description = "Description could not be found."
             }
         }
     }
-    Write-Host "Description: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Description: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $description
 
 
     # Get the latest release version number
     $rawVersion = $latestReleaseInfo_GETINFO.tag_name
-    Write-Host "Raw Version: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Raw Version: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $rawVersion
     # Sanitize the version number
     $sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
-    Write-Host "Sanitized Version: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Sanitized Version: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $sanitizedVersion
 
     # If specifiedasset is not null or empty print it
@@ -645,7 +654,7 @@ function Get-AssetInfo {
     }
     #clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
     $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
-    Write-Host "Cleaned Specified Asset Name: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $cleanedSpecifiedAssetName
     }
 
@@ -677,6 +686,7 @@ function Initialize-URLs{
         [Parameter(Mandatory=$true)]
         [string]$p_repoUrl
     )
+    Write-Host "Starting Initialize-URLs function" -ForegroundColor Yellow
     # Check if the URL is a GitHub repository URL
     if ($p_repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
         $repo = $p_repoUrl
@@ -685,11 +695,11 @@ function Initialize-URLs{
         $githubUser = $urlParts[3]
         $githubRepoName = $urlParts[4]
         $baseRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
-        Write-Host "GitHub User: " -NoNewline -ForegroundColor Magenta
+        Write-Host "    GitHub User: " -NoNewline -ForegroundColor Magenta
         Write-Host $githubUser
-        Write-Host "GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
+        Write-Host "    GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
         Write-Host $githubRepoName
-        Write-Host "Base Repo URL: " -NoNewline -ForegroundColor Magenta
+        Write-Host "    Base Repo URL: " -NoNewline -ForegroundColor Magenta
         Write-Host $baseRepoUrl
         
 
@@ -697,9 +707,9 @@ function Initialize-URLs{
         if ($urlParts.Length -gt 7 -and $urlParts[5] -eq 'releases' -and $urlParts[6] -eq 'download') {
             $tag = $urlParts[7]
             $specifiedAssetName = $urlParts[-1]
-            Write-Host "Release tag detected: " -NoNewline -ForegroundColor Magenta
+            Write-Host "    Release tag detected: " -NoNewline -ForegroundColor Magenta
             Write-Host $tag
-            Write-Host "Asset name detected: " -NoNewline -ForegroundColor Magenta
+            Write-Host "    Asset name detected: " -NoNewline -ForegroundColor Magenta
             Write-Host $specifiedAssetName
         }
     } else {
@@ -773,8 +783,8 @@ function Initialize-GithubPackage{
         Write-Error "Please provide a URL as an argument."
         exit 1
     }
-
-    Write-Host "Input Received: $repoUrl"
+    Write-Host "Starting Initialize-GithubPackage function" -ForegroundColor Yellow
+    Write-Host "    Input Received: $repoUrl"
 
     ###################################################################################################
     Write-LogHeader "Fetching Latest Release Info"
@@ -796,24 +806,24 @@ function Initialize-GithubPackage{
     #>
 
     # Fetch latest release information
-    Write-Host "Fetching latest release information from GitHub..."
+    Write-Host "    Fetching latest release information from GitHub..."
     $latestReleaseUrl = ($urls.baseRepoUrl + '/releases/latest')
-    Write-Host "Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
+    Write-Host "    Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
     $latestReleaseInfo_GHP = Get-LatestReleaseInfo -p_baseRepoUrl $latestReleaseUrl
 
     #endregion
     ###################################################################################################
-    Write-LogHeader "Getting Asset Info"
+    Write-LogHeader "   Getting Asset Info"
     #region Get Asset Info
 
     # Get the asset metadata
-    Write-Host "Passing Latest Release Info to Get-AssetInfo: " -ForegroundColor Yellow
+    Write-Host "    Passing Latest Release Info to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of latestReleaseInfo_GHP one per line with the key in Cyan and the value in white
     $latestReleaseInfo_GHP.PSObject.Properties | ForEach-Object {
         Write-Host "    $($_.Name): " -NoNewline -ForegroundColor Cyan
         Write-Host $_.Value
     }
-    Write-Host "Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
+    Write-Host "    Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of the hashtable one per line
     $urls.GetEnumerator() | ForEach-Object {
         Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
@@ -821,7 +831,7 @@ function Initialize-GithubPackage{
     }
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
 
-    Write-Host "Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
+    Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
     Format-Json -json $myMetadata
 
     # Set the path to the package directory and create it if it doesn't exist
@@ -851,7 +861,7 @@ function Initialize-GithubPackage{
 
     #endregion
     ###################################################################################################
-
+Write-Host "Exiting Initialize-GithubPackage function" -ForegroundColor Green
 }
 ###################################################################################################
 
