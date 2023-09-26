@@ -400,7 +400,7 @@ function Get-Updates {
     Write-Host "The packages directory contains the following directories: $f_packageDirs"
 
     # for each item in the packages directory get the latest release info.
-    foreach ($package in (Get-ChildItem -Path $f_packageDir -Filter "*.nuspec")) {
+    foreach ($package in $f_packageDirs) {
         # Validate that path is valid
         if (-not (Test-Path $f_packageDir)) {
             Write-Error "Path is not valid: $f_packageDir"
