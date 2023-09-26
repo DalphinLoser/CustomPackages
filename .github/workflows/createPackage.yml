@@ -81,6 +81,8 @@ jobs:
       shell: pwsh
 
     - name: Navigate to the Temp Directory Then Execute The PowerShell Script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         cd $env:tempDir
         . $env:scriptPath

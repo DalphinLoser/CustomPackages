@@ -7,10 +7,17 @@ function Find-IcoInRepo {
         [string]$repo
     )
 
+    $token = $env:GITHUB_TOKEN
+
+    $headers = @{
+        "Authorization" = "Bearer $token"
+        "User-Agent"    = "PowerShell"
+    }
+
     $query = "extension:ico repo:$owner/$repo"
     $apiUrl = "https://api.github.com/search/code?q=$query"
     
-    $response = (Invoke-WebRequest -Uri $apiUrl).Content | ConvertFrom-Json
+    $response = (Invoke-WebRequest -Uri $apiUrl -Headers $headers).Content | ConvertFrom-Json
 
     if ($response.total_count -gt 0) {
         return $response.items[0].path
