@@ -1,4 +1,7 @@
 $ErrorActionPreference = 'Stop'
+param (
+    [string]$repoUrl
+)
 ###################################################################################################
 #region Functions
 function Format-Json {
@@ -458,11 +461,13 @@ function Get-MostRecentValidRelease {
 Write-LogHeader "Fetching Latest Release Info"
 #region Get Latest Release Info
 
+
 # Check if URL is provided
-if ($args.Length -eq 0) {
+if ([string]::IsNullOrEmpty($repoUrl)) {
     Write-Error "Please provide a URL as an argument."
     exit 1
 }
+
 
 # Create a variable to store accepted extensions
 $acceptedExtensions = @('exe', 'msi', 'zip')
