@@ -14,7 +14,7 @@ function Find-IcoInRepo {
         "User-Agent"    = "PowerShell"
     }
 
-    $query = "extension:ico repo:$owner/$repo"
+    $query = "extension:ico%20repo:$owner/$repo"
     $apiUrl = "https://api.github.com/search/code?q=$query"
     
     Write-Host "Query URL: $apiUrl" -ForegroundColor Cyan
