@@ -9,7 +9,19 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
+    permissions:
+      actions: write
+      checks: write
+      contents: read
+      deployments: write
+      discussions: write
+      issues: write
+      packages: write
+      pages: write
+      pull-requests: write
+      repository-projects: write
+      security-events: write
+      statuses: write
     steps:
 
     - name: Set Repo URL as Environment Variable
