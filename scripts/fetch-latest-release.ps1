@@ -9,6 +9,9 @@ function Get-Favicon {
     Write-Host "ENTERING Get-Favicon function" -ForegroundColor Yellow
     $webRequest = Invoke-WebRequest -Uri $p_homepage
 
+    # Strip everything after the domain name
+    $p_homepage = $p_homepage -replace '^(https?://[^/]+).*', '$1'
+
     # Use regex to find <link rel="icon" ...> or <link rel="shortcut icon" ...>
     if ($webRequest.Content -match "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`"") {
         $faviconRelativeLink = $matches[2]
