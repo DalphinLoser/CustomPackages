@@ -616,24 +616,27 @@ function Get-AssetInfo {
     Write-Host $iconUrl
 
     # Get the description
-    Write-Host "    Passing Base Repo URL to Get-Description function" -ForegroundColor DarkYellow
-    Write-Host $baseRepoUrl_Info
-    $descriptionInfo = (Invoke-WebRequest -Uri $baseRepoUrl_Info).Content | ConvertFrom-Json
-    $description = $descriptionInfo.description
-    # If the description is null, try to get it from the root repository
-    if ($null -eq $descriptionInfo.description) {
+    Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $rootRepoInfo
+    # If the description is null or empty, get the description from the root repository
+    if ([string]::IsNullOrEmpty($rootRepoInfo.description)) {
         $description = $rootRepoInfo.description
         # If the description is still null, get content of the readme
-        if (null -eq $rootRepoInfo.description){
-            $readmeInfo = (Invoke-WebRequest -Uri "$baseRepoUrl_Info/readme").Content | ConvertFrom-Json
+        if ([string]::IsNullOrEmpty($rootRepoInfo.description)){
+            $readmeInfo = (Invoke-WebRequest -Uri "$($baseRepoUrl_Info.url/"readme")").Content | ConvertFrom-Json
             $description = $readmeInfo.content
             # If the readme content is null, print message that description could not be found
-            if ($null -eq $readmeInfo.content) {
-                Write-Host "    Description could not be found."
-                $description = "Description could not be found."
-            }
+
+        }
+        else {
+            Write-Host "    Description could not be found."
+            $description = "Description could not be found."
         }
     }
+    else {
+        $description = $rootRepoInfo.description
+    }
+
     Write-Host "    Description: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $description
 
