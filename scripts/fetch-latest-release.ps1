@@ -221,51 +221,38 @@ function Get-LatestReleaseInfo {
         [string]$p_baseRepoUrl
     )
 
-    Write-Host "Starting Get-LatestReleaseInfo function" -ForegroundColor Cyan
-    Write-Host "Target GitHub API URL: $p_baseRepoUrl" -ForegroundColor Yellow
+    Write-Host "Starting Get-LatestReleaseInfo function"
+    Write-Host "Target GitHub API URL: $p_baseRepoUrl"
 
-    # Fetch latest release data
-    Write-Host "Initiating web request to GitHub API..." -ForegroundColor Yellow
-    $f_webResponse = Invoke-WebRequest -Uri $p_baseRepoUrl -Method Get
+    Write-Host "Initiating web request to GitHub API..."
+    $response = Invoke-WebRequest -Uri $p_baseRepoUrl
+    Write-Host "HTTP Status Code: $($response.StatusCode)"
 
-    # Debug: Outputting HTTP Status Code
-    Write-Host "HTTP Status Code: $($f_webResponse.StatusCode)" -ForegroundColor Yellow
+    Write-Host "Attempting to parse JSON content..."
+    $f_latestReleaseInfo = $response.Content | ConvertFrom-Json
 
-    # Check HTTP status code
-    if ($f_webResponse.StatusCode -ne 200) {
-        Write-Error "Received a $($f_webResponse.StatusCode) status code from GitHub. URL used: $p_baseRepoUrl"
+    Write-Host "Validating received data..."
+    if ($null -eq $f_latestReleaseInfo) {
+        Write-Error "Received data is null. URL used: $p_baseRepoUrl"
         exit 1
     }
 
-    # Try to parse the JSON content
-    Write-Host "Attempting to parse JSON content..." -ForegroundColor Yellow
-    try {
-        $f_latestReleaseInfo = $f_webResponse.Content | ConvertFrom-Json
-    } catch {
-        Write-Error "Failed to parse JSON from GitHub response. URL used: $p_baseRepoUrl"
-        Write-Host "Raw Content: $($f_webResponse.Content)" -ForegroundColor Red
+    if ($f_latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
+        Write-Error "No 'tag_name' field in received data. URL used: $p_baseRepoUrl"
         exit 1
     }
+
+    Write-Host "Type of 'assets' field: $($f_latestReleaseInfo.assets.GetType().FullName)"
+    Write-Host "Is 'assets' field null? $($null -eq $f_latestReleaseInfo.assets)"
+    Write-Host "Is 'assets' field empty? ($f_latestReleaseInfo.assets.Count -eq 0)"
+
+    Write-Host "Returning latest release info for $($f_latestReleaseInfo.tag_name)"
+    Write-Host "Latest Release Assets: $($f_latestReleaseInfo.assets)"
+    Write-Host "Exiting Get-LatestReleaseInfo function"
     
-    # Validation check for the API call
-    Write-Host "Validating received data..." -ForegroundColor Yellow
-    if ($null -eq $f_latestReleaseInfo -or $f_latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
-        Write-Error "Failed to fetch valid release information from GitHub. URL used: $p_baseRepoUrl"
-        Write-Host "Raw Content: $($f_webResponse.Content)" -ForegroundColor Red
-        exit 1
-    }
-
-    Write-Host "Returning latest release info for $($f_latestReleaseInfo.tag_name)" -ForegroundColor Green
-
-    if ($f_latestReleaseInfo.assets) {
-        Write-Host "Latest Release Assets: $($f_latestReleaseInfo.assets)" -ForegroundColor DarkYellow
-    } else {
-        Write-Host "No assets found for the latest release." -ForegroundColor Red
-    }
-
-    Write-Host "Exiting Get-LatestReleaseInfo function" -ForegroundColor Cyan
     return $f_latestReleaseInfo
 }
+
 function Get-RootRepository {
     param (
         [Parameter(Mandatory=$true)]
