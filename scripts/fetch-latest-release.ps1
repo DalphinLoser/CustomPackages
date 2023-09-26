@@ -709,6 +709,9 @@ function Initialize-GithubPackage{
         Write-Error "Please provide a URL as an argument."
         exit 1
     }
+
+    Write-Host "Input Received: $repoUrl"
+
     ###################################################################################################
     Write-LogHeader "Fetching Latest Release Info"
     #region Get Latest Release Info
