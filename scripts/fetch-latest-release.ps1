@@ -328,33 +328,39 @@ function New-InstallScript {
     }
     
 # Choose the appropriate Chocolatey function based on FileType
-    $f_installScriptContent = if ($p_Metadata.FileType -eq "zip") {
-@"
+    # Initialize the script content as an empty string
+$f_installScriptContent = ""
+
+# Check the file type
+if ($p_Metadata.FileType -eq "zip") {
+    $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 
 `$packageArgs = @{
     packageName     = "$($p_Metadata.PackageName)"
     url             = "$($p_Metadata.Url)"
-    unzipLocation = "$env:USERPROFILE\\AutoPackages\\$($p_Metadata.PackageName)"
+    unzipLocation   = "$env:USERPROFILE\\AutoPackages\\$($p_Metadata.PackageName)"
 }
 
 Install-ChocolateyZipPackage @packageArgs
 "@
-    } else {
-        $f_installScriptContent = @"
+} else {
+    $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 
 `$packageArgs = @{
-    packageName   = "$($p_Metadata.PackageName)"
-    fileType      = "$($p_Metadata.FileType)"
-    url           = "$($p_Metadata.Url)"
-    softwareName  = "$($p_Metadata.GithubRepoName)"
-    silentArgs    = "$($p_Metadata.SilentArgs)"
-    validExitCodes= @(0)
+    packageName     = "$($p_Metadata.PackageName)"
+    fileType        = "$($p_Metadata.FileType)"
+    url             = "$($p_Metadata.Url)"
+    softwareName    = "$($p_Metadata.GithubRepoName)"
+    silentArgs      = "$($p_Metadata.SilentArgs)"
+    validExitCodes  = @(0)
 }
+
 Install-ChocolateyPackage @packageArgs
 "@
-    }
+}
+
 
     
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
