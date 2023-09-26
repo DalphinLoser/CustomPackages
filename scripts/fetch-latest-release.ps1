@@ -303,6 +303,7 @@ function New-NuspecFile {
         [Parameter(Mandatory=$true)]
         [string]$p_packageDir
     )
+
     Write-Host "ENTERING New-NuspecFile function" -ForegroundColor Yellow
     # Validation
     if (-not $p_Metadata.PackageName -or -not $p_Metadata.ProjectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
@@ -370,11 +371,12 @@ $f_installScriptContent = ""
 if ($p_Metadata.FileType -eq "zip") {
     $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
+`$toolsDir   = Join-Path `$(Get-ToolsLocation) `$env:ChocolateyPackageName
 
 `$packageArgs = @{
     packageName     = "$($p_Metadata.PackageName)"
     url             = "$($p_Metadata.Url)"
-    unzipLocation   = "$env:USERPROFILE\\AutoPackages\\$($p_Metadata.PackageName)"
+    unzipLocation   = `$toolsDir
 }
 
 Install-ChocolateyZipPackage @packageArgs
@@ -469,7 +471,7 @@ function Get-Updates {
         Write-Host "    First part of name: $($($package -split '\.')[0])"
         # Second part of name
         Write-Host "    Second part of name: $($($package -split '\.')[1])"
-        
+
         # Get the latest release info for the package
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
         $latestReleaseInfo_UP = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
