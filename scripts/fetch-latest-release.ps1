@@ -17,13 +17,20 @@ function Find-IcoInRepo {
     $query = "extension:ico repo:$owner/$repo"
     $apiUrl = "https://api.github.com/search/code?q=$query"
     
-    $response = (Invoke-WebRequest -Uri $apiUrl -Headers $headers).Content | ConvertFrom-Json
+    Write-Host "Query URL: $apiUrl" -ForegroundColor Cyan
+
+    $webResponse = Invoke-WebRequest -Uri $apiUrl -Headers $headers
+    $response = $webResponse.Content | ConvertFrom-Json
+
+    Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Cyan
+    Write-Host "Response Content:" -ForegroundColor Cyan
+    Write-Host $webResponse.Content
 
     if ($response.total_count -gt 0) {
         Write-Host "EXITING Find-IcoInRepo function (Found)" -ForegroundColor Green
         return $response.items[0].path
     }
-    Write-Host "EXITING Find-IcoInRepo function (Bottom)" -ForegroundColor Red
+    Write-Host "EXITING Find-IcoInRepo function (Not Found)" -ForegroundColor Yellow
     return $null
 }
 
