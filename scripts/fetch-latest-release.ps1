@@ -366,8 +366,6 @@ function Get-Updates {
     # Get all of the names of the folders in the packages directory
     Write-LogHeader "Checking for updates"
     
-    Confirm-DirectoryExists -p_path $toolsDir -p_name 'tools'
-    
     # Not a great way to do this. Change it if one day happens to be 27 hours long.
 
     # Initialize package directory to null
