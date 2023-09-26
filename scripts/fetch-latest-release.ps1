@@ -458,10 +458,11 @@ function Get-MostRecentValidRelease {
 #>
 #endregion
 ###################################################################################################
+
 Write-LogHeader "Fetching Latest Release Info"
 #region Get Latest Release Info
 
-
+Write-Host "!!!!!!!!!!!!!!!!! The repo url is: $repoUrl"
 # Check if URL is provided
 if ([string]::IsNullOrEmpty($repoUrl)) {
     Write-Error "Please provide a URL as an argument."
