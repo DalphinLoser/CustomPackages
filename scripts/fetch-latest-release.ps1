@@ -374,7 +374,7 @@ function Get-Updates {
         exit 1
     }
     # Get all of the names of the folders in the packages directory
-    Write-Host "Checking for updates..."
+    Write-LogHeader "Checking for updates"
     # Not a great way to do this. Change it if one day happens to be 27 hours long.
     # Go up one level and then find a directory named packages
     # Initialize package directory to null
@@ -395,6 +395,9 @@ function Get-Updates {
 
     Write-Host "The packages directory is: $f_packageDir"
 
+    # List the directories in the packages directory
+    $f_packageDirs = Get-ChildItem -Path $f_packageDir -Directory
+    Write-Host "The packages directory contains the following directories: $f_packageDirs"
 
     # for each item in the packages directory get the latest release info.
     foreach ($package in (Get-ChildItem -Path $f_packageDir -Filter "*.nuspec")) {
@@ -425,11 +428,12 @@ function Get-Updates {
         } else {
             Write-Error "Could not find the version number in the URL."
             exit 1
-}
+        }
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
         $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo.tag_name
         Write-Host "Latest Release URL: $latestReleaseUrl"
         # Compate the two urls
+
     }
 }
 <# Get-MostRecentValidRelease: This is useful if releases do not always contain valid assets
