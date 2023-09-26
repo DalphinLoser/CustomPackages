@@ -512,6 +512,8 @@ function Get-AssetInfo {
     $silentArgs = Get-SilentArgs -p_fileType $fileType
 
     # Find the root repository
+    # get the url from the latest release info and replace everything after the repo name with nothing
+    $baseRepoUrl = $latestReleaseInfo.url -replace '/releases/.*', ''
     $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl
     # Use the avatar URL from the root repository's owner
     $iconUrl = $rootRepoInfo.owner.avatar_url
