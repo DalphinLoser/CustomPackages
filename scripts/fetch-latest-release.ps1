@@ -518,8 +518,10 @@ function Get-AssetInfo {
     # Set the description using latest release
 
     # Get the home repo info from the API
-    $repoHomeInfo = Invoke-RestMethod -Uri $repo
-    Write-Host "Repo: $repo"
+    # Remove everything after the repo name from the repo url
+    $repoHomeAPI = $repo -replace '/releases/.*', ''
+    $repoHomeInfo = Invoke-RestMethod -Uri $repoHomeAPI
+    Write-Host "Repo: $repoHomeAPI"
     Write-Host "Repo Home Info: " -NoNewline -ForegroundColor DarkYellow
     Format-Json -json $repoHomeInfo
     $description = $repoHomeInfo.description
