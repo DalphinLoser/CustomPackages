@@ -10,7 +10,7 @@
     <packageSourceUrl>https://github.com/Ecks1337/RyuSAK/releases/download/v1.6.2/RyuSAK-1.6.2.Setup.exe</packageSourceUrl>
     <releaseNotes>Catch error thrown when GitHub API ignores a request</releaseNotes>
     <licenseUrl>https://github.com/Ecks1337/RyuSAK/blob/master/LICENSE</licenseUrl>
-    <iconUrl>https://raw.githubusercontent.com//https://github.com/Ecks1337/RyuSAK/main/src/assets/icon.ico</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/Ecks1337/RyuSAK/main/src/assets/icon.ico</iconUrl>
     <tags></tags>
   </metadata>
 </package>
