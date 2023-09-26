@@ -10,7 +10,7 @@
     <packageSourceUrl>https://github.com/Y0URD34TH/Project-GLD/releases/download/Hotfix-V2.02/Project-GLD.exe</packageSourceUrl>
     <releaseNotes>*Small hotfix Update *New small features added  *Some padding fix in ui [copy and open download link drop down when right click in download button] [added option to start download externally]</releaseNotes>
     <licenseUrl>https://github.com/Y0URD34TH/Project-GLD/blob/master/LICENSE</licenseUrl>
-    <iconUrl>https://avatars.githubusercontent.com/u/58450502?v=4</iconUrl>
+    <iconUrl>https://gld.mynetserver.cf/gld-logo.png</iconUrl>
     <tags></tags>
   </metadata>
 </package>
