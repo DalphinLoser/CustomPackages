@@ -305,16 +305,6 @@ function New-NuspecFile {
     }
     return $f_nuspecPath
 }
-funtion Update-NuspecFile {
-    param (
-        [Parameter(Mandatory=$true)]
-        [PSCustomObject]$p_Metadata,
-
-        [Parameter(Mandatory=$true)]
-        [string]$p_packageDir
-    )
-    
-}
 function New-InstallScript {
     param (
         [Parameter(Mandatory=$true)]
