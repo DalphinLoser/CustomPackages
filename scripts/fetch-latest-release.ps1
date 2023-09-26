@@ -29,7 +29,7 @@ function Find-IcoInRepo {
     }
 
     # Using the Trees API now
-    $apiUrl = "https://api.github.com/repos/$owner/$repo/git/trees/$defaultBranch?recursive=1"
+    $apiUrl = "https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1"
     Write-Host "Query URL: $apiUrl" -ForegroundColor Cyan
 
     try {
