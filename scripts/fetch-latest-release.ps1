@@ -397,24 +397,31 @@ function Get-Updates {
 
     # List the directories in the packages directory
     $f_packageDirs = Get-ChildItem -Path $f_packageDir -Directory
-    Write-Host "The packages directory contains the following directories: $f_packageDirs"
-
-    # for each item in the packages directory get the latest release info.
-    foreach ($package in $f_packageDirs) {
+    Write-Host "The packages directory contains the following directories: $($f_packageDirs.Name -join ', ')"
+    
+    # For each item in the packages directory, get the latest release info.
+    foreach ($dirInfo in $f_packageDirs) {
+        # Extract just the directory name from the DirectoryInfo object
+        $package = $dirInfo.Name
+    
         # Validate that path is valid
         if (-not (Test-Path $f_packageDir)) {
             Write-Error "Path is not valid: $f_packageDir"
             exit 1
         }
-
+    
         # Write the contents of the package directory to the console
         Write-Host "The contents of the package directory are: $package"
+    
         # Find the nuspec file in the package directory
         $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
-        # Write the name of the nuspec file to the console
-        Write-Host "The nuspec file is: $nuspecFile"
-
-        Write-Host "Checking for updates for: " -NoNewline -ForegroundColor Magenta
+        Write-Host "The nuspec file is: $($nuspecFile.Name)"
+    
+        Write-Host "Checking for updates for: $package" -ForegroundColor Magenta
+    
+        # More code...
+    }
+    
         Write-Host $package # TODO: THIS IS BROKEN FIX THE PATH THING THEN IT WILL WORK
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
         $latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
