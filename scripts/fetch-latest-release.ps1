@@ -1,7 +1,7 @@
-$ErrorActionPreference = 'Stop'
 param (
     [string]$repoUrl
 )
+$ErrorActionPreference = 'Stop'
 ###################################################################################################
 #region Functions
 function Format-Json {
