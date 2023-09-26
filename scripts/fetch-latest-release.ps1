@@ -311,7 +311,7 @@ function New-NuspecFile {
         return
     }
     
-    Write-Host"THE VALUE OF P_METADATA.PROJECTURL IS: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "THE VALUE OF P_METADATA.PROJECTURL IS: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $p_Metadata.ProjectUrl
     Write-Host "THE VALUE OF P_METADATA.URL IS: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $p_Metadata.Url
