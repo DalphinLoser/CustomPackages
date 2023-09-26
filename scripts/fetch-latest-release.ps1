@@ -382,19 +382,6 @@ function Get-Updates {
         Write-Host "Found 'packages' directory: $f_packageDir"
     }
 
-    $f_toolsDir = $null
-    # Search for the 'tools' directory starting from the packages directory
-    $possibleToolsDir = Get-ChildItem -Path "$f_packageDir" -Filter "tools" -Directory
-    # Check if the directory was found
-    if ($null -eq $possibleToolsDir) {
-        Write-Error "No 'tools' directory found."
-        exit 1
-    } else {
-        # If the directory is found, use it
-        $f_toolsDir = $possibleToolsDir.FullName
-        Write-Host "Found 'tools' directory: $f_toolsDir"
-    }
-
     # List the directories in the packages directory
     $f_packageDirs = Get-ChildItem -Path $f_packageDir -Directory
     Write-Host "The packages directory contains the following directories: $($f_packageDirs.Name -join ', ')"
@@ -455,10 +442,10 @@ function Get-Updates {
             # Get the asset metadata
             $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -specifiedAssetName $specifiedAssetName
             # Create the nuspec file and install script
-            $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $f_packageDir
-            $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $f_toolsDir
+            $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir "$f_packageDir/$package"
+            $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir "$f_packageDir/$package/tools"
             # Create the Chocolatey package
-            New-ChocolateyPackage -p_nuspecPath $nuspecPath -p_packageDir $f_packageDir
+            New-ChocolateyPackage -p_nuspecPath $nuspecPath -p_packageDir "$f_packageDir/$package"
         } else {
             Write-Host "No updates found for $package"
         }
