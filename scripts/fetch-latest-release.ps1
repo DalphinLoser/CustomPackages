@@ -374,11 +374,25 @@ function Get-Updates {
         exit 1
     }
     # Get all of the names of the folders in the packages directory
-
+    Write-Host "Checking for updates..."
     # Not a great way to do this. Change it if one day happens to be 27 hours long.
     # Go up one level and then find a directory named packages
-    $f_packageDir = Join-Path (Get-Location).Path "..\packages"
-  
+    # Initialize package directory to null
+    $f_packageDir = $null
+
+    # Search for the 'packages' directory starting from the parent directory
+    $possibleDir = Get-ChildItem -Path ".." -Filter "packages" -Directory
+
+    # Check if the directory was found
+    if ($null -eq $possibleDir) {
+        Write-Error "No 'packages' directory found."
+        exit 1
+    } else {
+        # If the directory is found, use it
+        $f_packageDir = $possibleDir.FullName
+        Write-Host "Found 'packages' directory: $f_packageDir"
+    }
+
     Write-Host "The packages directory is: $f_packageDir"
 
 
