@@ -465,6 +465,12 @@ function Get-Updates {
     
         Write-Host "    Checking for updates for: $package" -ForegroundColor Magenta
     
+        # First part of name
+        Write-Host "    First part of name: $($($package -split '\.')[0])"
+        # Second part of name
+        Write-Host "    Second part of name: $($($package -split '\.')[1])"
+        
+        # Get the latest release info for the package
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
         $latestReleaseInfo_UP = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
@@ -487,6 +493,7 @@ function Get-Updates {
             Write-Error "Could not find the version number in the URL."
             exit 1
         }
+        Write-Host "    Old Version URL: $oldVersion"
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
         $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo_UP.tag_name
         Write-Host "    Latest Release URL: $latestReleaseUrl_Update"
