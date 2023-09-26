@@ -494,7 +494,7 @@ if ($args[0] -match '^https?://github.com/[^/]+/[^/]+') {
 
     }
 } else {
-    Write-Error "Please provide a valid GitHub repository URL."
+    Write-Error "Please provide a valid GitHub repository URL. URL provided: $repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
     exit 1
 }
 
