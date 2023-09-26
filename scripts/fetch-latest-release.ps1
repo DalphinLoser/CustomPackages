@@ -420,7 +420,6 @@ function Get-Updates {
         Write-Host "Checking for updates for: $package" -ForegroundColor Magenta
     
         # More code...
-    }
     
         Write-Host $package # TODO: THIS IS BROKEN FIX THE PATH THING THEN IT WILL WORK
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
