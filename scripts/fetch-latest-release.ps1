@@ -351,8 +351,8 @@ function New-InstallScript {
     )
     Write-Host "Starting New-InstallScript function" -ForegroundColor Yellow
     Write-Host
-    Write-Host "    Package Metadata From Install Script Method:" -ForegroundColor DarkYellow
-    Format-Json -json $p_Metadata
+    #Write-Host "    Package Metadata From Install Script Method:" -ForegroundColor DarkYellow
+    #Format-Json -json $p_Metadata
     Write-Host
 
     # Validation
@@ -831,8 +831,8 @@ function Initialize-GithubPackage{
     }
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
 
-    Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
-    Format-Json -json $myMetadata
+    #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
+    #Format-Json -json $myMetadata
 
     # Set the path to the package directory and create it if it doesn't exist
     $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
