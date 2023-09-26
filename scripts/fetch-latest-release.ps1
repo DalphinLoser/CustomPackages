@@ -516,7 +516,11 @@ function Get-AssetInfo {
     #Write-Host $rateLimitInfo
     
     # Set the description using latest release
-    $description = $latestReleaseInfo.body
+    # Get the URL of the latest release and remove the '/releases/latest' part
+    $repoHomeAPI = $latestReleaseInfo.url -replace '/releases/latest', ''
+    # Get the home repo info from the API
+    $repoHomeInfo = (Invoke-WebRequest -Uri $repoHomeAPI).Content | ConvertFrom-Json
+    $description = $repoHomeInfo.description
 
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_urls $p_urls
