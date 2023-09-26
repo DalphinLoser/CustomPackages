@@ -438,14 +438,7 @@ function Get-Updates {
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl -ne $packageSourceUrl) {
             Write-Host "Updating metadata for $package"
-            # Get the asset metadata
-            Initialize-URLs -p_repoUrl $latestReleaseUrl
-            $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -specifiedAssetName $specifiedAssetName
-            # Create the nuspec file and install script
-            $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir "$f_packageDir/$package"
-            $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir "$f_packageDir/$package/tools"
-            # Create the Chocolatey package
-            New-ChocolateyPackage -p_nuspecPath $nuspecPath -p_packageDir "$f_packageDir/$package"
+            Initialize-GithubPackage -repoUrl $latestReleaseUrl
         } else {
             Write-Host "No updates found for $package"
         }
