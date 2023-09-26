@@ -616,6 +616,8 @@ function Get-AssetInfo {
     Write-Host $iconUrl
 
     # Get the description
+    Write-Host "    Passing Base Repo URL to Get-Description function" -ForegroundColor DarkYellow
+    Write-Host $baseRepoUrl_Info
     $descriptionInfo = (Invoke-WebRequest -Uri $baseRepoUrl_Info).Content | ConvertFrom-Json
     $description = $descriptionInfo.description
     # If the description is null, try to get it from the root repository
