@@ -23,24 +23,32 @@ function Find-IcoInRepo {
         "User-Agent"    = "PowerShell"
     }
 
-    $query = "extension:ico%20repo:$owner/$repo"
-    $apiUrl = "https://api.github.com/search/code?q=$query"
-    
+    # Using the Trees API now
+    $apiUrl = "https://api.github.com/repos/$owner/$repo/git/trees/master?recursive=1"
     Write-Host "Query URL: $apiUrl" -ForegroundColor Cyan
 
-    $webResponse = Invoke-WebRequest -Uri $apiUrl -Headers $headers
-    $response = $webResponse.Content | ConvertFrom-Json
-
-    Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Cyan
-    Write-Host "Response Content:" -ForegroundColor Cyan
-    Write-Host $webResponse.Content
-
-    if ($response.total_count -gt 0) {
-        Write-Host "EXITING Find-IcoInRepo function (Found)" -ForegroundColor Green
-        return $response.items[0].path
+    try {
+        $webResponse = Invoke-WebRequest -Uri $apiUrl -Headers $headers
+        $response = $webResponse.Content | ConvertFrom-Json
+        Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Cyan
+        Write-Host "Response Content:" -ForegroundColor Cyan
+        Write-Host $webResponse.Content
+    } catch {
+        Write-Host "ERROR: Failed to fetch the repository contents. Error: $_" -ForegroundColor Red
+        Write-Host "EXITING Find-IcoInRepo function (Error)" -ForegroundColor Yellow
+        return
     }
-    Write-Host "EXITING Find-IcoInRepo function (Not Found)" -ForegroundColor Yellow
-    return $null
+
+    # Filter for files with .ico extension
+    $icoFiles = $response.tree | Where-Object { $_.type -eq 'blob' -and $_.path -like '*.ico' }
+
+    if ($icoFiles.Count -gt 0) {
+        Write-Host "EXITING Find-IcoInRepo function (Found)" -ForegroundColor Green
+        return $icoFiles[0].path
+    } else {
+        Write-Host "EXITING Find-IcoInRepo function (Not Found)" -ForegroundColor Yellow
+        return
+    }
 }
 
 function Get-Favicon {
