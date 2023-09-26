@@ -2,12 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>LizardByte.Sunshine</id>
-    <title>Sunshine</title>
+    <title>LizardByte</title>
     <version>0.20.0</version>
     <authors>LizardByte</authors>
     <description>Self-hosted game stream host for Moonlight.</description>
     <projectUrl>https://github.com/LizardByte/Sunshine</projectUrl>
-    <packageSourceUrl>https://github.com/LizardByte/Sunshine/releases/download/v0.20.0/sunshine-windows-installer.exe</packageSourceUrl>
+    <packageSourceUrl>https://github.com/LizardByte/Sunshine/releases/download/v0.20.0/sunshine-debuginfo-win32.zip</packageSourceUrl>
     <releaseNotes>**Breaking**
 - (Windows) The Windows installer version of Sunshine is now always launched by the Sunshine Service. Manually launching Sunshine.exe from Program Files is no longer supported. This was necessary to address security issues caused by non-admin users having access to Sunshine's config data. If you have set up Task Scheduler or other mechanisms to launch Sunshine automatically, remove those from your system before updating.
 - (Windows) The Start Menu shortcut has been redesigned for use with the Sunshine Service. It now launches Sunshine in the background (if not already running) and opens the Web UI, avoiding the persistent Command Prompt window present in prior versions. The Start Menu shortcut is now the recommended method for opening the Web UI and launching Sunshine.
@@ -87,7 +87,7 @@
 - (Build/Windows) Unstripped binaries are now provided as a debuginfo package to support crash dump debugging
 - (Config) Config directories are now created recursively</releaseNotes>
     <licenseUrl>https://github.com/LizardByte/Sunshine/blob/master/LICENSE</licenseUrl>
-    <iconUrl>https://avatars.githubusercontent.com/u/84790584?v=4</iconUrl>
+    <iconUrl>https://app.lizardbyte.devassets/images/favicon.ico</iconUrl>
     <tags></tags>
   </metadata>
 </package>
