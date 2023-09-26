@@ -6,6 +6,7 @@ function Get-Favicon {
         [Parameter(Mandatory=$true)]
         [string]$p_homepage
     )
+    Write-Host "ENTERING Get-Favicon function" -ForegroundColor Yellow
     $webRequest = Invoke-WebRequest -Uri $p_homepage
 
     # Use regex to find <link rel="icon" ...> or <link rel="shortcut icon" ...>
@@ -15,16 +16,17 @@ function Get-Favicon {
         # Check if link is relative
         if ($faviconRelativeLink -match "^/") {
             # Convert to absolute URL
-            Write-Host "Favicon URL: $($webRequest.BaseResponse.ResponseUri.Scheme)://$($webRequest.BaseResponse.ResponseUri.Host)$faviconRelativeLink"
+            Write-Host "    Favicon Relative Link: $($webRequest.BaseResponse.ResponseUri.Scheme)://$($webRequest.BaseResponse.ResponseUri.Host)$faviconRelativeLink"
             return "$($webRequest.BaseResponse.ResponseUri.Scheme)://$($webRequest.BaseResponse.ResponseUri.Host)$faviconRelativeLink"
         } else {
-            Write-Host "Favicon URL: $faviconRelativeLink"
+            Write-Host "    Favicon URL: $faviconRelativeLink"
             return $faviconRelativeLink
         }
     } else {
         Write-Host "No favicon link found in HTML"
         return $null
     }
+    Write-Host "EXITING Get-Favicon function" -ForegroundColor Green
 }
 function Format-Json {
     # Function to format and print JSON recursively, allowing for nested lists
@@ -664,7 +666,6 @@ function Get-AssetInfo {
             $homepage = $rootRepoInfo.homepage
             # Get the favicon from the homepage
             $iconUrl = Get-Favicon -p_homepage $homepage
-
         }
     }
 
