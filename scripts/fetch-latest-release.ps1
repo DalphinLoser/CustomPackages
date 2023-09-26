@@ -1,6 +1,3 @@
-param (
-    [string]$repoUrl
-)
 $ErrorActionPreference = 'Stop'
 ###################################################################################################
 #region Functions
@@ -222,11 +219,6 @@ function Get-LatestReleaseInfo {
         [string]$p_baseRepoUrl
     )
 
-    # Fetch rate limit information
-    #$rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
-    #Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
-    #Write-Host $rateLimitInfo
-
     # Fetch and parse latest release data
     $f_latestReleaseInfo = (Invoke-WebRequest -Uri $p_baseRepoUrl).Content | ConvertFrom-Json
     
@@ -249,9 +241,9 @@ function Get-RootRepository {
     
     # Fetch the repository information
     try {
-        $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
-        Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
-        Write-Host $rateLimitInfo
+        #$rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
+        #Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
+        #Write-Host $rateLimitInfo
 
         $repoInfo = (Invoke-WebRequest -Uri $p_repoUrl).Content | ConvertFrom-Json
     }
@@ -369,14 +361,12 @@ function Confirm-DirectoryExists {
     }
 }
 function Get-Updates {
-    if ($null -eq $latestReleaseInfo) {
-        Write-Error "No release information found."
-        exit 1
-    }
+
     # Get all of the names of the folders in the packages directory
     Write-LogHeader "Checking for updates"
+    
     # Not a great way to do this. Change it if one day happens to be 27 hours long.
-    # Go up one level and then find a directory named packages
+
     # Initialize package directory to null
     $f_packageDir = $null
 
@@ -410,20 +400,14 @@ function Get-Updates {
             exit 1
         }
     
-        # Write the contents of the package directory to the console
-        Write-Host "The contents of the package directory are: $package"
-    
         # Find the nuspec file in the package directory
         $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
-        Write-Host "The nuspec file is: $($nuspecFile.Name)"
     
         Write-Host "Checking for updates for: $package" -ForegroundColor Magenta
     
-        # More code...
-    
-        Write-Host $package # TODO: THIS IS BROKEN FIX THE PATH THING THEN IT WILL WORK
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
         $latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
+
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
         $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
         $nuspecFileContent = Get-Content -Path $nuspecFile -Raw
@@ -447,8 +431,135 @@ function Get-Updates {
         $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo.tag_name
         Write-Host "Latest Release URL: $latestReleaseUrl"
         # Compate the two urls
-
+        # Compare the two URLs
+        if ($latestReleaseUrl -eq $packageSourceUrl) {
+            Write-Host "The URLs are identical. No new version seems to be available."
+        } else {
+            Write-Host "The URLs are different. A new version appears to be available."
+            Write-Host "Old URL: $packageSourceUrl"
+            Write-Host "New URL: $latestReleaseUrl"
+        }
+        # If the URLs are different, update the metadata for the package
+        if ($latestReleaseUrl -ne $packageSourceUrl) {
+            Write-Host "Updating metadata for $package"
+            # Get the asset metadata
+            $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -specifiedAssetName $specifiedAssetName
+            # Create the nuspec file and install script
+            $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
+            $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
+            # Create the Chocolatey package
+            New-ChocolateyPackage -p_nuspecPath $nuspecPath -p_packageDir $packageDir
+        } else {
+            Write-Host "No updates found for $package"
+        }
     }
+}
+function New-ChocolateyPackage {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$p_nuspecPath,
+        [Parameter(Mandatory=$true)]
+        [string]$p_packageDir
+    )
+
+    # Check for Nuspec File
+    Write-Host "Checking for nuspec file..."
+    if (-not (Test-Path $p_nuspecPath)) {
+        Write-Error "Nuspec file not found at: $p_nuspecPath"
+        exit 1
+    }
+    else {
+        Write-Host "Nuspec file found at: $p_nuspecPath" -ForegroundColor Cyan
+    }
+
+    # Create Chocolatey package
+    try {
+        Write-Host "Creating Chocolatey package..."
+        choco pack $p_nuspecPath -Force -Verbose --out $p_packageDir
+    } catch {
+        Write-Error "Failed to create Chocolatey package."
+        exit 1
+    }
+}
+function Get-AssetInfo {
+    param (
+        [Parameter(Mandatory=$true)]
+        [PSCustomObject]$latestReleaseInfo,
+        [Parameter(Mandatory=$false)]
+        [string]$specifiedAssetName
+    )
+
+    # Validation check for the asset
+    if ($null -eq $latestReleaseInfo) {
+        Write-Error "No assets found for the latest release. Latest Release Info is Null"
+        exit 1
+    }
+
+    # Fetch rate limit information
+    #$rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
+    #Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
+    #Write-Host $rateLimitInfo
+    
+    # Set the description using latest release
+    $description = $latestReleaseInfo.body
+
+    # Select the best asset based on supported types
+    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_assetName $specifiedAssetName
+
+    # Determine file type from asset name
+    $fileType = Get-Filetype -p_fileName $selectedAsset.name
+    # Determine silent installation arguments based on file type
+    $silentArgs = Get-SilentArgs -p_fileType $fileType
+
+    # Find the root repository
+    $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl
+    # Use the avatar URL from the root repository's owner
+    $iconUrl = $rootRepoInfo.owner.avatar_url
+
+
+    # Get the latest release version number
+    $rawVersion = $latestReleaseInfo.tag_name
+    # Sanitize the version number
+    $sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
+
+    # If specifiedasset is not null or empty print it
+    if (-not [string]::IsNullOrEmpty($specifiedAssetName)) {
+        # If the asset name contains the version number, remove it.
+    if ($specifiedAssetName -match $tag) {
+        $cleanedSpecifiedAssetName = $specifiedAssetName -replace $tag, ''
+        # Split by . and remove the last element if it is a valid extension
+        $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Split('.') | Where-Object { $_ -notin $acceptedExtensions }
+    }   
+    else {
+        cleanedSpecifiedAssetName = $specifiedAssetName
+    }
+    #clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
+    $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
+    Write-Host "Specified Asset Name -Version Tag: $cleanedSpecifiedAssetName"
+    }
+
+    # Create package metadata object
+    $packageMetadata        = [PSCustomObject]@{
+        PackageName         = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
+        Version             = $sanitizedVersion
+        Author              = $githubUser
+        Description         = $description
+        VersionDescription  = $latestReleaseInfo.body -replace "\r\n", " "
+        Url                 = $selectedAsset.browser_download_url
+        Repo                = $repo
+        FileType            = $fileType
+        SilentArgs          = $silentArgs
+        IconUrl             = $iconUrl
+        GithubRepoName      = $githubRepoName
+    }
+
+    # If the name contains the version number exactly, remove the version number from the package name
+    if ($packageMetadata.PackageName -match $packageMetadata.Version) {
+        $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
+    }
+
+    # Return the asset metadata object
+    return $packageMetadata
 }
 <# Get-MostRecentValidRelease: This is useful if releases do not always contain valid assets
 function Get-MostRecentValidRelease {
@@ -495,212 +606,99 @@ function Get-MostRecentValidRelease {
 #>
 #endregion
 ###################################################################################################
+function Initialize-GithubPackage{
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$repoUrl
+    )
+    # Check if URL is provided
+    if ([string]::IsNullOrEmpty($repoUrl)) {
+        Write-Error "Please provide a URL as an argument."
+        exit 1
+    }
+    ###################################################################################################
+    Write-LogHeader "Fetching Latest Release Info"
+    #region Get Latest Release Info
 
-Write-LogHeader "Fetching Latest Release Info"
-#region Get Latest Release Info
+    # Check if the URL is a GitHub repository URL
+    if ($repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
+        $repo = $repoUrl
+        $urlParts = $repo -split '/'
+        
+        $githubUser = $urlParts[3]
+        $githubRepoName = $urlParts[4]
+        $baseRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
+        Write-Host "GitHub User: $githubUser"
+        Write-Host "GitHub Repo Name: $githubRepoName"
+        Write-Host "Base Repo URL: $baseRepoUrl"
 
-Write-Host "!!!!!!!!!!!!!!!!! The repo url is: $repoUrl"
-# Check if URL is provided
-if ([string]::IsNullOrEmpty($repoUrl)) {
-    Write-Error "Please provide a URL as an argument."
-    exit 1
-}
+        # Further check for release tag and asset name
+        if ($urlParts.Length -gt 7 -and $urlParts[5] -eq 'releases' -and $urlParts[6] -eq 'download') {
+            $tag = $urlParts[7]
+            $specifiedAssetName = $urlParts[-1]
+            Write-Host "Release tag detected: $tag"
+            Write-Host "Asset name detected: $specifiedAssetName"
+        }
+    } else {
+        Write-Error "Please provide a valid GitHub repository URL. URL provided: $repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
+        exit 1
+    }
 
-
-# Create a variable to store accepted extensions
-$acceptedExtensions = @('exe', 'msi', 'zip')
-
-# Check if the URL is a GitHub repository URL
-if ($repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
-    $repo = $repoUrl
-    $urlParts = $repo -split '/'
+    # Create a variable to store accepted extensions
     
-    $githubUser = $urlParts[3]
-    $githubRepoName = $urlParts[4]
-    $baseRepoUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
-    Write-Host "GitHub User: $githubUser"
-    Write-Host "GitHub Repo Name: $githubRepoName"
-    Write-Host "Base Repo URL: $baseRepoUrl"
 
-    # Further check for release tag and asset name
-    if ($urlParts.Length -gt 7 -and $urlParts[5] -eq 'releases' -and $urlParts[6] -eq 'download') {
-        $tag = $urlParts[7]
-        $specifiedAssetName = $urlParts[-1]
-        Write-Host "Release tag detected: $tag"
-        Write-Host "Asset name detected: $specifiedAssetName"
+    <# This is useful if releases do not always contain valid assets 
+    ex: releases sometimes containin only updates for specific versions such as linux only releases
+
+    $latestReleaseUrl = Get-MostRecentValidRelease -p_repoUrl $baseRepoUrl
+    if ($null -ne $validReleaseApiUrl) {
+        Write-Host "API URL of the most recent valid release is $latestReleaseUrl"
     }
-} else {
-    Write-Error "Please provide a valid GitHub repository URL. URL provided: $repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
-    exit 1
+    #>
+
+    # Fetch latest release information
+    Write-Host "Fetching latest release information from GitHub..."
+    $latestReleaseUrl = "$baseRepoUrl/releases/latest"
+    Write-Host "Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
+    $latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl $latestReleaseUrl
+
+    #endregion
+    ###################################################################################################
+    Write-LogHeader "Getting Asset Info"
+    #region Get Asset Info
+
+    # Get the asset metadata
+    $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -specifiedAssetName $specifiedAssetName
+
+    # Set the path to the package directory and create it if it doesn't exist
+    $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
+    Confirm-DirectoryExists -p_path $packageDir -p_name 'package'
+
+    # Explicitly set the path to the tools directory and create it if it doesn't exist
+    $toolsDir = Join-Path $packageDir "tools"
+    Confirm-DirectoryExists -p_path $toolsDir -p_name 'tools'
+
+    #endregion
+    ###################################################################################################
+    Write-LogHeader "Creating Nuspec File and Install Script"
+    #region Create Nuspec File and Install Script
+
+    # Create the nuspec file and install script
+    $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
+    $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
+
+    #endregion
+    ###################################################################################################
+    Write-LogHeader "Creating Chocolatey Package"
+    #region Create Chocolatey Package
+
+    # Create the Chocolatey package
+    New-ChocolateyPackage -p_nuspecPath $nuspecPath -p_packageDir $packageDir
+
+    #endregion
+    ###################################################################################################
+
 }
-
-<# This is useful if releases do not always contain valid assets 
-ex: releases sometimes containin only updates for specific versions such as linux only releases
-
-$latestReleaseUrl = Get-MostRecentValidRelease -p_repoUrl $baseRepoUrl
-if ($null -ne $validReleaseApiUrl) {
-    Write-Host "API URL of the most recent valid release is $latestReleaseUrl"
-}
-#>
-
-# Fetch latest release information
-Write-Host "Fetching latest release information from GitHub..."
-$latestReleaseUrl = "$baseRepoUrl/releases/latest"
-Write-Host "Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
-$latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl $latestReleaseUrl
-
-#endregion
 ###################################################################################################
-Write-LogHeader "Getting Asset Info"
-#region Get Asset Info
 
-# Select the best asset based on supported types
-Write-Host "Selecting asset..."
-# Check if asset name is provided and print it if it is
-if (-not [string]::IsNullOrEmpty($specifiedAssetName)) {
-    Write-Host "Specified Asset Name: " -NoNewline -ForegroundColor DarkYellow
-    Write-Host $specifiedAssetName
-    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets -p_assetName $specifiedAssetName
-}
-else {
-    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo.assets
-}
-Write-Host "Selected asset: $($selectedAsset.name)" -ForegroundColor Cyan
-
-# Set the description using latest release
-$description = $latestReleaseInfo.body
-
-# Display repository description
-Write-Host "Repository Description: $description"
-
-# Determine file type from asset name
-Write-Host "Determining file type from asset name..."
-$fileType = Get-Filetype -p_fileName $selectedAsset.name
-Write-Host "File type: $fileType" -ForegroundColor Cyan
-
-# Determine silent installation arguments based on file type
-Write-Host "Determining silent installation arguments for $fileType... (" -NoNewline; Write-Host "poorly" -ForegroundColor Yellow -NoNewline; Write-Host ")"
-$silentArgs = Get-SilentArgs -p_fileType $fileType
-Write-Host "Silent installation arguments for {$fileType}: $silentArgs" -ForegroundColor Cyan
-
-# Find the root repository
-$rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl
-
-# Use the avatar URL from the root repository's owner
-$iconUrl = $rootRepoInfo.owner.avatar_url
-
-$rawVersion = $latestReleaseInfo.tag_name
-$sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
-Write-Host "Sanitized Version: $sanitizedVersion"
-
-# If specifiedasset is not null or empty print it
-if (-not [string]::IsNullOrEmpty($specifiedAssetName)) {
-        # If the asset name contains the version number, remove it.
-    if ($specifiedAssetName -match $tag) {
-        $cleanedSpecifiedAssetName = $specifiedAssetName -replace $tag, ''
-        # Split by . and remove the last element if it is a valid extension
-        $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Split('.') | Where-Object { $_ -notin $acceptedExtensions }
-    }   
-    else {
-        cleanedSpecifiedAssetName = $specifiedAssetName
-    }
-    #clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
-    $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
-    Write-Host "Specified Asset Name -Version Tag: $cleanedSpecifiedAssetName"
-}
-
-# Some of these should be renamed for clarity
-# Create package metadata object
-$packageMetadata        = [PSCustomObject]@{
-    PackageName         = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
-    Version             = $sanitizedVersion
-    Author              = $githubUser
-    Description         = $description
-    VersionDescription  = $latestReleaseInfo.body -replace "\r\n", " "
-    Url                 = $selectedAsset.browser_download_url
-    Repo                = $repo
-    FileType            = $fileType
-    SilentArgs          = $silentArgs
-    IconUrl             = $iconUrl
-    GithubRepoName      = $githubRepoName
-}
-Write-Host "Selected asset: $($packageMetadata.PackageName)" -ForegroundColor Cyan
-
-Write-Host
-Write-Host "Package Metadata:" -ForegroundColor DarkYellow
-Format-Json -json $packageMetadata
-Write-Host
-
-# If the name contains the version number exactly, remove the version number from the package name
-if ($packageMetadata.PackageName -match $packageMetadata.Version) {
-    $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
-}
-
-Write-Host
-Write-Host "Download URL: " -NoNewline
-Write-Host "$($packageMetadata.Url)" -ForegroundColor Blue
-Write-Host
-
-#endregion
-###################################################################################################
-Write-LogHeader "Creating Nuspec File and Install Script"
-#region Create Nuspec File and Install Script
-
-# Set the path to the package directory
-$packageDir = Join-Path (Get-Location).Path $packageMetadata.PackageName
-
-Write-Host "Checking for package directory..."
-# Create the tools directory if it doesn't exist
-Confirm-DirectoryExists -p_path $packageDir -p_name 'package'
-
-# Explicitly set the path to the tools directory
-$toolsDir = Join-Path $packageDir "tools"
-
-# Create the tools directory if it doesn't exist
-Confirm-DirectoryExists -p_path $toolsDir -p_name 'tools'
-
-Write-Host "Creating nuspec file..."
-$nuspecPath = New-NuspecFile -p_Metadata $packageMetadata -p_packageDir $packageDir
-Write-Host "Nuspec file created at: $nuspecPath" -ForegroundColor Cyan
-
-Write-Host "Creating install script..."
-$installScriptPath = New-InstallScript -p_Metadata $packageMetadata -p_toolsDir $toolsDir
-Write-Host "Install script created at: $installScriptPath" -ForegroundColor Cyan
-
-# This is just here for testing
-# The function relies on variables currently set in this section
-# It should be changed to be standalone
-
-# Specifically keep the variables here but move the actions of this section and the next to their own function
-# That way they can be called individually
-
-# There may be errors in the get updates function related to the path. Check that first
-
-Get-Updates
-
-#endregion
-###################################################################################################
-Write-LogHeader "Creating Chocolatey Package"
-#region Create Chocolatey Package
-
-# Check for Nuspec File
-Write-Host "Checking for nuspec file..."
-if (-not (Test-Path $nuspecPath)) {
-    Write-Error "Nuspec file not found at: $nuspecPath"
-    exit 1
-}
-else {
-    Write-Host "Nuspec file found at: $nuspecPath" -ForegroundColor Cyan
-}
-
-# Create Chocolatey package
-try {
-    Write-Host "Creating Chocolatey package..."
-    choco pack $nuspecPath -Force -Verbose --out $packageDir
-} catch {
-    Write-Error "Failed to create Chocolatey package."
-    exit 1
-}
-
-#endregion
-###################################################################################################
+$acceptedExtensions = @('exe', 'msi', 'zip')

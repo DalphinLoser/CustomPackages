@@ -71,9 +71,10 @@ jobs:
     - name: Navigate to the Temp Directory Then Execute The PowerShell Script
       run: |
         cd $env:tempDir
-        & $env:scriptPath -repoUrl "${{ github.event.inputs.repoUrl }}"
+        . $env:scriptPath
+        Initialize-GithubPackage -repoUrl "${{ github.event.inputs.repoUrl }}"
       shell: pwsh
-
+    
     - name: Copy Everything Fron The Temp Directory to The Packages Directory
       run: |
         Copy-Item -Path "$env:tempDir/*" -Destination "$env:packagesDir" -Recurse -Force
