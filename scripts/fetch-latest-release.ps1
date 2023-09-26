@@ -370,12 +370,8 @@ function Get-Updates {
 
     # Initialize package directory to null
     $f_packageDir = $null
-    $f_toolsDir = $null
-
     # Search for the 'packages' directory starting from the parent directory
     $possibleDir = Get-ChildItem -Path ".." -Filter "packages" -Directory
-    $possibleToolsDir = Get-ChildItem -Path ".." -Filter "tools" -Directory
-
     # Check if the directory was found
     if ($null -eq $possibleDir) {
         Write-Error "No 'packages' directory found."
@@ -385,6 +381,10 @@ function Get-Updates {
         $f_packageDir = $possibleDir.FullName
         Write-Host "Found 'packages' directory: $f_packageDir"
     }
+
+    $f_toolsDir = $null
+    # Search for the 'tools' directory starting from the packages directory
+    $possibleToolsDir = Get-ChildItem -Path "$f_packageDir" -Filter "tools" -Directory
     # Check if the directory was found
     if ($null -eq $possibleToolsDir) {
         Write-Error "No 'tools' directory found."
@@ -394,9 +394,6 @@ function Get-Updates {
         $f_toolsDir = $possibleToolsDir.FullName
         Write-Host "Found 'tools' directory: $f_toolsDir"
     }
-
-    Write-Host "The packages directory is: $f_packageDir"
-    Write-Host "The tools directory is: $f_toolsDir"
 
     # List the directories in the packages directory
     $f_packageDirs = Get-ChildItem -Path $f_packageDir -Directory
