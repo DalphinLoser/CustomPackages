@@ -519,6 +519,7 @@ function Get-AssetInfo {
 
     # Get the home repo info from the API
     $repoHomeInfo = Invoke-RestMethod -Uri $repo
+    Write-Host "Repo: $repo"
     Write-Host "Repo Home Info: " -NoNewline -ForegroundColor DarkYellow
     Format-Json -json $repoHomeInfo
     $description = $repoHomeInfo.description
