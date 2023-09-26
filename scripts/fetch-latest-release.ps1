@@ -374,22 +374,25 @@ function Get-Updates {
         exit 1
     }
     # Get all of the names of the folders in the packages directory
-    Write-Host "The packages directory is: $packageDir"
+
+    # Go up two levels and find a directory named packages
+    $f_packageDir = Join-Path (Get-Location).Path "packages"
+    Write-Host "The packages directory is: $f_packageDir"
 
 
     # for each item in the packages directory get the latest release info.
-    foreach ($package in (Get-ChildItem -Path $packageDir -Filter "*.nuspec")) {
+    foreach ($package in (Get-ChildItem -Path $f_packageDir -Filter "*.nuspec")) {
         # Validate that path is valid
-        if (-not (Test-Path $packageDir)) {
-            Write-Error "Path is not valid: $packageDir"
+        if (-not (Test-Path $f_packageDir)) {
+            Write-Error "Path is not valid: $f_packageDir"
             exit 1
         }
         Write-Host "Checking for updates for: " -NoNewline -ForegroundColor Magenta
-        Write-Host $package
+        Write-Host $package # TODO: THIS IS BROKEN FIX THE PATH THING THEN IT WILL WORK
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
         $latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
-        $nuspecFile = Get-ChildItem -Path "$packageDir\$package" -Filter "*.nuspec"
+        $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
         $nuspecFileContent = Get-Content -Path $nuspecFile -Raw
         # Find the value of the packageSourceUrl field in the nuspec file
         if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
