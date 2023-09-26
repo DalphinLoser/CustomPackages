@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>BlackPearlOrigin.blackpearlorigin</id>
-    <title>blackpearlorigin</title>
+    <title>BlackPearlOrigin</title>
     <version>1.1.0</version>
     <authors>BlackPearlOrigin</authors>
     <description>BPO is a FOSS project with the goal to create a game library which not only provides a way to organize, manage, and obtain games from all mainstream sources (Steam, Epic Games, GOG...), but also offers support for games from any other, less known (and possibly discovered by sailing the high seas) source through built-in plugin support!</description>
