@@ -503,8 +503,8 @@ function Get-AssetInfo {
 
     # Find the root repository
     # get the url from the latest release info and replace everything after the repo name with nothing
-    $baseRepoUrl = $latestReleaseInfo.url -replace '/releases/.*', ''
-    $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl
+    $baseRepoUrl_Info = $latestReleaseInfo.url -replace '/releases/.*', ''
+    $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
     # Use the avatar URL from the root repository's owner
     $iconUrl = $rootRepoInfo.owner.avatar_url
 
@@ -581,6 +581,15 @@ function Initialize-URLs{
         Write-Error "Please provide a valid GitHub repository URL. URL provided: $p_repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
         exit 1
     }
+    # Return all of the urls as a hashtable
+    return @{
+        repo = $repo
+        githubUser = $githubUser
+        githubRepoName = $githubRepoName
+        baseRepoUrl = $baseRepoUrl
+        tag = $tag
+        specifiedAssetName = $specifiedAssetName
+    }
 }
 <# Get-MostRecentValidRelease: This is useful if releases do not always contain valid assets
 function Get-MostRecentValidRelease {
@@ -641,9 +650,8 @@ function Initialize-GithubPackage{
     Write-LogHeader "Fetching Latest Release Info"
     #region Get Latest Release Info
 
-
-    Initialize-URLs -p_repoUrl $repoUrl
-
+    # Create a hashtable to store the URLs
+    $urls = Initialize-URLs -p_repoUrl $repoUrl
 
     # Create a variable to store accepted extensions
     
@@ -659,7 +667,7 @@ function Initialize-GithubPackage{
 
     # Fetch latest release information
     Write-Host "Fetching latest release information from GitHub..."
-    $latestReleaseUrl = "$baseRepoUrl/releases/latest"
+    $latestReleaseUrl = ($urls.baseRepoUrl + '/releases/latest')
     Write-Host "Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
     $latestReleaseInfo = Get-LatestReleaseInfo -p_baseRepoUrl $latestReleaseUrl
 
