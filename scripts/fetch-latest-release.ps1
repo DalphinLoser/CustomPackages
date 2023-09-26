@@ -501,12 +501,16 @@ function Get-Updates {
         }
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl_Update -ne $packageSourceUrl) {
+            
+            # Remove the old nuspec file
+            Remove-Item -Path $nuspecFile -Force
+
             Write-Host "    Updating metadata for $package"
             # Get the new metadata
             Initialize-GithubPackage -repoUrl $latestReleaseUrl_Update
             # Remove the old nuspec file
             Write-Host "    Removing old nuspec file"
-            Remove-Item -Path $nuspecFile -Force
+            
         } else {
             Write-Host "    No updates found for $package"
         }
