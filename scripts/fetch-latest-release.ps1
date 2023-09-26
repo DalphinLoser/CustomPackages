@@ -651,25 +651,25 @@ function Get-AssetInfo {
     Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor DarkYellow
     Write-Host $rootRepoInfo.url
     # Use the avatar URL from the root repository's owner
-    $iconUrl = $rootRepoInfo.owner.avatar_url
-    Write-Host "    Icon URL: " -NoNewline -ForegroundColor DarkYellow
-    Write-Host $iconUrl
+
+    if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
+        $homepage = $rootRepoInfo.homepage
+        # Get the favicon from the homepage
+        $iconUrl = Get-Favicon -p_homepage $homepage
+        Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor DarkYellow
+        Write-Host $iconUrl
+    }
+    else {
+        $iconUrl = $rootRepoInfo.owner.avatar_url
+        Write-Host "    Icon URL: " -NoNewline -ForegroundColor DarkYellow
+        Write-Host $iconUrl
+    }
 
     # If the owner of the root repository is an organization, use the organization name as package name
     if ($rootRepoInfo.owner.type -eq 'Organization') {
-        $githubRepoName = $rootRepoInfo.owner.login
-        Write-Host "    Updated GitHub Repo Name to Organization Name: " -NoNewline -ForegroundColor DarkYellow
-        Write-Host $githubRepoName
-    }
-    else {
-        # If the owner is not an organization, try to get the imagge from the website homepage if it is not null or empty
-        if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
-            $homepage = $rootRepoInfo.homepage
-            # Get the favicon from the homepage
-            $iconUrl = Get-Favicon -p_homepage $homepage
-            Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor DarkYellow
-            Write-Host $iconUrl
-        }
+        $orgName = $rootRepoInfo.owner.login
+        Write-Host "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor DarkYellow
+        Write-Host $orgName
     }
 
     # Get the description
@@ -735,7 +735,8 @@ function Get-AssetInfo {
         FileType            = $fileType
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
-        GithubRepoName      = $githubRepoName
+        GithubRepoName      = if (-not $orgName) { $githubRepoName } else { $orgName }
+
     }
 
     # If the name contains the version number exactly, remove the version number from the package name
