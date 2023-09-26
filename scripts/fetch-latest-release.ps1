@@ -475,10 +475,16 @@ function Get-AssetInfo {
     param (
         [Parameter(Mandatory=$true)]
         [PSCustomObject]$latestReleaseInfo,
-        [Parameter(Mandatory=$false)]
-        [string]$specifiedAssetName
+        [Parameter(Mandatory=$true)]
+        [hashtable]$p_urls
     )
 
+    $repo = $p_urls.repo
+    $githubUser = $p_urls.githubUser
+    $githubRepoName = $p_urls.githubRepoName
+    $tag = $p_urls.tag
+    $specifiedAssetName = $p_urls.specifiedAssetName
+    
     # Validation check for the asset
     if ($null -eq $latestReleaseInfo) {
         Write-Error "No assets found for the latest release. Latest Release Info is Null"
@@ -677,7 +683,7 @@ function Initialize-GithubPackage{
     #region Get Asset Info
 
     # Get the asset metadata
-    $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -specifiedAssetName $specifiedAssetName
+    $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -p_urls $urls
 
     # Set the path to the package directory and create it if it doesn't exist
     $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
