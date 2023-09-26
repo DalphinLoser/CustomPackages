@@ -718,8 +718,7 @@ function Initialize-URLs{
     Write-Host "ENTERING Initialize-URLs function" -ForegroundColor Yellow
     # Check if the URL is a GitHub repository URL
     if ($p_repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
-        $repo = $p_repoUrl
-        $urlParts = $repo -split '/'
+        $urlParts = $p_repoUrl -split '/'
         
         $githubUser = $urlParts[3]
         $githubRepoName = $urlParts[4]
@@ -731,7 +730,6 @@ function Initialize-URLs{
         Write-Host "    Base Repo URL: " -NoNewline -ForegroundColor Magenta
         Write-Host $baseRepoUrl
         
-
         # Further check for release tag and asset name
         if ($urlParts.Length -gt 7 -and $urlParts[5] -eq 'releases' -and $urlParts[6] -eq 'download') {
             $tag = $urlParts[7]
@@ -745,6 +743,9 @@ function Initialize-URLs{
         Write-Error "Please provide a valid GitHub repository URL. URL provided: $p_repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
         exit 1
     }
+
+    # The url of the repo
+    $repo = "https://github.com/${githubUser}/${githubRepoName}"
 
     # Return all of the urls as a hashtable
     Write-Host "EXITING URLs Hashtable" -ForegroundColor Green
