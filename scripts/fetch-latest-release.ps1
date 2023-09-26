@@ -810,13 +810,13 @@ function Initialize-GithubPackage{
     Write-Host "Passing Latest Release Info to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of latestReleaseInfo_GHP one per line with the key in Cyan and the value in white
     $latestReleaseInfo_GHP.PSObject.Properties | ForEach-Object {
-        Write-Host "$($_.Name): " -NoNewline -ForegroundColor Cyan
+        Write-Host "    $($_.Name): " -NoNewline -ForegroundColor Cyan
         Write-Host $_.Value
     }
     Write-Host "Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of the hashtable one per line
     $urls.GetEnumerator() | ForEach-Object {
-        Write-Host "$($_.Key): " -NoNewline -ForegroundColor Cyan
+        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
         Write-Host $_.Value
     }
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
