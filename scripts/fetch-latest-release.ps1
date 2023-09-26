@@ -17,6 +17,7 @@ function Get-Favicon {
         if ($faviconRelativeLink -match "^/") {
             # Convert to absolute URL
             $faviconAbsoluteLink = "$p_homepage$faviconRelativeLink"
+            Write-Host "    Favicon URL: $faviconAbsoluteLink"
             return $faviconAbsoluteLink
         } else {
             Write-Host "    Favicon URL: $faviconRelativeLink"
@@ -666,6 +667,8 @@ function Get-AssetInfo {
             $homepage = $rootRepoInfo.homepage
             # Get the favicon from the homepage
             $iconUrl = Get-Favicon -p_homepage $homepage
+            Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor DarkYellow
+            Write-Host $iconUrl
         }
     }
 
