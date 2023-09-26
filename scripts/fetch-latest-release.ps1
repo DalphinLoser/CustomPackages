@@ -713,7 +713,7 @@ function Get-AssetInfo {
         Write-Host $iconUrl
     }
     elseif ($icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName) {
-        $iconUrl = "https://raw.githubusercontent.com/$owner/$repo/main/$icoPath"
+        $iconUrl = "https://raw.githubusercontent.com/$($p_urls.githubUser)/$($p_urls.githubRepoName)/main/$icoPath"
         Write-Host "Found ICO file in Repo: $iconUrl"
     }
     else {
