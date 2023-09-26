@@ -474,8 +474,8 @@ if ([string]::IsNullOrEmpty($repoUrl)) {
 $acceptedExtensions = @('exe', 'msi', 'zip')
 
 # Check if the URL is a GitHub repository URL
-if ($args[0] -match '^https?://github.com/[^/]+/[^/]+') {
-    $repo = $args[0]
+if ($repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
+    $repo = $repoUrl
     $urlParts = $repo -split '/'
     
     $githubUser = $urlParts[3]
@@ -491,13 +491,13 @@ if ($args[0] -match '^https?://github.com/[^/]+/[^/]+') {
         $specifiedAssetName = $urlParts[-1]
         Write-Host "Release tag detected: $tag"
         Write-Host "Asset name detected: $specifiedAssetName"
-
     }
 } else {
     Write-Error "Please provide a valid GitHub repository URL. URL provided: $repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo: $githubRepoName "
     exit 1
 }
 
+exit 1
 <# This is useful if releases do not always contain valid assets 
 ex: releases sometimes containin only updates for specific versions such as linux only releases
 
