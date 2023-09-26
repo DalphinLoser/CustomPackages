@@ -271,8 +271,8 @@ function New-NuspecFile {
     )
 
     # Validation
-    if (-not $p_Metadata.PackageName -or -not $p_Metadata.projectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
-        Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.projectUrl), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
+    if (-not $p_Metadata.PackageName -or -not $p_Metadata.ProjectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
+        Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.ProjectUrl), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
         return
     }
 
@@ -285,10 +285,10 @@ function New-NuspecFile {
     <version>$($p_Metadata.Version)</version>
     <authors>$($p_Metadata.Author)</authors>
     <description>$($p_Metadata.Description)</description>
-    <projectUrl>$($p_Metadata.projectUrl)</projectUrl>
+    <projectUrl>$($p_Metadata.ProjectUrl)</projectUrl>
     <packageSourceUrl>$($p_Metadata.Url)</packageSourceUrl>
     <releaseNotes>$($p_Metadata.VersionDescription)</releaseNotes>
-    <licenseUrl>$($p_Metadata.projectUrl)/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>$($p_Metadata.ProjectUrl)/blob/master/LICENSE</licenseUrl>
     <iconUrl>$($p_Metadata.IconUrl)</iconUrl>
     <tags></tags>
   </metadata>
@@ -320,7 +320,7 @@ function New-InstallScript {
     Write-Host
 
     # Validation
-    if (-not $p_Metadata.PackageName -or -not $p_Metadata.projectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
+    if (-not $p_Metadata.PackageName -or -not $p_Metadata.ProjectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
         Write-Error "Missing mandatory metadata for install script."
         return
     }
@@ -484,7 +484,7 @@ function Get-AssetInfo {
     $githubRepoName = $p_urls.githubRepoName
     $tag = $p_urls.tag
     $specifiedAssetName = $p_urls.specifiedAssetName
-    
+
     # Validation check for the asset
     if ($null -eq $latestReleaseInfo) {
         Write-Error "No assets found for the latest release. Latest Release Info is Null"
@@ -544,7 +544,7 @@ function Get-AssetInfo {
         Description         = $description
         VersionDescription  = $latestReleaseInfo.body -replace "\r\n", " "
         Url                 = $selectedAsset.browser_download_url
-        Repo                = $repo
+        ProjectUrl          = $repo
         FileType            = $fileType
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
