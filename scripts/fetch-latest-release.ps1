@@ -362,16 +362,21 @@ function Confirm-DirectoryExists {
 }
 function Get-Updates {
 
+
     # Get all of the names of the folders in the packages directory
     Write-LogHeader "Checking for updates"
+    
+    Confirm-DirectoryExists -p_path $toolsDir -p_name 'tools'
     
     # Not a great way to do this. Change it if one day happens to be 27 hours long.
 
     # Initialize package directory to null
     $f_packageDir = $null
+    $f_toolsDir = $null
 
     # Search for the 'packages' directory starting from the parent directory
     $possibleDir = Get-ChildItem -Path ".." -Filter "packages" -Directory
+    $possibleToolsDir = Get-ChildItem -Path ".." -Filter "tools" -Directory
 
     # Check if the directory was found
     if ($null -eq $possibleDir) {
@@ -382,8 +387,18 @@ function Get-Updates {
         $f_packageDir = $possibleDir.FullName
         Write-Host "Found 'packages' directory: $f_packageDir"
     }
+    # Check if the directory was found
+    if ($null -eq $possibleToolsDir) {
+        Write-Error "No 'tools' directory found."
+        exit 1
+    } else {
+        # If the directory is found, use it
+        $f_toolsDir = $possibleToolsDir.FullName
+        Write-Host "Found 'tools' directory: $f_toolsDir"
+    }
 
     Write-Host "The packages directory is: $f_packageDir"
+    Write-Host "The tools directory is: $f_toolsDir"
 
     # List the directories in the packages directory
     $f_packageDirs = Get-ChildItem -Path $f_packageDir -Directory
@@ -445,10 +460,10 @@ function Get-Updates {
             # Get the asset metadata
             $myMetadata = Get-AssetInfo -latestReleaseInfo $latestReleaseInfo -specifiedAssetName $specifiedAssetName
             # Create the nuspec file and install script
-            $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
-            $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
+            $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $f_packageDir
+            $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $f_toolsDir
             # Create the Chocolatey package
-            New-ChocolateyPackage -p_nuspecPath $nuspecPath -p_packageDir $packageDir
+            New-ChocolateyPackage -p_nuspecPath $nuspecPath -p_packageDir $f_packageDir
         } else {
             Write-Host "No updates found for $package"
         }
