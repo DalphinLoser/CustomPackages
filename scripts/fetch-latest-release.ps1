@@ -907,6 +907,8 @@ function Get-AssetInfo {
         $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
     }
 
+    Write-Host "Type of packageMetadata before return: $($packageMetadata.GetType().FullName)" # Debugging line
+
     Write-Host "EXITING Metadata" -ForegroundColor Green
     return $packageMetadata
 }
