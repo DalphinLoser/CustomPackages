@@ -1126,7 +1126,7 @@ function Initialize-GithubPackage{
     #Format-Json -json $myMetadata
 
     # Set the path to the package directory and create it if it doesn't exist
-    $packageDir = Join-Path (Get-Location).Path [hashtable]$myMetadata.PackageName
+    $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
     Confirm-DirectoryExists -p_path $packageDir -p_name 'package'
 
     # Explicitly set the path to the tools directory and create it if it doesn't exist
