@@ -449,7 +449,7 @@ function New-InstallScript {
 
     # Check the file type
     if ($p_Metadata.FileType -eq "zip") {
-        $globalInstallDir = "C:\Program Files\$($p_Metadata.PackageName)"
+        $globalInstallDir = "C:\AutoPackages\$($p_Metadata.PackageName)"
 
         $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
