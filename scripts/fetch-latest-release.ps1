@@ -1103,7 +1103,7 @@ function Initialize-GithubPackage{
 
     Write-Host "Passing variables to Get-AssetInfo: " -ForegroundColor Yellow
     Write-Host "    Type of latestReleaseInfo_GHP: $($latestReleaseInfo_GHP.GetType().FullName)"
-    Write-Host "    Data in latestReleaseInfo_GHP: " -ForegroundColor DarkYellow
+    Write-Host "Data in latestReleaseInfo_GHP: " -ForegroundColor DarkYellow
     Write-Host "        $($latestReleaseInfo_GHP.PSObject.Properties)" | ForEach-Object {
         Write-Host "            $($_.Name): " -NoNewline -ForegroundColor Cyan
         # Check if the value is null or empty
@@ -1115,7 +1115,7 @@ function Initialize-GithubPackage{
         }
     }
     Write-Host "    Type of urls: $($urls.GetType().FullName)"
-    Write-Host "    Data in urls: " -ForegroundColor DarkYellow
+    Write-Host "Data in urls: " -ForegroundColor DarkYellow
     Write-Host "        $($urls.GetEnumerator())" | ForEach-Object {
         Write-Host "            $($_.Key): " -NoNewline -ForegroundColor Cyan
         # Check if the value is null or empty
