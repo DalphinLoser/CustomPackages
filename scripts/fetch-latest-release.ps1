@@ -467,7 +467,7 @@ Install-ChocolateyZipPackage @packageArgs
 `$exes = Get-ChildItem -Path `$toolsDir -Recurse -Include *.exe
 foreach (`$exe in `$exes) {
     `$exeName = [System.IO.Path]::GetFileNameWithoutExtension(`$exe.FullName)
-    `$shortcutPath = "$env:USERPROFILE\Desktop\`$exeName.lnk"
+    `$shortcutPath = "`$env:USERPROFILE\Desktop\`$exeName.lnk"
     `$WshShell = New-Object -comObject WScript.Shell
     `$Shortcut = `$WshShell.CreateShortcut(`$shortcutPath)
     `$Shortcut.TargetPath = `$exe.FullName
