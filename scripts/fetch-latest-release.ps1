@@ -909,6 +909,14 @@ function Get-AssetInfo {
 
     Write-Host "Type of packageMetadata before return: $($packageMetadata.GetType().FullName)" # Debugging line
 
+    if ($packageMetadata -is [System.Collections.Hashtable]) {
+        Write-Host "Type of packageMetadata before return: Hashtable"
+    } else {
+        Write-Host "Type of packageMetadata before return: NOT Hashtable"
+        Write-Host "Actual type: $($packageMetadata.GetType().FullName)"
+    }
+    
+
     Write-Host "EXITING Metadata" -ForegroundColor Green
     return $packageMetadata
 }
@@ -1064,6 +1072,18 @@ function Initialize-GithubPackage{
 
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
+
+    $result = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
+    if ($result -isnot [Hashtable]) {
+        Write-Error "Expected result to be a hashtable but got $($result.GetType().FullName)"
+        return
+    } elseif ($result -is [Array] -and $result[0] -is [Hashtable]) {
+        $result = $result[0]
+        Write-Host "Type of result AFTER ASSET-INFO: $($result.GetType().FullName)"
+    } else {
+        Write-Host "Type of result AFTER ASSET-INFO: $($result.GetType().FullName)"
+    }
+
 
     #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
     #Format-Json -json $myMetadata
