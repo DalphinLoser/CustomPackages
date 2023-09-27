@@ -1061,7 +1061,9 @@ function Initialize-GithubPackage{
         Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
         Write-Host $_.Value
     }
+
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
+    Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
 
     #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
     #Format-Json -json $myMetadata
@@ -1080,7 +1082,8 @@ function Initialize-GithubPackage{
     #region Create Nuspec File and Install Script
 
     # Write the type of the metadata object
-    Write-Host "Type of myMetadata: $($myMetadata.GetType().FullName)"
+    Write-Host "Type of myMetadata before NUSPEC: $($myMetadata.GetType().FullName)"
+
     # Create the nuspec file and install script
     $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
     $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
