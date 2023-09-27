@@ -467,11 +467,19 @@ Install-ChocolateyZipPackage @packageArgs
 `$exes = Get-ChildItem -Path `$toolsDir -Recurse -Include *.exe
 foreach (`$exe in `$exes) {
     `$exeName = [System.IO.Path]::GetFileNameWithoutExtension(`$exe.FullName)
-    `$shortcutPath = "`$env:USERPROFILE\Desktop\`$exeName.lnk"
+    
+    # Create Desktop Shortcut
+    `$desktopShortcutPath = Join-Path `$desktopDir "`$exeName.lnk"
     `$WshShell = New-Object -comObject WScript.Shell
-    `$Shortcut = `$WshShell.CreateShortcut(`$shortcutPath)
-    `$Shortcut.TargetPath = `$exe.FullName
-    `$Shortcut.Save()
+    `$DesktopShortcut = `$WshShell.CreateShortcut(`$desktopShortcutPath)
+    `$DesktopShortcut.TargetPath = `$exe.FullName
+    `$DesktopShortcut.Save()
+    
+    # Create Start Menu Shortcut
+    `$startMenuShortcutPath = Join-Path `$startMenuDir "`$exeName.lnk"
+    `$StartMenuShortcut = `$WshShell.CreateShortcut(`$startMenuShortcutPath)
+    `$StartMenuShortcut.TargetPath = `$exe.FullName
+    `$StartMenuShortcut.Save()
 }
 "@
     } else {
@@ -499,7 +507,7 @@ Install-ChocolateyPackage @packageArgs
     # Generate Uninstall Script
     $f_uninstallScriptContent = @"
 `$f_installDir = "$globalInstallDir"
-`$shortcutPath = "$env:USERPROFILE\Desktop"
+`$shortcutPath = "`$env:USERPROFILE\Desktop"
 
 # Remove the installation directory
 if (Test-Path `$f_installDir) {
