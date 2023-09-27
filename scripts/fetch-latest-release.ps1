@@ -1054,11 +1054,11 @@ function Initialize-GithubPackage{
 
     #endregion
     ###################################################################################################
-    Write-LogHeader "   Getting Asset Info"
+    Write-LogHeader "Getting Asset Info"
     #region Get Asset Info
 
     # Get the asset metadata
-    Write-Host "    Passing Latest Release Info to Get-AssetInfo: " -ForegroundColor Yellow
+    Write-Host "Passing Latest Release Info to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of latestReleaseInfo_GHP one per line with the key in Cyan and the value in white
     $latestReleaseInfo_GHP.PSObject.Properties | ForEach-Object {
         Write-Host "    $($_.Name): " -NoNewline -ForegroundColor Cyan
@@ -1070,7 +1070,8 @@ function Initialize-GithubPackage{
             Write-Host "Exists"
         }
     }
-    Write-Host "    Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
+
+    Write-Host "Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of the hashtable one per line
     $urls.GetEnumerator() | ForEach-Object {
         Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
@@ -1095,7 +1096,7 @@ function Initialize-GithubPackage{
             }
         }
     }
-    esle {
+    else {
         Write-Host "`nmyMetadata does not exist yet`n"
     }
 
@@ -1103,7 +1104,7 @@ function Initialize-GithubPackage{
     Write-Host "    Type of latestReleaseInfo_GHP: $($latestReleaseInfo_GHP.GetType().FullName)"
     Write-Host "    Type of urls: $($urls.GetType().FullName)"
     Write-Host "##################################################"
-    
+
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
     # For debugging, write the content of the metadata object no matter the type
