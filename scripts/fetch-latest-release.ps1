@@ -191,24 +191,23 @@ function Select-Asset {
             }
         }
     } else {
-        Write-Host "Selecting first asset with supported type: $f_supportedTypes"
         $f_selectedAsset = $p_assets | 
-            Where-Object { 
-                if ($_.name -match '\.([^.]+)$') {
-                    return $f_supportedTypes -contains $matches[1]
-                }
-                return $false
-            } |
-            Sort-Object { 
-                switch -Regex ($_) {
-                    '\.exe$' { return 0 }
-                    '\.msi$' { return 1 }
-                    '\.zip$' { return 2 }
-                    default  { return 3 }
-                }
-            } |
-            Select-Object -First 1
-            Write-Host "    Selected asset after sorting: $($f_selectedAsset.name)"
+        Where-Object { 
+            if ($_.name -match '\.([^.]+)$') {
+                return $f_supportedTypes -contains $matches[1]
+            }
+            return $false
+        } |
+        Sort-Object { 
+            switch -Regex ($_.name) {
+                '\.exe$' { return 0 }
+                '\.msi$' { return 1 }
+                '\.zip$' { return 2 }
+                default  { return 3 }
+            }
+        } |
+        Select-Object -First 1
+        Write-Host "    Selected asset after sorting: $($f_selectedAsset.name)"
     }
     # Validation check for the selected asset
     if ($null -eq $f_selectedAsset) {
