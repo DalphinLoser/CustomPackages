@@ -1,5 +1,5 @@
 $f_installDir = "C:\AutoPackages\Ryujinx.release-channel-master.testavaryujinxwinx64"
-$shortcutPath = "C:\Users\runneradmin\Desktop"
+$shortcutPath = "$env:USERPROFILE\Desktop"
 
 # Remove the installation directory
 if (Test-Path $f_installDir) {
