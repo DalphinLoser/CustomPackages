@@ -1111,7 +1111,15 @@ function Initialize-GithubPackage{
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
     # For debugging, write the content of the metadata object no matter the type
     Write-Host "`nMetadata Object's Content: " -ForegroundColor DarkYellow
-    Write-Host $myMetadata.GetEnumerator() | ForEach-Object { "$($_.Key): $($_.Value)" }
+    Write-Host $myMetadata.GetEnumerator() | ForEach-Object { 
+        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
+        if ([string]::IsNullOrEmpty($_.Value)) {
+            Write-Host "null" -ForegroundColor White
+        }
+        else {
+            Write-Host "Exists"
+        }
+    }
     Write-Host
 
     #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
@@ -1134,8 +1142,8 @@ function Initialize-GithubPackage{
     Write-Host "Type of myMetadata before NUSPEC: $($myMetadata.GetType().FullName)"
 
     # Create the nuspec file and install script
-    $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
-    $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
+    $nuspecPath = New-NuspecFile -p_Metadata [hashtable]$myMetadata -p_packageDir $packageDir
+    $installScriptPath = New-InstallScript -p_Metadata [hashtable]$myMetadata -p_toolsDir $toolsDir
 
     #endregion
     ###################################################################################################
