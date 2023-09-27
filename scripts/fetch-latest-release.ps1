@@ -437,10 +437,8 @@ function New-InstallScript {
         [Parameter(Mandatory=$true)]
         [string]$p_toolsDir
     )
+
     Write-Host "ENTERING New-InstallScript function" -ForegroundColor Yellow
-    Write-Host
-    #Write-Host "    Package Metadata From Install Script Method:" -ForegroundColor DarkYellow
-    #Format-Json -json $p_Metadata
     Write-Host
 
     # Validation
@@ -448,16 +446,14 @@ function New-InstallScript {
         Write-Error "Missing mandatory metadata for install script."
         return
     }
-    
-# Choose the appropriate Chocolatey function based on FileType
-    # Initialize the script content as an empty string
-$f_installScriptContent = ""
 
-# Check the file type
-if ($p_Metadata.FileType -eq "zip") {
-    $f_installScriptContent = @"
+    # Check the file type
+    if ($p_Metadata.FileType -eq "zip") {
+        $globalInstallDir = "C:\Program Files\$($p_Metadata.PackageName)"
+
+        $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
-`$toolsDir   = Join-Path `$(Get-ToolsLocation) `$env:ChocolateyPackageName
+`$toolsDir   = "$globalInstallDir"
 
 `$packageArgs = @{
     packageName     = "$($p_Metadata.PackageName)"
@@ -466,9 +462,20 @@ if ($p_Metadata.FileType -eq "zip") {
 }
 
 Install-ChocolateyZipPackage @packageArgs
+
+# Dynamically find all .exe files in the extracted directory and create shortcuts for them
+`$exes = Get-ChildItem -Path `$toolsDir -Recurse -Include *.exe
+foreach (`$exe in `$exes) {
+    `$exeName = [System.IO.Path]::GetFileNameWithoutExtension(`$exe.FullName)
+    `$shortcutPath = "$env:USERPROFILE\Desktop\`$exeName.lnk"
+    `$WshShell = New-Object -comObject WScript.Shell
+    `$Shortcut = `$WshShell.CreateShortcut(`$shortcutPath)
+    `$Shortcut.TargetPath = `$exe.FullName
+    `$Shortcut.Save()
+}
 "@
-} else {
-    $f_installScriptContent = @"
+    } else {
+        $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 
 `$packageArgs = @{
@@ -482,15 +489,32 @@ Install-ChocolateyZipPackage @packageArgs
 
 Install-ChocolateyPackage @packageArgs
 "@
-}
+    }
 
-
-    
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
     Write-Host "    Install script created at: " -NoNewline -ForegroundColor Cyan
     Write-Host $f_installScriptPath
-    Write-Host "EXITING Install Script Path" -ForegroundColor Green
+
+    # Generate Uninstall Script
+    $f_uninstallScriptContent = @"
+`$f_installDir = "$globalInstallDir"
+`$shortcutPath = "$env:USERPROFILE\Desktop"
+
+# Remove the installation directory
+if (Test-Path `$f_installDir) {
+    Remove-Item -Path `$f_installDir -Recurse -Force
+}
+
+# Remove any shortcuts related to this package from the Desktop
+Get-ChildItem -Path `$shortcutPath -Filter "$($p_Metadata.PackageName)*.lnk" | Remove-Item -Force
+"@
+    $f_uninstallScriptPath = Join-Path $p_toolsDir "chocolateyUninstall.ps1"
+    Out-File -InputObject $f_uninstallScriptContent -FilePath $f_uninstallScriptPath -Encoding utf8
+    Write-Host "    Uninstall script created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host $f_uninstallScriptPath
+
+    Write-Host "EXITING New-InstallScript function" -ForegroundColor Green
     return $f_installScriptPath
 }
 function Confirm-DirectoryExists {
