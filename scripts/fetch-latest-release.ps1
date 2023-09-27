@@ -62,10 +62,15 @@ function Get-Favicon {
         [string]$p_homepage
     )
     Write-Host "ENTERING Get-Favicon function" -ForegroundColor Yellow
+
+    # Get the HTML of the homepage
     $webRequest = Invoke-WebRequest -Uri $p_homepage
 
     # Strip everything after the domain name
     $f_homepageTld = $p_homepage -replace '^(https?://[^/]+).*', '$1'
+
+    Write-Host "    Homepage: $p_homepage"
+    Write-Host "    Homepage TLD: $f_homepageTld"
 
     # Use regex to find <link rel="icon" ...> or <link rel="shortcut icon" ...>
     if ($webRequest.Content -match "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`"") {
@@ -74,11 +79,11 @@ function Get-Favicon {
         # Check if link is relative
         if ($faviconRelativeLink -match "^/") {
             # Convert to absolute URL
-            $faviconAbsoluteLink = "$p_homepage$faviconRelativeLink"
+            $faviconAbsoluteLink = "$f_homepageTld$faviconRelativeLink"
             Write-Host "    Favicon Absolute URL: $faviconAbsoluteLink"
             return $faviconAbsoluteLink
         } else {
-            Write-Host "    Favicon Relative URL: $f_homepageTld$faviconRelativeLink"
+            Write-Host "    Favicon Relative URL: $f_homepageTld/$faviconRelativeLink"
             return "$f_homepageTld/$faviconRelativeLink"
         }
     } else {
@@ -87,6 +92,7 @@ function Get-Favicon {
     }
     Write-Host "EXITING Get-Favicon function" -ForegroundColor Green
 }
+
 function Format-Json {
     # Function to format and print JSON recursively, allowing for nested lists
     param (
@@ -847,7 +853,7 @@ function Get-AssetInfo {
         $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Split('.') | Where-Object { $_ -notin $acceptedExtensions }
     }   
     else {
-        cleanedSpecifiedAssetName = $specifiedAssetName
+        $cleanedSpecifiedAssetName = $specifiedAssetName
     }
     #clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
     $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
