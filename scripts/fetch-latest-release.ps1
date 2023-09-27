@@ -451,7 +451,7 @@ function New-InstallScript {
     if ($p_Metadata.FileType -eq "zip") {
         $globalInstallDir = "C:\AutoPackages\$($p_Metadata.PackageName)"
 
-    $f_installScriptContent = @"
+        $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 `$toolsDir   = "$globalInstallDir"
 
@@ -490,6 +490,37 @@ foreach (`$exe in `$exes) {
     `$StartMenuShortcut.Save()
 }
 "@
+    # Generate Uninstall Script
+    $f_uninstallScriptContent = @"
+`$toolsDir = "$globalInstallDir"
+`$shortcutPath = "`$env:USERPROFILE\Desktop"
+
+# Initialize directories for shortcuts
+`$desktopDir = "`$env:USERPROFILE\Desktop"
+`$startMenuDir = Join-Path `$env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+
+# Dynamically find all .exe files in the extracted directory and create shortcuts for them
+`$exes = Get-ChildItem -Path `$toolsDir -Recurse -Include *.exe
+foreach (`$exe in `$exes) {
+    `$exeName = [System.IO.Path]::GetFileNameWithoutExtension(`$exe.FullName)
+    
+    # Remove Desktop Shortcut
+    `$desktopShortcutPath = Join-Path `$desktopDir "`$exeName.lnk"
+    `Remove-Item "`$desktopShortcutPath" -Force
+    
+    # Remove Start Menu Shortcut
+    `$startMenuShortcutPath = Join-Path `$startMenuDir "`$exeName.lnk"
+    `Remove-Item "`$startMenuShortcutPath" -Force
+}
+# Remove the installation directory
+if (Test-Path `$toolsDir) {
+    Remove-Item -Path `$toolsDir -Recurse -Force
+}
+"@
+    $f_uninstallScriptPath = Join-Path $p_toolsDir "chocolateyUninstall.ps1"
+    Out-File -InputObject $f_uninstallScriptContent -FilePath $f_uninstallScriptPath -Encoding utf8
+    Write-Host "    Uninstall script created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host $f_uninstallScriptPath    
     } else {
         $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
@@ -512,23 +543,7 @@ Install-ChocolateyPackage @packageArgs
     Write-Host "    Install script created at: " -NoNewline -ForegroundColor Cyan
     Write-Host $f_installScriptPath
 
-    # Generate Uninstall Script
-    $f_uninstallScriptContent = @"
-`$f_installDir = "$globalInstallDir"
-`$shortcutPath = "`$env:USERPROFILE\Desktop"
 
-# Remove the installation directory
-if (Test-Path `$f_installDir) {
-    Remove-Item -Path `$f_installDir -Recurse -Force
-}
-
-# Remove any shortcuts related to this package from the Desktop
-Get-ChildItem -Path `$shortcutPath -Filter "$($p_Metadata.PackageName)*.lnk" | Remove-Item -Force
-"@
-    $f_uninstallScriptPath = Join-Path $p_toolsDir "chocolateyUninstall.ps1"
-    Out-File -InputObject $f_uninstallScriptContent -FilePath $f_uninstallScriptPath -Encoding utf8
-    Write-Host "    Uninstall script created at: " -NoNewline -ForegroundColor Cyan
-    Write-Host $f_uninstallScriptPath
 
     Write-Host "EXITING New-InstallScript function" -ForegroundColor Green
     return $f_installScriptPath
