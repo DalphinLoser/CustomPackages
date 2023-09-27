@@ -434,53 +434,106 @@ function New-NuspecFile {
         [string]$p_packageDir
     )
 
-    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "New-NuspecFile function"
+    Write-Host "ENTERING: " -NoNewline -ForegroundColor Cyan
+    Write-Host "New-NuspecFile function"
 
-    # Define XML element templates
-    $xmlElementTemplate = @{
-        PackageName = '<id>{0}</id>'
-        Version = '<version>{0}</version>'
-        Author = '<authors>{0}</authors>'
-        Description = '<description>{0}</description>'
-        ProjectUrl = '<projectUrl>{0}</projectUrl>'
-        Url = '<packageSourceUrl>{0}</packageSourceUrl>'
-        VersionDescription = '<releaseNotes>{0}</releaseNotes>'
-        IconUrl = '<iconUrl>{0}</iconUrl>'
+    # Log p_Metadata content
+    Write-Host "Content of p_Metadata: " -ForegroundColor Yellow
+    $p_Metadata.GetEnumerator() | ForEach-Object {
+        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Magenta
+        Write-Host $_.Value
+    }
+    # Define elementMapping
+    $elementMapping = @{
+        id = 'PackageName'
+        title = 'GithubRepoName'
+        version = 'Version'
+        authors = 'Author'
+        description = 'Description'
+        projectUrl = 'ProjectUrl'
+        packageSourceUrl = 'Url'
+        releaseNotes = 'VersionDescription'
+        licenseUrl = 'LicenseUrl'
+        iconUrl = 'IconUrl'
+    }
+    # Log elementMapping content
+    Write-Host "Content of elementMapping: " -ForegroundColor Yellow
+    $elementMapping.GetEnumerator() | ForEach-Object {
+        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Magenta
+        Write-Host $_.Value
     }
 
-    # Generate XML content dynamically
-    $xmlContent = '<?xml version="1.0"?>'
-    $xmlContent += '<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">'
-    $xmlContent += '<metadata>'
+    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags')
 
-    foreach ($key in $p_Metadata.Keys) {
-        if ($null -ne $p_Metadata[$key]) {
-            $escapedValue = ConvertTo-EscapedXmlContent -Content $p_Metadata[$key]
-            $xmlContent += "`n    " + $xmlElementTemplate[$key] -f $escapedValue
-        }
-    }
-
-    $xmlContent += "`n  </metadata>`n</package>"
-
-    # Output the generated XML content
-    Write-Host "    Generated XML Content: " -NoNewline -ForegroundColor Yellow
-    Write-Host $xmlContent
-
-    $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata['PackageName']).nuspec"
-    try {
-        Out-File -InputObject $xmlContent -FilePath $f_nuspecPath -Encoding utf8
-    }
-    catch {
-        Write-Error "Failed to create nuspec file at: $f_nuspecPath"
+    # Create XML document
+    $xmlDoc = New-Object System.Xml.XmlDocument
+    if ($null -eq $xmlDoc) {
+        Write-Error "xmlDoc is null"
         exit 1
     }
-    Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Yellow
+
+    # Load XML template into xmlDoc and create a Namespace Manager
+    $xmlDoc.LoadXml('<?xml version="1.0"?><package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"><metadata></metadata></package>')
+    $nsManager = New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable)
+    $nsManager.AddNamespace('ns', 'http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd')
+
+    # Select the metadata element using the Namespace Manager
+    $metadataElem = $xmlDoc.SelectSingleNode('/ns:package/ns:metadata', $nsManager)
+    if ($null -eq $metadataElem) {
+        Write-Error "Failed to select metadata element"
+        exit 1
+    }
+
+
+# Add elements to XML document
+Write-Host "    Appending elements to metadata: " -ForegroundColor Yellow
+$namespaceUri = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd" # Define the namespace URI
+
+foreach ($elementName in $elementOrder) {
+    Write-Host "        Checking for element: " -NoNewline -ForegroundColor Magenta
+    Write-Host $elementName
+    if ($elementMapping.ContainsKey($elementName)) {
+        $key = $elementMapping[$elementName]
+        if ($p_Metadata.ContainsKey($key) -and $null -ne $p_Metadata[$key]) {
+            # Create element with namespace
+            $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
+            if ($null -eq $elem) {
+                Write-Host "            Error: Failed to create element: " -ForegroundColor Red
+            } else {
+                $elem.InnerText = $p_Metadata[$key]
+                $appendResult = $metadataElem.AppendChild($elem)
+                if ($null -eq $appendResult) {
+                    Write-Host "Error: Failed to append element: " -ForegroundColor Red
+                } else {
+                    Write-Host "Appended element: " -ForegroundColor Green -NoNewline
+                    Write-Host $elementName
+                }
+            }
+        }
+        else {
+            Write-Host "Element not found in p_Metadata or value is null: " -ForegroundColor Red -NoNewline
+            Write-Host $elementName
+        }
+    }
+    else {
+        Write-Host "Element not found in elementMapping: " -ForegroundColor Red -NoNewline
+        Write-Host $elementName
+    }
+}
+
+
+    # Save XML document to file
+    $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata['PackageName']).nuspec"
+    $xmlDoc.Save($f_nuspecPath)
+
+    Write-Host "    Nuspec file created at: " -ForegroundColor Green
     Write-Host $f_nuspecPath
-    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
-Write-Host "New-NuspecFile function"
+    Write-Host "EXITING: New-NuspecFile function" -ForegroundColor Cyan
+
+    # Return the path to the saved .nuspec file
     return $f_nuspecPath
 }
+
 function New-InstallScript {
     param (
         [Parameter(Mandatory=$true)]
@@ -1065,7 +1118,7 @@ function Initialize-GithubPackage{
         exit 1
     }
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "Initialize-GithubPackage function"
+    Write-Host "Initialize-GithubPackage function"
     Write-Host "    Input Received: $repoUrl"
 
     ###################################################################################################
@@ -1182,36 +1235,17 @@ Write-Host $($urls.GetType().FullName)
 
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
     Write-Host "`nMetadata Object's Content: " -ForegroundColor Yellow
-    
-    # Check if $myMetadata is an array
-    if ($myMetadata -is [System.Array]) {
-        # Iterate over each element in the array
-        foreach ($element in $myMetadata) {
-            # Check the type of each element
-            Write-Host "    Element Type: " -NoNewline -ForegroundColor Magenta
-            Write-Host $element.GetType().FullName
-            # Print details based on element type
-            if ($element -is [System.Collections.Hashtable]) {
-                # If element is a hashtable, print its key-value pairs
-                $element.GetEnumerator() | ForEach-Object {
-                    Write-Host "        $($_.Key): " -NoNewline -ForegroundColor Yellow
-                    if ([string]::IsNullOrEmpty($_.Value)) {
-                        Write-Host "null" -ForegroundColor White
-                    }
-                    else {
-                        Write-Host "$($_.Value)" -ForegroundColor White
-                    }
-                }
-            } else {
-                # If element is not a hashtable, print it directly
-                Write-Host "        Value: $element" -ForegroundColor White
-            }
+    # Display the contents of the metadata hashtable
+    $myMetadata.GetEnumerator() | ForEach-Object {
+        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
+        if ([string]::IsNullOrEmpty($_.Value)) {
+            Write-Host "null" -ForegroundColor White
         }
-    } else {
-        # If $myMetadata is not an array, handle it as a single object
-        Write-Host "    Value: $myMetadata" -ForegroundColor White
+        else {
+            # Display the value
+            Write-Host "$($_.Value)"
+        }
     }
-    Write-Host
     
 
     #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor Yellow
@@ -1231,10 +1265,13 @@ Write-Host $($urls.GetType().FullName)
     #region Create Nuspec File and Install Script
 
     # Write the type of the metadata object
-    Write-Host "Type of myMetadata before NUSPEC: $($myMetadata.GetType().FullName)"
+    Write-Host "Type of myMetadata before NUSPEC: " -NoNewline -ForegroundColor Magenta
+    Write-Host $($myMetadata.GetType().FullName)
 
     # Create the nuspec file and install script
     $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
+    Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Yellow
+    Write-Host $nuspecPath
     $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
 
     #endregion
