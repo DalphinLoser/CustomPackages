@@ -174,7 +174,7 @@ function Select-Asset {
 
     # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
     if (-not [string]::IsNullOrEmpty($p_assetName)) {
-        Write-Host "Selecting asset with name: `"$p_assetName`""
+        Write-Host "    Selecting asset with name: `"$p_assetName`""
         $f_selectedAsset = $p_assets | Where-Object { $_.name -eq $p_assetName }
         # If there is no match for the asset name, throw an error
         if ($null -eq $f_selectedAsset) {
@@ -836,8 +836,8 @@ function Get-AssetInfo {
     }
 
     # Get the description
-    Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor DarkYellow
-    Write-Host $rootRepoInfo
+    # Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor DarkYellow
+    # Write-Host $rootRepoInfo
     # If the description is null or empty, get the description from the root repository
     if ([string]::IsNullOrEmpty($rootRepoInfo.description)) {
         $description = $rootRepoInfo.description
@@ -907,17 +907,18 @@ function Get-AssetInfo {
         $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
     }
 
-    Write-Host "Type of packageMetadata before return: $($packageMetadata.GetType().FullName)" # Debugging line
+    Write-Host "    Type of packageMetadata before return: $($packageMetadata.GetType().FullName)" # Debugging line
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
-        Write-Host "Type of packageMetadata before return: Hashtable"
-        Write-Host "Actual type: $($packageMetadata.GetType().FullName)"
+        Write-Host "    Type of packageMetadata before return: Hashtable"
+        Write-Host "    Actual type: $($packageMetadata.GetType().FullName)"
     } else {
-        Write-Host "Type of packageMetadata before return: NOT Hashtable"
+        Write-Host "    Type of packageMetadata before return: NOT Hashtable"
         
     }
     
-
+    Write-Host "    Final Check of packageMetadata: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $($packageMetadata.GetType().FullName)
     Write-Host "EXITING Metadata" -ForegroundColor Green
     return $packageMetadata
 }
@@ -1106,6 +1107,7 @@ function Initialize-GithubPackage{
     Write-Host "##################################################"
 
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
+
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
     # For debugging, write the content of the metadata object no matter the type
     Write-Host "`nMetadata Object's Content: " -ForegroundColor DarkYellow
