@@ -451,7 +451,7 @@ function New-InstallScript {
     if ($p_Metadata.FileType -eq "zip") {
         $globalInstallDir = "C:\AutoPackages\$($p_Metadata.PackageName)"
 
-        $f_installScriptContent = @"
+    $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 `$toolsDir   = "$globalInstallDir"
 
@@ -462,6 +462,14 @@ function New-InstallScript {
 }
 
 Install-ChocolateyZipPackage @packageArgs
+
+# Initialize directories for shortcuts
+`$desktopDir = "`$env:USERPROFILE\Desktop"
+`$startMenuDir = Join-Path `$env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+
+# Check if directories exist, if not, create them
+if (!(Test-Path -Path `$desktopDir)) { New-Item -Path `$desktopDir -ItemType Directory }
+if (!(Test-Path -Path `$startMenuDir)) { New-Item -Path `$startMenuDir -ItemType Directory }
 
 # Dynamically find all .exe files in the extracted directory and create shortcuts for them
 `$exes = Get-ChildItem -Path `$toolsDir -Recurse -Include *.exe
