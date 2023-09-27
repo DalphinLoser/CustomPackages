@@ -153,6 +153,8 @@ function Select-Asset {
         [hashtable]$p_urls
     )
 
+    Write-Host "ENTERING Select-Asset function" -ForegroundColor Yellow
+
     $p_assetName = $p_urls.specifiedAssetName
     $baseRepoUrl = $p_urls.baseRepoUrl
     # Validation check for the assets
@@ -206,6 +208,7 @@ function Select-Asset {
                 }
             } |
             Select-Object -First 1
+            Write-Host "    Selected asset after sorting: $($f_selectedAsset.name)"
     }
     # Validation check for the selected asset
     if ($null -eq $f_selectedAsset) {
