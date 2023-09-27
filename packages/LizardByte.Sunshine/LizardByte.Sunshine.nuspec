@@ -7,7 +7,7 @@
     <authors>LizardByte</authors>
     <description>Self-hosted game stream host for Moonlight.</description>
     <projectUrl>https://github.com/LizardByte/Sunshine</projectUrl>
-    <packageSourceUrl>https://github.com/LizardByte/Sunshine/releases/download/v0.20.0/sunshine-debuginfo-win32.zip</packageSourceUrl>
+    <packageSourceUrl>https://github.com/LizardByte/Sunshine/releases/download/v0.20.0/sunshine-windows-installer.exe</packageSourceUrl>
     <releaseNotes>**Breaking**
 - (Windows) The Windows installer version of Sunshine is now always launched by the Sunshine Service. Manually launching Sunshine.exe from Program Files is no longer supported. This was necessary to address security issues caused by non-admin users having access to Sunshine's config data. If you have set up Task Scheduler or other mechanisms to launch Sunshine automatically, remove those from your system before updating.
 - (Windows) The Start Menu shortcut has been redesigned for use with the Sunshine Service. It now launches Sunshine in the background (if not already running) and opens the Web UI, avoiding the persistent Command Prompt window present in prior versions. The Start Menu shortcut is now the recommended method for opening the Web UI and launching Sunshine.
