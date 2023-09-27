@@ -911,9 +911,10 @@ function Get-AssetInfo {
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
         Write-Host "Type of packageMetadata before return: Hashtable"
+        Write-Host "Actual type: $($packageMetadata.GetType().FullName)"
     } else {
         Write-Host "Type of packageMetadata before return: NOT Hashtable"
-        Write-Host "Actual type: $($packageMetadata.GetType().FullName)"
+        
     }
     
 
