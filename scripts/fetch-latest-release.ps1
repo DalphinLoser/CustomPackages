@@ -699,6 +699,17 @@ function New-ChocolateyPackage {
         Write-Host "    Nuspec file found at: $p_nuspecPath" -ForegroundColor Cyan
     }
 
+    # Write the contents of the nuspec file to the console
+    Write-Host "    Nuspec file contents:" -ForegroundColor Cyan
+    [xml]$xmlContent = Get-Content -Path $p_nuspecPath -Raw
+    $stringWriter = New-Object System.IO.StringWriter
+    $xmlWriter = New-Object System.Xml.XmlTextWriter $stringWriter
+    $xmlWriter.Formatting = [System.Xml.Formatting]::Indented
+    $xmlContent.WriteTo($xmlWriter)
+    $xmlWriter.Flush()
+    $stringWriter.ToString()
+    
+
     # Create Chocolatey package
     try {
         Write-Host "    Creating Chocolatey package..."
