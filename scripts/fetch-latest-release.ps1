@@ -1074,11 +1074,9 @@ function Initialize-GithubPackage{
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
     # For debugging, write the content of the metadata object no matter the type
-    Write-Host "`nMetadata Object's Content: `n" -ForegroundColor DarkYellow
-    $myMetadata.GetEnumerator() | ForEach-Object {
-        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
-        Write-Host $_.Value
-    }
+    Write-Host "`nMetadata Object's Content: " -ForegroundColor DarkYellow
+    Write-Host $myMetadata
+    Write-Host
 
     $result = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
     if ($result -isnot [Hashtable]) {
@@ -1108,7 +1106,7 @@ function Initialize-GithubPackage{
     #Format-Json -json $myMetadata
 
     # Set the path to the package directory and create it if it doesn't exist
-    $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
+    $packageDir = Join-Path (Get-Location).Path [hashtable]$myMetadata.PackageName
     Confirm-DirectoryExists -p_path $packageDir -p_name 'package'
 
     # Explicitly set the path to the tools directory and create it if it doesn't exist
