@@ -20,7 +20,7 @@ function Find-IcoInRepo {
 
     if (-not $token) {
         Write-Host "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding." -ForegroundColor Red
-        return
+        exit 1
     }
 
     $headers = @{
@@ -1101,9 +1101,31 @@ function Initialize-GithubPackage{
         Write-Host "`nmyMetadata does not exist yet`n"
     }
 
-    Write-Host "Passing types to Get-AssetInfo: " -ForegroundColor Yellow
+    Write-Host "Passing variables to Get-AssetInfo: " -ForegroundColor Yellow
     Write-Host "    Type of latestReleaseInfo_GHP: $($latestReleaseInfo_GHP.GetType().FullName)"
+    Write-Host "    Data in latestReleaseInfo_GHP: " -ForegroundColor DarkYellow
+    Write-Host "        $($latestReleaseInfo_GHP.PSObject.Properties)" | ForEach-Object {
+        Write-Host "            $($_.Name): " -NoNewline -ForegroundColor Cyan
+        # Check if the value is null or empty
+        if ([string]::IsNullOrEmpty($_.Value)) {
+            Write-Host "null" -ForegroundColor White
+        }
+        else {
+            Write-Host $_.Value
+        }
+    }
     Write-Host "    Type of urls: $($urls.GetType().FullName)"
+    Write-Host "    Data in urls: " -ForegroundColor DarkYellow
+    Write-Host "        $($urls.GetEnumerator())" | ForEach-Object {
+        Write-Host "            $($_.Key): " -NoNewline -ForegroundColor Cyan
+        # Check if the value is null or empty
+        if ([string]::IsNullOrEmpty($_.Value)) {
+            Write-Host "null" -ForegroundColor White
+        }
+        else {
+            Write-Host $_.Value
+        }
+    }
     Write-Host "##################################################"
 
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
@@ -1161,8 +1183,8 @@ function Initialize-GithubPackage{
     Write-Host "Type of myMetadata before NUSPEC: $($myMetadata.GetType().FullName)"
 
     # Create the nuspec file and install script
-    $nuspecPath = New-NuspecFile -p_Metadata [hashtable]$myMetadata -p_packageDir $packageDir
-    $installScriptPath = New-InstallScript -p_Metadata [hashtable]$myMetadata -p_toolsDir $toolsDir
+    $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
+    $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
 
     #endregion
     ###################################################################################################
