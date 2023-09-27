@@ -1062,24 +1062,48 @@ function Initialize-GithubPackage{
     # Write the content of latestReleaseInfo_GHP one per line with the key in Cyan and the value in white
     $latestReleaseInfo_GHP.PSObject.Properties | ForEach-Object {
         Write-Host "    $($_.Name): " -NoNewline -ForegroundColor Cyan
-        Write-Host $_.Value
+        # Check if the value is null or empty
+        if ([string]::IsNullOrEmpty($_.Value)) {
+            Write-Host "null" -ForegroundColor White
+        }
+        else {
+            Write-Host "Exists"
+        }
     }
     Write-Host "    Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of the hashtable one per line
     $urls.GetEnumerator() | ForEach-Object {
         Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
-        Write-Host $_.Value
+        if ([string]::IsNullOrEmpty($_.Value)) {
+            Write-Host "null" -ForegroundColor White
+        }
+        else {
+            Write-Host "Exists"
+        }
     }
 
     # Check if myMetadata already exists
     if ($null -ne $myMetadata) {
-        Write-Host "`nmyMetadata already exists"
-        Write-Host $myMetadata.GetEnumerator() | ForEach-Object { "$($_.Key): $($_.Value)`n" }
+        Write-Host "`nmyMetadata already exists: "
+        Write-Host $myMetadata.GetEnumerator() | ForEach-Object { 
+            Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
+            if ([string]::IsNullOrEmpty($_.Value)) {
+                Write-Host "null" -ForegroundColor White
+            }
+            else {
+                Write-Host "Exists"
+            }
+        }
     }
     esle {
         Write-Host "`nmyMetadata does not exist yet`n"
     }
 
+    Write-Host "Passing types to Get-AssetInfo: " -ForegroundColor Yellow
+    Write-Host "    Type of latestReleaseInfo_GHP: $($latestReleaseInfo_GHP.GetType().FullName)"
+    Write-Host "    Type of urls: $($urls.GetType().FullName)"
+    Write-Host "##################################################"
+    
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
     # For debugging, write the content of the metadata object no matter the type
