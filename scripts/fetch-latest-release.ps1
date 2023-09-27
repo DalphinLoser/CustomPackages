@@ -1071,36 +1071,21 @@ function Initialize-GithubPackage{
         Write-Host $_.Value
     }
 
+    # Check if myMetadata already exists
+    if ($null -ne $myMetadata) {
+        Write-Host "`nmyMetadata already exists"
+        Write-Host $myMetadata.GetEnumerator() | ForEach-Object { "$($_.Key): $($_.Value)`n" }
+    }
+    esle {
+        Write-Host "`nmyMetadata does not exist yet`n"
+    }
+
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
     # For debugging, write the content of the metadata object no matter the type
     Write-Host "`nMetadata Object's Content: " -ForegroundColor DarkYellow
-    Write-Host $myMetadata
+    Write-Host $myMetadata.GetEnumerator() | ForEach-Object { "$($_.Key): $($_.Value)" }
     Write-Host
-
-    $result = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
-    if ($result -isnot [Hashtable]) {
-        Write-Error "Expected result to be a hashtable but got $($result.GetType().FullName)"
-        return
-    } elseif ($result -is [Array] -and $result[0] -is [Hashtable]) {
-        $result = $result[0]
-        Write-Host "Type of result AFTER ASSET-INFO: $($result.GetType().FullName)"
-        # Write the result variable's content
-        Write-Host "    Result Variable's Content: " -ForegroundColor DarkYellow
-        $result.GetEnumerator() | ForEach-Object {
-            Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
-            Write-Host $_.Value
-        }
-    } else {
-        Write-Host "Type of result AFTER ASSET-INFO: $($result.GetType().FullName)"
-        # Write the result variable's content
-        Write-Host "    Result Variable's Content: " -ForegroundColor DarkYellow
-        $result.GetEnumerator() | ForEach-Object {
-            Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
-            Write-Host $_.Value
-        }
-    }
-
 
     #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
     #Format-Json -json $myMetadata
