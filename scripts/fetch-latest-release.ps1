@@ -1109,18 +1109,37 @@ function Initialize-GithubPackage{
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
 
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
-    # For debugging, write the content of the metadata object no matter the type
     Write-Host "`nMetadata Object's Content: " -ForegroundColor DarkYellow
-    Write-Host $myMetadata.GetEnumerator() | ForEach-Object { 
-        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
-        if ([string]::IsNullOrEmpty($_.Value)) {
-            Write-Host "null" -ForegroundColor White
+    
+    # Check if $myMetadata is an array
+    if ($myMetadata -is [System.Array]) {
+        # Iterate over each element in the array
+        foreach ($element in $myMetadata) {
+            # Check the type of each element
+            Write-Host "    Element Type: $($element.GetType().FullName)" -ForegroundColor Cyan
+            # Print details based on element type
+            if ($element -is [System.Collections.Hashtable]) {
+                # If element is a hashtable, print its key-value pairs
+                $element.GetEnumerator() | ForEach-Object {
+                    Write-Host "        $($_.Key): " -NoNewline -ForegroundColor Cyan
+                    if ([string]::IsNullOrEmpty($_.Value)) {
+                        Write-Host "null" -ForegroundColor White
+                    }
+                    else {
+                        Write-Host "$($_.Value)" -ForegroundColor White
+                    }
+                }
+            } else {
+                # If element is not a hashtable, print it directly
+                Write-Host "        Value: $element" -ForegroundColor White
+            }
         }
-        else {
-            Write-Host "Exists"
-        }
+    } else {
+        # If $myMetadata is not an array, handle it as a single object
+        Write-Host "    Value: $myMetadata" -ForegroundColor White
     }
     Write-Host
+    
 
     #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
     #Format-Json -json $myMetadata
