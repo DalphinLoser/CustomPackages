@@ -394,45 +394,59 @@ function Get-RootRepository {
         return $repoInfo
     }
 }
-
+function ConvertTo-EscapedXmlContent {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Content
+    )
+    Write-Host "    Escaping XML Content: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host $Content
+    $escapedContent = $Content -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;' -replace "'", '&apos;'
+    return $escapedContent
+}
 function New-NuspecFile {
     param (
         [Parameter(Mandatory=$true)]
-        [PSCustomObject]$p_Metadata,
-
+        [hashtable]$p_Metadata,
         [Parameter(Mandatory=$true)]
         [string]$p_packageDir
     )
 
     Write-Host "ENTERING New-NuspecFile function" -ForegroundColor Yellow
-    # Validation
-    if (-not $p_Metadata.PackageName -or -not $p_Metadata.ProjectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
-        Write-Error "Missing mandatory metadata for nuspec file. PackageName: $($p_Metadata.PackageName), Repo: $($p_Metadata.ProjectUrl), Url: $($p_Metadata.Url), Version: $($p_Metadata.Version), Author: $($p_Metadata.Author), Description: $($p_Metadata.Description)"
-        return
+
+    # Define XML element templates
+    $xmlElementTemplate = @{
+        PackageName = '<id>{0}</id>'
+        Version = '<version>{0}</version>'
+        Author = '<authors>{0}</authors>'
+        Description = '<description>{0}</description>'
+        ProjectUrl = '<projectUrl>{0}</projectUrl>'
+        Url = '<packageSourceUrl>{0}</packageSourceUrl>'
+        VersionDescription = '<releaseNotes>{0}</releaseNotes>'
+        IconUrl = '<iconUrl>{0}</iconUrl>'
     }
 
-    $f_nuspec = @"
-<?xml version="1.0"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-  <metadata>
-    <id>$($p_Metadata.PackageName)</id>
-    <title>$($p_Metadata.GithubRepoName)</title>
-    <version>$($p_Metadata.Version)</version>
-    <authors>$($p_Metadata.Author)</authors>
-    <description>$($p_Metadata.Description)</description>
-    <projectUrl>$($p_Metadata.ProjectUrl)</projectUrl>
-    <packageSourceUrl>$($p_Metadata.Url)</packageSourceUrl>
-    <releaseNotes>$($p_Metadata.VersionDescription)</releaseNotes>
-    <licenseUrl>$($p_Metadata.ProjectUrl)/blob/master/LICENSE</licenseUrl>
-    <iconUrl>$($p_Metadata.IconUrl)</iconUrl>
-    <tags></tags>
-  </metadata>
-</package>
-"@
+    # Generate XML content dynamically
+    $xmlContent = '<?xml version="1.0"?>'
+    $xmlContent += '<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">'
+    $xmlContent += '<metadata>'
 
-    $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata.PackageName).nuspec"
+    foreach ($key in $p_Metadata.Keys) {
+        if ($null -ne $p_Metadata[$key]) {
+            $escapedValue = ConvertTo-EscapedXmlContent -Content $p_Metadata[$key]
+            $xmlContent += "`n    " + $xmlElementTemplate[$key] -f $escapedValue
+        }
+    }
+
+    $xmlContent += "`n  </metadata>`n</package>"
+
+    # Output the generated XML content
+    Write-Host "    Generated XML Content: " -NoNewline -ForegroundColor Cyan
+    Write-Output $xmlContent
+
+    $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata['PackageName']).nuspec"
     try {
-        Out-File -InputObject $f_nuspec -FilePath $f_nuspecPath -Encoding utf8
+        Out-File -InputObject $xmlContent -FilePath $f_nuspecPath -Encoding utf8
     }
     catch {
         Write-Error "Failed to create nuspec file at: $f_nuspecPath"
@@ -440,13 +454,13 @@ function New-NuspecFile {
     }
     Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Cyan
     Write-Host $f_nuspecPath
-    Write-Host "EXITING Nuspec Path" -ForegroundColor Green
+    Write-Host "EXITING New-NuspecFile function" -ForegroundColor Green
     return $f_nuspecPath
 }
 function New-InstallScript {
     param (
         [Parameter(Mandatory=$true)]
-        [PSCustomObject]$p_Metadata,
+        [hashtable]$p_Metadata,
 
         [Parameter(Mandatory=$true)]
         [string]$p_toolsDir
@@ -873,7 +887,7 @@ function Get-AssetInfo {
     }
 
     # Create package metadata object
-    $packageMetadata        = [PSCustomObject]@{
+    $packageMetadata        = @{
         PackageName         = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
         Version             = $sanitizedVersion
         Author              = $githubUser
