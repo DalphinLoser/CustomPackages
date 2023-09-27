@@ -13,7 +13,8 @@ function Find-IcoInRepo {
         [string]$defaultBranch
     )
 
-    Write-Host "ENTERING Find-IcoInRepo function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+    Write-Host "Find-IcoInRepo function"
     $token = $env:GITHUB_TOKEN
 
     Write-Host "Default branch recieved: $defaultBranch"
@@ -30,38 +31,39 @@ function Find-IcoInRepo {
 
     # Using the Trees API now
     $apiUrl = "https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1"
-    Write-Host "Query URL: $apiUrl" -ForegroundColor Cyan
+    Write-Host "Query URL: $apiUrl" -ForegroundColor Yellow
 
     try {
         $webResponse = Invoke-WebRequest -Uri $apiUrl -Headers $headers
         $response = $webResponse.Content | ConvertFrom-Json
-        Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Cyan
-        Write-Host "Response Content:" -ForegroundColor Cyan
+        Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Yellow
+        Write-Host "Response Content:" -ForegroundColor Yellow
         Write-Host $webResponse.Content
     } catch {
-        Write-Host "ERROR: Failed to fetch the repository contents. Error: $_" -ForegroundColor Red
-        Write-Host "EXITING Find-IcoInRepo function (Error)" -ForegroundColor Yellow
-        return
+        Write-Host "ERROR: Failed to query GitHub API."
+        exit 1
     }
 
     # Filter for files with .ico extension
     $icoFiles = $response.tree | Where-Object { $_.type -eq 'blob' -and $_.path -like '*.ico' }
 
     if ($icoFiles.Count -gt 0) {
-        Write-Host "EXITING Find-IcoInRepo function (Found)" -ForegroundColor Green
+        Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+        Write-Host "Find-IcoInRepo function (Found)"
         return $icoFiles[0].path
     } else {
-        Write-Host "EXITING Find-IcoInRepo function (Not Found)" -ForegroundColor Yellow
+        Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+        Write-Host "Find-IcoInRepo function (Not Found)"
         return
     }
 }
-
 function Get-Favicon {
     param (
         [Parameter(Mandatory=$true)]
         [string]$p_homepage
     )
-    Write-Host "ENTERING Get-Favicon function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Get-Favicon function"
 
     # Get the HTML of the homepage
     $webRequest = Invoke-WebRequest -Uri $p_homepage
@@ -69,8 +71,10 @@ function Get-Favicon {
     # Strip everything after the domain name
     $f_homepageTld = $p_homepage -replace '^(https?://[^/]+).*', '$1'
 
-    Write-Host "    Homepage: $p_homepage"
-    Write-Host "    Homepage TLD: $f_homepageTld"
+    Write-Host "    Homepage: " -NoNewline -ForegroundColor Yellow
+Write-Host $p_homepage
+    Write-Host "    Homepage TLD: " -NoNewline -ForegroundColor Yellow
+Write-Host $f_homepageTld
 
     # Use regex to find <link rel="icon" ...> or <link rel="shortcut icon" ...>
     if ($webRequest.Content -match "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`"") {
@@ -80,7 +84,8 @@ function Get-Favicon {
         if ($faviconRelativeLink -match "^/") {
             # Convert to absolute URL
             $faviconAbsoluteLink = "$f_homepageTld$faviconRelativeLink"
-            Write-Host "    Favicon Absolute URL: $faviconAbsoluteLink"
+            Write-Host "    Favicon Absolute URL: " -NoNewline -ForegroundColor Yellow
+            Write-Host $faviconAbsoluteLink
             return $faviconAbsoluteLink
         } else {
             Write-Host "    Favicon Relative URL: $f_homepageTld/$faviconRelativeLink"
@@ -90,9 +95,9 @@ function Get-Favicon {
         Write-Host "No favicon link found in HTML"
         return $null
     }
-    Write-Host "EXITING Get-Favicon function" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "Get-Favicon function"
 }
-
 function Format-Json {
     # Function to format and print JSON recursively, allowing for nested lists
     param (
@@ -150,7 +155,7 @@ function Write-LogHeader {
     param (
         [string]$Message
     )
-    Write-Host "`n=== [ $Message ] ===`n" -ForegroundColor Magenta
+    Write-Host "`n=== [ $Message ] ===" -BackgroundColor DarkGray
 }
 function Select-Asset {
     param (
@@ -159,7 +164,8 @@ function Select-Asset {
         [hashtable]$p_urls
     )
 
-    Write-Host "ENTERING Select-Asset function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Select-Asset function"
 
     $p_assetName = $p_urls.specifiedAssetName
     $baseRepoUrl = $p_urls.baseRepoUrl
@@ -174,7 +180,8 @@ function Select-Asset {
 
     # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
     if (-not [string]::IsNullOrEmpty($p_assetName)) {
-        Write-Host "    Selecting asset with name: `"$p_assetName`""
+        Write-Host "    Selecting asset with name: " -ForegroundColor Yellow
+Write-Host "`"$p_assetName`""
         $f_selectedAsset = $p_assets | Where-Object { $_.name -eq $p_assetName }
         # If there is no match for the asset name, throw an error
         if ($null -eq $f_selectedAsset) {
@@ -221,14 +228,16 @@ function Select-Asset {
         exit 1
     }
 
-    Write-Host "EXITING Selected Asset" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "Selected Asset"
     return $f_selectedAsset
 }
 function ConvertTo-SanitizedNugetVersion {
     param (
         [string]$p_rawVersion
     )
-    
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "ConvertTo-SanitizedNugetVersion function"
     # Step 1: Trim leading and trailing whitespaces and remove non-numeric leading characters
     $f_cleanVersion = $p_rawVersion.Trim()
     $f_cleanVersion = $f_cleanVersion -replace '^[^0-9]*', ''
@@ -247,7 +256,8 @@ function ConvertTo-SanitizedNugetVersion {
     $f_sanitizedVersion = "$f_numeric$f_label"
     
     # Return the sanitized version string
-    Write-Host "EXITING Sanitized Version" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "Sanitized Version"
     return $f_sanitizedVersion
 }
 function Get-Filetype {
@@ -256,7 +266,8 @@ function Get-Filetype {
         [string]$p_fileName,
         [string[]]$p_acceptedExtensions = $acceptedExtensions
     )
-    Write-Host "ENTERING Get-Filetype function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Get-Filetype function"
 
     $found = $false
 
@@ -270,8 +281,10 @@ function Get-Filetype {
     
     if ($found) {
         # The file name ends with one of the accepted extensions
-        Write-Host "    File name ends with an accepted extension."
+        Write-Host "    File name ends with an accepted extension" -ForegroundColor Yellow
         # return the extension that was found
+        Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "File Type"
         return $ext
     } else {
         Write-Error "   Unsupported file type: $p_fileName"
@@ -286,7 +299,8 @@ function Get-SilentArgs {
         [Parameter(Mandatory=$true)]
         [string]$p_fileType
     )
-    Write-Host "ENTERING Get-SilentArgs function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Get-SilentArgs function"
     
     $f_silentArgs = ''
     
@@ -317,7 +331,8 @@ function Get-SilentArgs {
         }
     }
 
-    Write-Host "EXITING Silent Args" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "Silent Args"
     return $f_silentArgs
 }
 function Get-LatestReleaseInfo {
@@ -326,7 +341,8 @@ function Get-LatestReleaseInfo {
         [string]$p_baseRepoUrl
     )
 
-    Write-Host "    ENTERING Get-LatestReleaseInfo function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Get-LatestReleaseInfo function"
     Write-Host "    Target GitHub API URL: $p_baseRepoUrl"
 
     Write-Host "    Initiating web request to GitHub API..."
@@ -360,23 +376,24 @@ function Get-LatestReleaseInfo {
     }
 
     Write-Host "    Tag Name: $($f_latestReleaseInfo.tag_name)"
-    Write-Host "EXITING latest release info" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "latest release info"
     return $f_latestReleaseInfo
 }
-
-
 function Get-RootRepository {
     param (
         [Parameter(Mandatory=$true)]
         [string]$p_repoUrl
     )
-    Write-Host "ENTERING Get-RootRepository function" -ForegroundColor Yellow
-    Write-Host "    Getting root repository for: " -NoNewline -ForegroundColor Cyan
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Get-RootRepository function"
+    Write-Host "    Getting root repository for: " -NoNewline -ForegroundColor Yellow
     Write-Host $p_repoUrl
     # Fetch the repository information
     try {
+        Write-Host "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
         $repoInfo = (Invoke-WebRequest -Uri $p_repoUrl).Content | ConvertFrom-Json
-        Write-Host "    Repository information fetched successfully: " -NoNewline -ForegroundColor Cyan
+        Write-Host $repoInfo.full_name
     }
     catch {
         Write-Error "Failed to fetch repository information."
@@ -390,7 +407,8 @@ function Get-RootRepository {
         return $rootRepo
     } else {
         # If it's not a fork, return the current repository info
-        Write-Host "EXITING root repository info" -ForegroundColor Green
+        Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "root repository info"
         return $repoInfo
     }
 }
@@ -399,9 +417,13 @@ function ConvertTo-EscapedXmlContent {
         [Parameter(Mandatory=$true)]
         [string]$Content
     )
-    Write-Host "    Escaping XML Content: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "ConvertTo-EscapedXmlContent function"
+    Write-Host "    Escaping XML Content: " -NoNewline -ForegroundColor Yellow
     Write-Host $Content
     $escapedContent = $Content -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;' -replace "'", '&apos;'
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "ConvertTo-EscapedXmlContent function"
     return $escapedContent
 }
 function New-NuspecFile {
@@ -412,7 +434,8 @@ function New-NuspecFile {
         [string]$p_packageDir
     )
 
-    Write-Host "ENTERING New-NuspecFile function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "New-NuspecFile function"
 
     # Define XML element templates
     $xmlElementTemplate = @{
@@ -441,8 +464,8 @@ function New-NuspecFile {
     $xmlContent += "`n  </metadata>`n</package>"
 
     # Output the generated XML content
-    Write-Host "    Generated XML Content: " -NoNewline -ForegroundColor Cyan
-    Write-Output $xmlContent
+    Write-Host "    Generated XML Content: " -NoNewline -ForegroundColor Yellow
+    Write-Host $xmlContent
 
     $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata['PackageName']).nuspec"
     try {
@@ -452,9 +475,10 @@ function New-NuspecFile {
         Write-Error "Failed to create nuspec file at: $f_nuspecPath"
         exit 1
     }
-    Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Yellow
     Write-Host $f_nuspecPath
-    Write-Host "EXITING New-NuspecFile function" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "New-NuspecFile function"
     return $f_nuspecPath
 }
 function New-InstallScript {
@@ -466,7 +490,8 @@ function New-InstallScript {
         [string]$p_toolsDir
     )
 
-    Write-Host "ENTERING New-InstallScript function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "New-InstallScript function"
     Write-Host
 
     # Validation
@@ -547,7 +572,7 @@ if (Test-Path `$toolsDir) {
 "@
     $f_uninstallScriptPath = Join-Path $p_toolsDir "chocolateyUninstall.ps1"
     Out-File -InputObject $f_uninstallScriptContent -FilePath $f_uninstallScriptPath -Encoding utf8
-    Write-Host "    Uninstall script created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host "    Uninstall script created at: " -NoNewline -ForegroundColor Yellow
     Write-Host $f_uninstallScriptPath    
     } else {
         $f_installScriptContent = @"
@@ -568,12 +593,13 @@ Install-ChocolateyPackage @packageArgs
 
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
-    Write-Host "    Install script created at: " -NoNewline -ForegroundColor Cyan
+    Write-Host "    Install script created at: " -NoNewline -ForegroundColor Yellow
     Write-Host $f_installScriptPath
 
 
 
-    Write-Host "EXITING New-InstallScript function" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "New-InstallScript function"
     return $f_installScriptPath
 }
 function Confirm-DirectoryExists {
@@ -583,20 +609,25 @@ function Confirm-DirectoryExists {
         [Parameter(Mandatory=$true)]
         [string]$p_name
     )
-    Write-Host "ENTERING Confirm-DirectoryExists function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Confirm-DirectoryExists function"
     Write-Host "    Checking for $p_name directory..."
     if (-not (Test-Path $p_path)) {
         Write-Host "    No $p_name directory found, creating $p_name directory..."
         New-Item -Path $p_path -ItemType Directory | Out-Null
-        Write-Host "    $p_name directory created at: $p_path" -ForegroundColor Cyan
+        Write-Host "    $p_name directory created at: $" -NoNewline -ForegroundColor Yellow
+Write-Host $p_path
     }
     else {
-        Write-Host "    $p_name directory found at: $p_path" -ForegroundColor Cyan
+        Write-Host "    $p_name directory found at: " -NoNewline -ForegroundColor Yellow
+Write-Host $p_path
     }
-    Write-Host "Exiting Confirm-DirectoryExists function" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "Confirm-DirectoryExists function"
 }
 function Get-Updates {
-    Write-Host "ENTERING Get-Updates function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Get-Updates function"
     # Get all of the names of the folders in the packages directory
     Write-LogHeader "   Checking for updates"
     
@@ -693,7 +724,8 @@ function Get-Updates {
             Write-Host "    No updates found for $package"
         }
     }
-    Write-Host "Exiting Get-Updates function" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "Get-Updates function"
 }
 function New-ChocolateyPackage {
     param (
@@ -702,7 +734,8 @@ function New-ChocolateyPackage {
         [Parameter(Mandatory=$true)]
         [string]$p_packageDir
     )
-    Write-Host "ENTERING New-ChocolateyPackage function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "New-ChocolateyPackage function"
     # Check for Nuspec File
     Write-Host "    Checking for nuspec file..."
     if (-not (Test-Path $p_nuspecPath)) {
@@ -710,12 +743,12 @@ function New-ChocolateyPackage {
         exit 1
     }
     else {
-        Write-Host "    Nuspec file found at: $p_nuspecPath" -ForegroundColor Cyan
+        Write-Host "    Nuspec file found at: $p_nuspecPath" -ForegroundColor Yellow
     }
 
     # Write the contents of the nuspec file to the console
     Write-Host "##################################################"
-    Write-Host "    Nuspec file contents:" -ForegroundColor Cyan
+    Write-Host "    Nuspec file contents:" -ForegroundColor Yellow
     # Get the contents of the nuspec file
     [xml]$xmlContent = Get-Content -Path $p_nuspecPath -Raw
     # Write the contents of the nuspec file to the console
@@ -732,7 +765,8 @@ function New-ChocolateyPackage {
         Write-Error "Failed to create Chocolatey package."
         exit 1
     }
-    Write-Host "Exiting New-ChocolateyPackage function" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "New-ChocolateyPackage function"
 }
 function Get-AssetInfo {
     param (
@@ -741,12 +775,13 @@ function Get-AssetInfo {
         [Parameter(Mandatory=$true)]
         [hashtable]$p_urls
     )
-    Write-Host "ENTERING Get-AssetInfo function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Get-AssetInfo function"
     # Initialize variables
     $tag = $null
     $specifiedAssetName = $null
 
-    Write-Host "    Writing Content of p_urls" -ForegroundColor DarkYellow
+    Write-Host "    Writing Content of p_urls" -ForegroundColor Yellow
     # Check if specifiedasset is null or empty
     if (-not [string]::IsNullOrEmpty($p_urls.specifiedAssetName)) {
         $specifiedAssetName = $p_urls.specifiedAssetName
@@ -756,7 +791,7 @@ function Get-AssetInfo {
 
     if (-not [string]::IsNullOrEmpty($p_urls.tag)) {
         $tag = $p_urls.tag
-        Write-Host "    Tag: " -NoNewline -ForegroundColor Magenta
+        Write-Host "        Tag: " -NoNewline -ForegroundColor Magenta
         Write-Host $tag
     }
     $repo = $p_urls.repo
@@ -782,39 +817,41 @@ function Get-AssetInfo {
     
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -p_assets $latestReleaseInfo_GETINFO.assets -p_urls $p_urls
-    Write-Host "    Selected asset: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Selected asset: " -NoNewline -ForegroundColor Yellow
     Write-Host $selectedAsset.name
 
     # Determine file type from asset name
     $fileType = Get-Filetype -p_fileName $selectedAsset.name
-    Write-Host "    File type: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    File type: " -NoNewline -ForegroundColor Yellow
     Write-Host $fileType
     # Determine silent installation arguments based on file type
     $silentArgs = Get-SilentArgs -p_fileType $fileType
-    Write-Host "    Silent arguments: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Silent arguments: " -NoNewline -ForegroundColor Yellow
     Write-Host $silentArgs
 
     # Find the root repository
     # get the url from the latest release info and replace everything after the repo name with nothing
     $baseRepoUrl_Info = $latestReleaseInfo_GETINFO.url -replace '/releases/.*', ''
-    Write-Host "    Base Repo URL: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Base Repo URL: " -NoNewline -ForegroundColor Yellow
     Write-Host $baseRepoUrl_Info
     $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
-    Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor Yellow
     Write-Host $rootRepoInfo.url
 
     $myDefaultBranch = "$($rootRepoInfo.default_branch)"
-    Write-Host "Default Branch (Root): " -NoNewline -ForegroundColor DarkYellow
-    $myDefaultBranch
+    Write-Host "Default Branch (Root): " -ForegroundColor Yellow
+Write-Host "`"$myDefaultBranch`""
     
+
+
     # Get the icon
     # If the root repository has a homepage, use that as the icon
     if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
         $homepage = $rootRepoInfo.homepage
         # Get the favicon from the homepage
         $iconUrl = Get-Favicon -p_homepage $homepage
-        Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor DarkYellow
-        Write-Host $iconUrl
+        Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor Yellow
+Write-Host $iconUrl
     }
     # If the root repository has a logo, use that as the icon
     elseif ($icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $myDefaultBranch) {
@@ -824,19 +861,19 @@ function Get-AssetInfo {
     # If the root repository has an avatar, use that as the icon
     else {
         $iconUrl = $rootRepoInfo.owner.avatar_url
-        Write-Host "    Icon URL: " -NoNewline -ForegroundColor DarkYellow
-        Write-Host $iconUrl
+        Write-Host "    Icon URL: " -NoNewline -ForegroundColor Yellow
+Write-Host $iconUrl
     }
     
     # If the owner of the root repository is an organization, use the organization name as package name
     if ($rootRepoInfo.owner.type -eq 'Organization') {
         $orgName = $rootRepoInfo.owner.login
-        Write-Host "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor DarkYellow
-        Write-Host $orgName
+        Write-Host "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor Yellow
+Write-Host $orgName
     }
 
     # Get the description
-    # Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor DarkYellow
+    # Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor Yellow
     # Write-Host $rootRepoInfo
     # If the description is null or empty, get the description from the root repository
     if ([string]::IsNullOrEmpty($rootRepoInfo.description)) {
@@ -845,7 +882,7 @@ function Get-AssetInfo {
         if ([string]::IsNullOrEmpty($rootRepoInfo.description)){
             $readmeInfo = (Invoke-WebRequest -Uri "$($baseRepoUrl_Info.url/"readme")").Content | ConvertFrom-Json
             $description = $readmeInfo.content
-            Write-Host "    Description not found. Using readme content" -ForegroundColor DarkYellow
+            Write-Host "    Description not found. Using readme content" -ForegroundColor Yellow
         }
         else {
             Write-Host "    Description could not be found."
@@ -856,17 +893,17 @@ function Get-AssetInfo {
         $description = $rootRepoInfo.description
     }
 
-    Write-Host "    Description: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Description: " -NoNewline -ForegroundColor Yellow
     Write-Host $description
 
 
     # Get the latest release version number
     $rawVersion = $latestReleaseInfo_GETINFO.tag_name
-    Write-Host "    Raw Version: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Raw Version: " -NoNewline -ForegroundColor Yellow
     Write-Host $rawVersion
     # Sanitize the version number
     $sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
-    Write-Host "    Sanitized Version: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Sanitized Version: " -NoNewline -ForegroundColor Yellow
     Write-Host $sanitizedVersion
 
     # If specifiedasset is not null or empty print it
@@ -882,7 +919,7 @@ function Get-AssetInfo {
     }
     #clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
     $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
-    Write-Host "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor Yellow
     Write-Host $cleanedSpecifiedAssetName
     }
 
@@ -907,19 +944,19 @@ function Get-AssetInfo {
         $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
     }
 
-    Write-Host "    Type of packageMetadata before return: $($packageMetadata.GetType().FullName)" # Debugging line
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
-        Write-Host "    Type of packageMetadata before return: Hashtable"
-        Write-Host "    Actual type: $($packageMetadata.GetType().FullName)"
+        Write-Host "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
+Write-Host $($packageMetadata.GetType().FullName)
     } else {
         Write-Host "    Type of packageMetadata before return: NOT Hashtable"
         
     }
     
-    Write-Host "    Final Check of packageMetadata: " -NoNewline -ForegroundColor DarkYellow
+    Write-Host "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
     Write-Host $($packageMetadata.GetType().FullName)
-    Write-Host "EXITING Metadata" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "Metadata"
     return $packageMetadata
 }
 function Initialize-URLs{
@@ -927,7 +964,8 @@ function Initialize-URLs{
         [Parameter(Mandatory=$true)]
         [string]$p_repoUrl
     )
-    Write-Host "ENTERING Initialize-URLs function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Initialize-URLs function"
     # Check if the URL is a GitHub repository URL
     if ($p_repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
         $urlParts = $p_repoUrl -split '/'
@@ -960,7 +998,8 @@ function Initialize-URLs{
     $repo = "https://github.com/${githubUser}/${githubRepoName}"
 
     # Return all of the urls as a hashtable
-    Write-Host "EXITING URLs Hashtable" -ForegroundColor Green
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "URLs Hashtable"
     return @{
         repo = $repo
         githubUser = $githubUser
@@ -1025,7 +1064,8 @@ function Initialize-GithubPackage{
         Write-Error "Please provide a URL as an argument."
         exit 1
     }
-    Write-Host "ENTERING Initialize-GithubPackage function" -ForegroundColor Yellow
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+Write-Host "Initialize-GithubPackage function"
     Write-Host "    Input Received: $repoUrl"
 
     ###################################################################################################
@@ -1062,7 +1102,7 @@ function Initialize-GithubPackage{
     Write-Host "Passing Latest Release Info to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of latestReleaseInfo_GHP one per line with the key in Cyan and the value in white
     $latestReleaseInfo_GHP.PSObject.Properties | ForEach-Object {
-        Write-Host "    $($_.Name): " -NoNewline -ForegroundColor Cyan
+        Write-Host "    $($_.Name): " -NoNewline -ForegroundColor Yellow
         # Check if the value is null or empty
         if ([string]::IsNullOrEmpty($_.Value)) {
             Write-Host "null" -ForegroundColor White
@@ -1075,7 +1115,7 @@ function Initialize-GithubPackage{
     Write-Host "Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
     # Write the content of the hashtable one per line
     $urls.GetEnumerator() | ForEach-Object {
-        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
+        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
         if ([string]::IsNullOrEmpty($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
@@ -1086,9 +1126,9 @@ function Initialize-GithubPackage{
 
     # Check if myMetadata already exists
     if ($null -ne $myMetadata) {
-        Write-Host "`nmyMetadata already exists: "
-        Write-Host $myMetadata.GetEnumerator() | ForEach-Object { 
-            Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
+        Write-Host "`nmyMetadata already exists: " -NoNewline -ForegroundColor Yellow
+Write-Host $myMetadata.GetEnumerator() | ForEach-Object { 
+            Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
             if ([string]::IsNullOrEmpty($_.Value)) {
                 Write-Host "null" -ForegroundColor White
             }
@@ -1099,35 +1139,40 @@ function Initialize-GithubPackage{
     }
     else {
         Write-Host "`nmyMetadata does not exist yet`n"
+Write-Host "    Evicence: " -NoNewline -ForegroundColor Yellow
+Write-Host "`"$myMetadata`"`n"
     }
 
     Write-Host "Passing variables to Get-AssetInfo: " -ForegroundColor Yellow
     Write-Host "    Type of latestReleaseInfo_GHP: $($latestReleaseInfo_GHP.GetType().FullName)"
-    Write-Host "    Data in latestReleaseInfo_GHP: " -ForegroundColor DarkYellow
+    Write-Host "    Data in latestReleaseInfo_GHP: " -ForegroundColor Yellow
     Write-Host "            $($latestReleaseInfo_GHP.PSObject.Properties)" | ForEach-Object {
         # Print up to the first 100 characters of the name
-        Write-Host "        $($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length))): " -NoNewline -ForegroundColor Cyan
+        Write-Host "        Name: " -write-host -NoNewline -ForegroundColor Yellow
+Write-Host "$($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length)))" -ForegroundColor Yellow
         # Check if the value is null or empty
         if ([string]::IsNullOrEmpty($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
             # Print up to the first 100 characters of the value
+            Write-Host "Value: " -NoNewline -ForegroundColor Yellow
             Write-Host "$($_.Value.Substring(0, [Math]::Min(100, $_.Value.Length)))"
         }
     }
-    Write-Host "    Type of urls: $($urls.GetType().FullName)"
-    Write-Host "    Data in urls: " -ForegroundColor DarkYellow
+    Write-Host "    Type of urls: " -ForegroundColor Yellow
+Write-Host $($urls.GetType().FullName)
+    Write-Host "    Data in urls: " -ForegroundColor Yellow
     Write-Host "            $($urls.GetEnumerator())" | ForEach-Object {
         # Print up to the first 100 characters of the name
-        Write-Host "        $($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length))): " -NoNewline -ForegroundColor Cyan
+        Write-Host "        $($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length))): " -NoNewline -ForegroundColor Yellow
         # Check if the value is null or empty
         if ([string]::IsNullOrEmpty($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
             # Print up to the first 100 characters of the value
-            Write-Host "$($_.Value.Substring(0, [Math]::Min(100, $_.Value.Length)))"
+            Write-Host "$($_.Value.Substring(0, [Math]::Min(100, $_.Value.Length)))" -ForegroundColor Magenta
         }
     }
  
@@ -1136,19 +1181,20 @@ function Initialize-GithubPackage{
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
 
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
-    Write-Host "`nMetadata Object's Content: " -ForegroundColor DarkYellow
+    Write-Host "`nMetadata Object's Content: " -ForegroundColor Yellow
     
     # Check if $myMetadata is an array
     if ($myMetadata -is [System.Array]) {
         # Iterate over each element in the array
         foreach ($element in $myMetadata) {
             # Check the type of each element
-            Write-Host "    Element Type: $($element.GetType().FullName)" -ForegroundColor Cyan
+            Write-Host "    Element Type: " -NoNewline -ForegroundColor Magenta
+            Write-Host $element.GetType().FullName
             # Print details based on element type
             if ($element -is [System.Collections.Hashtable]) {
                 # If element is a hashtable, print its key-value pairs
                 $element.GetEnumerator() | ForEach-Object {
-                    Write-Host "        $($_.Key): " -NoNewline -ForegroundColor Cyan
+                    Write-Host "        $($_.Key): " -NoNewline -ForegroundColor Yellow
                     if ([string]::IsNullOrEmpty($_.Value)) {
                         Write-Host "null" -ForegroundColor White
                     }
@@ -1168,7 +1214,7 @@ function Initialize-GithubPackage{
     Write-Host
     
 
-    #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor DarkYellow
+    #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor Yellow
     #Format-Json -json $myMetadata
 
     # Set the path to the package directory and create it if it doesn't exist
@@ -1201,7 +1247,8 @@ function Initialize-GithubPackage{
 
     #endregion
     ###################################################################################################
-Write-Host "Exiting Initialize-GithubPackage function" -ForegroundColor Green
+Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+Write-Host "Initialize-GithubPackage function"
 }
 ###################################################################################################
 
