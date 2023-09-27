@@ -1073,6 +1073,12 @@ function Initialize-GithubPackage{
 
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
     Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
+    # For debugging, write the content of the metadata object no matter the type
+    Write-Host "`nMetadata Object's Content: `n" -ForegroundColor DarkYellow
+    $myMetadata.GetEnumerator() | ForEach-Object {
+        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
+        Write-Host $_.Value
+    }
 
     $result = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
     if ($result -isnot [Hashtable]) {
@@ -1081,8 +1087,20 @@ function Initialize-GithubPackage{
     } elseif ($result -is [Array] -and $result[0] -is [Hashtable]) {
         $result = $result[0]
         Write-Host "Type of result AFTER ASSET-INFO: $($result.GetType().FullName)"
+        # Write the result variable's content
+        Write-Host "    Result Variable's Content: " -ForegroundColor DarkYellow
+        $result.GetEnumerator() | ForEach-Object {
+            Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
+            Write-Host $_.Value
+        }
     } else {
         Write-Host "Type of result AFTER ASSET-INFO: $($result.GetType().FullName)"
+        # Write the result variable's content
+        Write-Host "    Result Variable's Content: " -ForegroundColor DarkYellow
+        $result.GetEnumerator() | ForEach-Object {
+            Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Cyan
+            Write-Host $_.Value
+        }
     }
 
 
