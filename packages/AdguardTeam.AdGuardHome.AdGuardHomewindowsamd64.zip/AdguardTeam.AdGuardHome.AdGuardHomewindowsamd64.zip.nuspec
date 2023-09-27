@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>AdguardTeam.AdGuardHome.AdGuardHomewindowsamd64.zip</id>
+    <title>AdguardTeam</title>
+    <version>0.107.38</version>
+    <authors>AdguardTeam</authors>
+    <description>Network-wide ads &amp; trackers blocking DNS server</description>
+    <projectUrl>https://github.com/AdguardTeam/AdGuardHome</projectUrl>
+    <packageSourceUrl>https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.107.38/AdGuardHome_windows_amd64.zip</packageSourceUrl>
+    <releaseNotes>Releases are like fruit: the tastier the apple, the more likely there's a bug in it somewhere. It turns out that our previous release was quite delicious! This hotfix is meant to deal with all the remaining bugs.    ##  Full changelog  See also the [v0.107.38 GitHub milestone][ms-v0.107.38].     ###  Fixed   *  Incorrect original answer when a response is filtered (#6183).   *  Comments in the *Fallback DNS servers* field in the UI (#6182).   *  Empty or default Safe Browsing and Parental Control settings (#6181).   *  Various UI issues.  [ms-v0.107.38]: https://github.com/AdguardTeam/AdGuardHome/milestone/73?closed=1</releaseNotes>
+    <iconUrl>https://adguard.com/img/favicons/favicon.ico?version=4217</iconUrl>
+  </metadata>
+</package>
