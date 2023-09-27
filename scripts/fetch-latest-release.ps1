@@ -886,7 +886,8 @@ function Get-AssetInfo {
     Write-Host $cleanedSpecifiedAssetName
     }
 
-    # Create package metadata object
+    # Create package metadata object as a hashtable
+    
     $packageMetadata        = @{
         PackageName         = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
         Version             = $sanitizedVersion
@@ -899,7 +900,6 @@ function Get-AssetInfo {
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
         GithubRepoName      = if (-not $orgName) { $githubRepoName } else { $orgName }
-
     }
 
     # If the name contains the version number exactly, remove the version number from the package name
@@ -1077,6 +1077,8 @@ function Initialize-GithubPackage{
     Write-LogHeader "Creating Nuspec File and Install Script"
     #region Create Nuspec File and Install Script
 
+    # Write the type of the metadata object
+    Write-Host "Type of myMetadata: $($myMetadata.GetType().FullName)"
     # Create the nuspec file and install script
     $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
     $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
