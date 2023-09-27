@@ -1103,29 +1103,34 @@ function Initialize-GithubPackage{
 
     Write-Host "Passing variables to Get-AssetInfo: " -ForegroundColor Yellow
     Write-Host "    Type of latestReleaseInfo_GHP: $($latestReleaseInfo_GHP.GetType().FullName)"
-    Write-Host "Data in latestReleaseInfo_GHP: " -ForegroundColor DarkYellow
-    Write-Host "        $($latestReleaseInfo_GHP.PSObject.Properties)" | ForEach-Object {
-        Write-Host "            $($_.Name): " -NoNewline -ForegroundColor Cyan
+    Write-Host "    Data in latestReleaseInfo_GHP: " -ForegroundColor DarkYellow
+    Write-Host "            $($latestReleaseInfo_GHP.PSObject.Properties)" | ForEach-Object {
+        # Print up to the first 100 characters of the name
+        Write-Host "        $($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length))): " -NoNewline -ForegroundColor Cyan
         # Check if the value is null or empty
         if ([string]::IsNullOrEmpty($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
-            Write-Host $_.Value
+            # Print up to the first 100 characters of the value
+            Write-Host "$($_.Value.Substring(0, [Math]::Min(100, $_.Value.Length)))"
         }
     }
     Write-Host "    Type of urls: $($urls.GetType().FullName)"
-    Write-Host "Data in urls: " -ForegroundColor DarkYellow
-    Write-Host "        $($urls.GetEnumerator())" | ForEach-Object {
-        Write-Host "            $($_.Key): " -NoNewline -ForegroundColor Cyan
+    Write-Host "    Data in urls: " -ForegroundColor DarkYellow
+    Write-Host "            $($urls.GetEnumerator())" | ForEach-Object {
+        # Print up to the first 100 characters of the name
+        Write-Host "        $($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length))): " -NoNewline -ForegroundColor Cyan
         # Check if the value is null or empty
         if ([string]::IsNullOrEmpty($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
-            Write-Host $_.Value
+            # Print up to the first 100 characters of the value
+            Write-Host "$($_.Value.Substring(0, [Math]::Min(100, $_.Value.Length)))"
         }
     }
+ 
     Write-Host "##################################################"
 
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
