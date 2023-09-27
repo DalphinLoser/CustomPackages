@@ -197,10 +197,16 @@ function Select-Asset {
                 }
                 return $false
             } |
-            Sort-Object { $f_supportedTypes.IndexOf($matches[1]) } |
+            Sort-Object { 
+                switch -Regex ($_) {
+                    '\.exe$' { return 0 }
+                    '\.msi$' { return 1 }
+                    '\.zip$' { return 2 }
+                    default  { return 3 }
+                }
+            } |
             Select-Object -First 1
     }
-
     # Validation check for the selected asset
     if ($null -eq $f_selectedAsset) {
         Write-Error "No suitable asset found for the latest release. Selected Asset is Null"
