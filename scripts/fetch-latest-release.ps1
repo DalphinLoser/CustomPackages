@@ -8,7 +8,7 @@ function ConvertTo-ValidPackageName {
         [string]$p_packageName
     )
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-    Write-Host "ConvertTo-PackageName function"
+    Write-Host "ConvertTo-ValidPackageName"
 
     # Check for invalid characters and spaces
     if (-not ($p_packageName -match '^[a-z0-9._-]+$') -or $p_packageName.Contains(' ')) {
@@ -29,6 +29,7 @@ function ConvertTo-ValidPackageName {
     Write-Host $p_packageName
 
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+    Write-Host "ConvertTo-ValidPackageName"
 
     return $p_packageName 
 }
@@ -597,9 +598,9 @@ foreach ($elementName in $elementOrder) {
     $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata['PackageName']).nuspec"
     $xmlDoc.Save($f_nuspecPath)
 
-    Write-Host "    Nuspec file created at: " -ForegroundColor Green
+    Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Green
     Write-Host $f_nuspecPath
-    Write-Host "EXITING: New-NuspecFile function" -ForegroundColor Cyan
+    Write-Host "EXITING: New-NuspecFile function" -ForegroundColor Green
 
     # Return the path to the saved .nuspec file
     return $f_nuspecPath
@@ -1077,7 +1078,10 @@ Write-Host $orgName
 
     # Set the package name
     $packageName = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
-
+    # If the name contains the version number exactly, remove the version number from the package name
+    if ($packageName -match $sanitizedVersion) {
+        $packageName = $packageName -replace $sanitizedVersion, ''
+    }
     # Convert to valid package name
     $packageName = ConvertTo-ValidPackageName -p_packageName $packageName
     
@@ -1108,10 +1112,7 @@ Write-Host $orgName
         LicenseUrl          = $licenseUrl
     }
 
-    # If the name contains the version number exactly, remove the version number from the package name
-    if ($packageMetadata.PackageName -match $packageMetadata.Version) {
-        $packageMetadata.PackageName = $packageMetadata.PackageName -replace $packageMetadata.Version, ''
-    }
+ 
 
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
