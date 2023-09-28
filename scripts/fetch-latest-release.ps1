@@ -1090,10 +1090,12 @@ Write-Host $orgName
         $githubRepoName = $orgName
     }
 
-    # Set thhe license URL to the license URL of the root repository
-    $licenseUrl = $rootRepoInfo.license.url
-    Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
-    Write-Host $licenseUrl
+    # Set thhe license URL to the license URL of the root repository if it is not null or whitespace
+    if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.license.url)) {
+        $licenseUrl = $rootRepoInfo.license.url
+        Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
+        Write-Host $licenseUrl
+    }
 
     # Create package metadata object as a hashtable
     
