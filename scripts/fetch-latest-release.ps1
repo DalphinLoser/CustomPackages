@@ -1088,6 +1088,8 @@ Write-Host $orgName
 
     # Set thhe license URL to the license URL of the root repository
     $licenseUrl = $rootRepoInfo.license.url
+    Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
+    Write-Host $licenseUrl
 
     # Create package metadata object as a hashtable
     
