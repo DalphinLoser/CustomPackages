@@ -1090,15 +1090,17 @@ Write-Host $orgName
         $githubRepoName = $orgName
     }
 
+    #Initialize licenseUrl
+    $licenseUrl = $null
     # Set thhe license URL to the license URL of the root repository if it is not null or whitespace
     if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.license.url)) {
-        $licenseUrl = $rootRepoInfo.license.url
+        # Set the license url equal to (repo url)/blob/(default branch)/LICENSE
+        $licenseUrl = "$($rootRepoInfo.html_url)/blob/$($rootRepoInfo.default_branch)/LICENSE"
         Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
         Write-Host $licenseUrl
     }
 
     # Create package metadata object as a hashtable
-    
     $packageMetadata        = @{
         PackageName         = $packageName
         Version             = $sanitizedVersion
@@ -1110,13 +1112,10 @@ Write-Host $orgName
         FileType            = $fileType
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
-        GithubRepoName      = if (-not $orgName) { $githubRepoName } else { $orgName }
+        GithubRepoName      = $githubRepoName
         LicenseUrl          = $licenseUrl
     }
-
- 
-
-
+    
     if ($packageMetadata -is [System.Collections.Hashtable]) {
         Write-Host "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
     Write-Host $($packageMetadata.GetType().FullName)
