@@ -1,6 +1,38 @@
 $ErrorActionPreference = 'Stop'
 ###################################################################################################
 #region Functions
+# ... rest of your code ...
+
+function ConvertTo-ValidPackageName {
+    param (
+        [string]$p_packageName
+    )
+    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
+    Write-Host "ConvertTo-PackageName function"
+
+    # Check for invalid characters and spaces
+    if (-not ($p_packageName -match '^[a-z0-9._-]+$') -or $p_packageName.Contains(' ')) {
+        Write-Host "    Invalid characters or spaces found in package name: " -NoNewline -ForegroundColor Yellow
+        Write-Host $p_packageName
+        # Remove invalid characters and spaces
+        $p_packageName = $p_packageName -replace ' ', '-'
+        $p_packageName = $p_packageName -replace '[^a-z0-9._-]', ''
+        Write-Host "    Package name after removing invalid characters and spaces: " -NoNewline -ForegroundColor Yellow
+        Write-Host $p_packageName
+    }
+
+    Write-Host "    Removing and consolidating multiple dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
+    $p_packageName = $p_packageName -replace '[._-]+', {
+        if ($_.Value -match '\.') { '.' } else { $_[0] }
+    }
+    $p_packageName = $p_packageName -replace '([._-])\1+', { if ($_.Value -match '\.') { '.' } else { $_.Value[0] } }
+    Write-Host $p_packageName
+
+    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
+
+    return $p_packageName 
+}
+
 function Find-IcoInRepo {
     param (
         [Parameter(Mandatory=$true)]
@@ -218,7 +250,7 @@ Write-Host "Select-Asset function"
     }
 
     # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
-    if (-not [string]::IsNullOrEmpty($p_assetName)) {
+    if (-not [string]::IsNullOrWhiteSpace($p_assetName)) {
         Write-Host "    Selecting asset with name: " -ForegroundColor Yellow
 Write-Host "`"$p_assetName`""
         $f_selectedAsset = $p_assets | Where-Object { $_.name -eq $p_assetName }
@@ -306,7 +338,7 @@ function Get-Filetype {
         [string[]]$p_acceptedExtensions = $acceptedExtensions
     )
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "Get-Filetype function"
+    Write-Host "Get-Filetype function"
 
     $found = $false
 
@@ -323,7 +355,7 @@ Write-Host "Get-Filetype function"
         Write-Host "    File name ends with an accepted extension" -ForegroundColor Yellow
         # return the extension that was found
         Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
-Write-Host "File Type"
+    Write-Host "File Type"
         return $ext
     } else {
         Write-Error "   Unsupported file type: $p_fileName"
@@ -572,7 +604,6 @@ foreach ($elementName in $elementOrder) {
     # Return the path to the saved .nuspec file
     return $f_nuspecPath
 }
-
 function New-InstallScript {
     param (
         [Parameter(Mandatory=$true)]
@@ -875,13 +906,13 @@ Write-Host "Get-AssetInfo function"
 
     Write-Host "    Writing Content of p_urls" -ForegroundColor Yellow
     # Check if specifiedasset is null or empty
-    if (-not [string]::IsNullOrEmpty($p_urls.specifiedAssetName)) {
+    if (-not [string]::IsNullOrWhiteSpace($p_urls.specifiedAssetName)) {
         $specifiedAssetName = $p_urls.specifiedAssetName
         Write-Host "        Specified Asset Name: " -NoNewline -ForegroundColor Magenta
         Write-Host $specifiedAssetName
     }
 
-    if (-not [string]::IsNullOrEmpty($p_urls.tag)) {
+    if (-not [string]::IsNullOrWhiteSpace($p_urls.tag)) {
         $tag = $p_urls.tag
         Write-Host "        Tag: " -NoNewline -ForegroundColor Magenta
         Write-Host $tag
@@ -944,7 +975,7 @@ $iconUrl = $null
 $iconInfo = $null
 
 # Check if the root repository has a homepage
-if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
+if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
     $homepage = $rootRepoInfo.homepage
 
     # Attempt to get the favicon from the homepage
@@ -997,10 +1028,10 @@ Write-Host $orgName
     # Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor Yellow
     # Write-Host $rootRepoInfo
     # If the description is null or empty, get the description from the root repository
-    if ([string]::IsNullOrEmpty($rootRepoInfo.description)) {
+    if ([string]::IsNullOrWhiteSpace($rootRepoInfo.description)) {
         $description = $rootRepoInfo.description
         # If the description is still null, get content of the readme
-        if ([string]::IsNullOrEmpty($rootRepoInfo.description)){
+        if ([string]::IsNullOrWhiteSpace($rootRepoInfo.description)){
             $readmeInfo = (Invoke-WebRequest -Uri "$($baseRepoUrl_Info.url/"readme")").Content | ConvertFrom-Json
             $description = $readmeInfo.content
             Write-Host "    Description not found. Using readme content" -ForegroundColor Yellow
@@ -1028,7 +1059,7 @@ Write-Host $orgName
     Write-Host $sanitizedVersion
 
     # If specifiedasset is not null or empty print it
-    if (-not [string]::IsNullOrEmpty($specifiedAssetName)) {
+    if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
         # If the asset name contains the version number, remove it.
     if ($specifiedAssetName -match $tag) {
         $cleanedSpecifiedAssetName = $specifiedAssetName -replace $tag, ''
@@ -1044,10 +1075,22 @@ Write-Host $orgName
     Write-Host $cleanedSpecifiedAssetName
     }
 
+    # Set the package name
+    $packageName = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
+
+    # Convert to valid package name
+    $packageName = ConvertTo-ValidPackageName -p_packageName $packageName
+    
+    # If the org name is not null or empty, use it as the repo name
+    if (-not [string]::IsNullOrWhiteSpace($orgName)) {
+        $githubRepoName = $orgName
+    }
+
+
     # Create package metadata object as a hashtable
     
     $packageMetadata        = @{
-        PackageName         = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
+        PackageName         = $packageName
         Version             = $sanitizedVersion
         Author              = $githubUser
         Description         = $description
@@ -1058,6 +1101,7 @@ Write-Host $orgName
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
         GithubRepoName      = if (-not $orgName) { $githubRepoName } else { $orgName }
+        LicenseUrl          = $r
     }
 
     # If the name contains the version number exactly, remove the version number from the package name
@@ -1068,7 +1112,7 @@ Write-Host $orgName
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
         Write-Host "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
-Write-Host $($packageMetadata.GetType().FullName)
+    Write-Host $($packageMetadata.GetType().FullName)
     } else {
         Write-Host "    Type of packageMetadata before return: NOT Hashtable"
         
@@ -1077,7 +1121,7 @@ Write-Host $($packageMetadata.GetType().FullName)
     Write-Host "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
     Write-Host $($packageMetadata.GetType().FullName)
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
-Write-Host "Metadata"
+    Write-Host "Metadata"
     return $packageMetadata
 }
 function Initialize-URLs{
@@ -1181,7 +1225,7 @@ function Initialize-GithubPackage{
         [string]$repoUrl
     )
     # Check if URL is provided
-    if ([string]::IsNullOrEmpty($repoUrl)) {
+    if ([string]::IsNullOrWhiteSpace($repoUrl)) {
         Write-Error "Please provide a URL as an argument."
         exit 1
     }
@@ -1225,7 +1269,7 @@ function Initialize-GithubPackage{
     $latestReleaseInfo_GHP.PSObject.Properties | ForEach-Object {
         Write-Host "    $($_.Name): " -NoNewline -ForegroundColor Yellow
         # Check if the value is null or empty
-        if ([string]::IsNullOrEmpty($_.Value)) {
+        if ([string]::IsNullOrWhiteSpace($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
@@ -1237,7 +1281,7 @@ function Initialize-GithubPackage{
     # Write the content of the hashtable one per line
     $urls.GetEnumerator() | ForEach-Object {
         Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
-        if ([string]::IsNullOrEmpty($_.Value)) {
+        if ([string]::IsNullOrWhiteSpace($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
@@ -1248,9 +1292,9 @@ function Initialize-GithubPackage{
     # Check if myMetadata already exists
     if ($null -ne $myMetadata) {
         Write-Host "`nmyMetadata already exists: " -NoNewline -ForegroundColor Yellow
-Write-Host $myMetadata.GetEnumerator() | ForEach-Object { 
+    Write-Host $myMetadata.GetEnumerator() | ForEach-Object { 
             Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
-            if ([string]::IsNullOrEmpty($_.Value)) {
+            if ([string]::IsNullOrWhiteSpace($_.Value)) {
                 Write-Host "null" -ForegroundColor White
             }
             else {
@@ -1260,8 +1304,8 @@ Write-Host $myMetadata.GetEnumerator() | ForEach-Object {
     }
     else {
         Write-Host "`nmyMetadata does not exist yet`n"
-Write-Host "    Evicence: " -NoNewline -ForegroundColor Yellow
-Write-Host "`"$myMetadata`"`n"
+    Write-Host "    Evicence: " -NoNewline -ForegroundColor Yellow
+    Write-Host "`"$myMetadata`"`n"
     }
 
     Write-Host "Passing variables to Get-AssetInfo: " -ForegroundColor Yellow
@@ -1270,9 +1314,9 @@ Write-Host "`"$myMetadata`"`n"
     Write-Host "            $($latestReleaseInfo_GHP.PSObject.Properties)" | ForEach-Object {
         # Print up to the first 100 characters of the name
         Write-Host "        Name: " -write-host -NoNewline -ForegroundColor Yellow
-Write-Host "$($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length)))" -ForegroundColor Yellow
+    Write-Host "$($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length)))" -ForegroundColor Yellow
         # Check if the value is null or empty
-        if ([string]::IsNullOrEmpty($_.Value)) {
+        if ([string]::IsNullOrWhiteSpace($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
@@ -1282,13 +1326,13 @@ Write-Host "$($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length)))" -Foregrou
         }
     }
     Write-Host "    Type of urls: " -ForegroundColor Yellow
-Write-Host $($urls.GetType().FullName)
+    Write-Host $($urls.GetType().FullName)
     Write-Host "    Data in urls: " -ForegroundColor Yellow
     Write-Host "            $($urls.GetEnumerator())" | ForEach-Object {
         # Print up to the first 100 characters of the name
         Write-Host "        $($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length))): " -NoNewline -ForegroundColor Yellow
         # Check if the value is null or empty
-        if ([string]::IsNullOrEmpty($_.Value)) {
+        if ([string]::IsNullOrWhiteSpace($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
@@ -1306,7 +1350,7 @@ Write-Host $($urls.GetType().FullName)
     # Display the contents of the metadata hashtable
     $myMetadata.GetEnumerator() | ForEach-Object {
         Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
-        if ([string]::IsNullOrEmpty($_.Value)) {
+        if ([string]::IsNullOrWhiteSpace($_.Value)) {
             Write-Host "null" -ForegroundColor White
         }
         else {
