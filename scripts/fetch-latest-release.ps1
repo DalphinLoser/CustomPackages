@@ -62,41 +62,80 @@ function Get-Favicon {
         [Parameter(Mandatory=$true)]
         [string]$p_homepage
     )
-    Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "Get-Favicon function"
+    # Log Start
+    Write-Host "---------- Script Start ----------" -ForegroundColor Cyan
 
-    # Get the HTML of the homepage
-    $webRequest = Invoke-WebRequest -Uri $p_homepage
+    # Fetching webpage content
+    Write-Host "Fetching webpage content from $p_homepage" -ForegroundColor Cyan
+    try {
+        $webRequest = Invoke-WebRequest -Uri $p_homepage
+    } catch {
+        Write-Host "Failed to fetch webpage content. Please check your internet connection and the URL." -ForegroundColor Red
+        return
+    }
 
     # Strip everything after the domain name
     $f_homepageTld = $p_homepage -replace '^(https?://[^/]+).*', '$1'
 
-    Write-Host "    Homepage: " -NoNewline -ForegroundColor Yellow
-Write-Host $p_homepage
-    Write-Host "    Homepage TLD: " -NoNewline -ForegroundColor Yellow
-Write-Host $f_homepageTld
+    # Output Information
+    Write-Host "    Homepage: $p_homepage" -ForegroundColor Yellow
+    Write-Host "    Homepage TLD: $f_homepageTld" -ForegroundColor Yellow
 
-    # Use regex to find <link rel="icon" ...> or <link rel="shortcut icon" ...>
-    if ($webRequest.Content -match "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`"") {
-        $faviconRelativeLink = $matches[2]
-
-        # Check if link is relative
-        if ($faviconRelativeLink -match "^/") {
-            # Convert to absolute URL
-            $faviconAbsoluteLink = "$f_homepageTld$faviconRelativeLink"
-            Write-Host "    Favicon Absolute URL: " -NoNewline -ForegroundColor Yellow
-            Write-Host $faviconAbsoluteLink
-            return $faviconAbsoluteLink
-        } else {
-            Write-Host "    Favicon Relative URL: $f_homepageTld/$faviconRelativeLink"
-            return "$f_homepageTld/$faviconRelativeLink"
-        }
-    } else {
-        Write-Host "No favicon link found in HTML"
-        return $null
+    # Create and initialize a hashtable to store image url and dimensions
+    $imageInfo = @{
+        url = ""
+        width = 0
+        height = 0
     }
-    Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
-Write-Host "Get-Favicon function"
+
+    # Regex for matching
+    $regex = "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`""
+    if ($webRequest.Content -match $regex) {
+        $faviconRelativeLink = $matches[2]
+        $faviconAbsoluteLink = if ($faviconRelativeLink -match "^/") { "$f_homepageTld$faviconRelativeLink" } else { "$f_homepageTld/$faviconRelativeLink" }
+
+        Write-Host "    Favicon Absolute URL: $faviconAbsoluteLink" -ForegroundColor Yellow
+
+        # Get file extension and create temporary file with the correct extension
+        $extension = [System.IO.Path]::GetExtension($faviconAbsoluteLink)
+        $invalidChars = [System.IO.Path]::GetInvalidFileNameChars()
+        $validExtension = ($extension -split "([?])")[0] -replace "[$invalidChars]", ""
+
+        # Create temp file with sanitized extension
+        $tempFile = [System.IO.Path]::GetTempFileName() + $validExtension
+        Invoke-WebRequest -Uri $faviconAbsoluteLink -OutFile $tempFile
+
+        # Shell application object for image dimensions
+        $shellApp = New-Object -ComObject 'shell.application'
+        $folderNamespace = $shellApp.Namespace((Get-Item $tempFile).DirectoryName)
+        $image = $folderNamespace.ParseName((Get-Item $tempFile).Name)
+
+    if ($null -eq $image) {
+        Write-Host "    Unable to parse image for dimensions retrieval." -ForegroundColor Red
+        Remove-Item -Path $tempFile
+        Write-Host "    Temporary File Deleted." -ForegroundColor Green
+        return
+    }
+
+        if ($folderNamespace.GetDetailsOf($image, 31) -match '(?<width>\d+) x (?<height>\d+)') {
+            Write-Host "    Image Dimensions: $($Matches.width) x $($Matches.height)" -ForegroundColor Green
+            $imageInfo.url = $faviconAbsoluteLink
+            $imageInfo.width = $Matches.width
+            $imageInfo.height = $Matches.height
+        } else {
+            Write-Host "    Could not retrieve image dimensions." -ForegroundColor Red
+        }
+
+        # Delete temporary file
+        Remove-Item -Path $tempFile
+        Write-Host "    Temporary File Deleted." -ForegroundColor Green
+    } else {
+        Write-Host "No favicon link found in HTML" -ForegroundColor Red
+    }
+    # Print the url from the hashtable
+    Write-Host "    Favicon URL: $($imageInfo.url)" -ForegroundColor Yellow 
+    # Log End
+    Write-Host "----------- Script End -----------" -ForegroundColor Cyan
 }
 function Format-Json {
     # Function to format and print JSON recursively, allowing for nested lists
@@ -897,27 +936,56 @@ Write-Host "`"$myDefaultBranch`""
     
 
 
-    # Get the icon
-    # If the root repository has a homepage, use that as the icon
-    if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
-        $homepage = $rootRepoInfo.homepage
-        # Get the favicon from the homepage
-        $iconUrl = Get-Favicon -p_homepage $homepage
-        Write-Host "    Updated Icon URL to Favicon: " -NoNewline -ForegroundColor Yellow
-Write-Host $iconUrl
+    #TODO: Make sure we are getting the largest favicon
+
+
+# Initial variable declaration
+$iconUrl = $null
+$iconInfo = $null
+
+# Check if the root repository has a homepage
+if (-not [string]::IsNullOrEmpty($rootRepoInfo.homepage)) {
+    $homepage = $rootRepoInfo.homepage
+
+    # Attempt to get the favicon from the homepage
+    $iconInfo = Get-Favicon -p_homepage $homepage
+
+    if ($null -ne $iconInfo.url) {
+        Write-Host "    Found Favicon on Homepage: $($iconInfo.url)" -ForegroundColor Yellow
+
+        # Check if the favicon is of adequate size
+        if ($iconInfo.width -ge 64 -and $iconInfo.height -ge 64) {
+            Write-Host "    Favicon is at least 64x64. Using it." -ForegroundColor Green
+            $iconUrl = $iconInfo.url
+        } else {
+            Write-Host "    Favicon is too small. Looking for alternatives..." -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
     }
-    # If the root repository has a logo, use that as the icon
-    elseif ($icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $myDefaultBranch) {
-        $iconUrl = "https://raw.githubusercontent.com/$($p_urls.githubUser)/$($p_urls.githubRepoName)/main/$icoPath"
-        Write-Host "    Found ICO file in Repo: $iconUrl"
-    }
-    # If the root repository has an avatar, use that as the icon
-    else {
-        $iconUrl = $rootRepoInfo.owner.avatar_url
-        Write-Host "    Icon URL: " -NoNewline -ForegroundColor Yellow
-Write-Host $iconUrl
-    }
+}
+
+# If no suitable favicon is found, look for an ICO file in the repo
+if ($null -eq $iconUrl) {
+    $icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $myDefaultBranch
     
+    if ($null -ne $icoPath) {
+        $iconUrl = "https://raw.githubusercontent.com/$($p_urls.githubUser)/$($p_urls.githubRepoName)/main/$icoPath"
+        Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
+    }
+}
+
+# If still no suitable icon is found, use the owner's avatar
+if ($null -eq $iconUrl) {
+    $iconUrl = $rootRepoInfo.owner.avatar_url
+    Write-Host "    Using owner's avatar as icon: $iconUrl" -ForegroundColor Green
+}
+
+    
+
+    # TODO: Check if the org name or repo name most closely match the name of the file, use the one that most closely matches
+
+
     # If the owner of the root repository is an organization, use the organization name as package name
     if ($rootRepoInfo.owner.type -eq 'Organization') {
         $orgName = $rootRepoInfo.owner.login
