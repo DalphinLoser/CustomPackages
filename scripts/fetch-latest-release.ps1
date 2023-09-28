@@ -963,7 +963,7 @@ Write-Host "Get-AssetInfo function"
 
     $myDefaultBranch = "$($rootRepoInfo.default_branch)"
     Write-Host "Default Branch (Root): " -ForegroundColor Yellow
-Write-Host "`"$myDefaultBranch`""
+    Write-Host "`"$myDefaultBranch`""
     
 
 
@@ -1086,6 +1086,8 @@ Write-Host $orgName
         $githubRepoName = $orgName
     }
 
+    # Set thhe license URL to the license URL of the root repository
+    $licenseUrl = $rootRepoInfo.license.url
 
     # Create package metadata object as a hashtable
     
@@ -1101,7 +1103,7 @@ Write-Host $orgName
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
         GithubRepoName      = if (-not $orgName) { $githubRepoName } else { $orgName }
-        LicenseUrl          = $r
+        LicenseUrl          = $licenseUrl
     }
 
     # If the name contains the version number exactly, remove the version number from the package name
