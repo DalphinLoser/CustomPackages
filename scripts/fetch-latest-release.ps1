@@ -23,13 +23,24 @@ function ConvertTo-ValidPackageName {
 
     Write-Host "    Removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
     $p_packageName = $p_packageName -replace '[-]+', '-'  # Remove and consolidate groupings of hyphens
-    $p_packageName = $p_packageName -replace '[_]+', '_'  # Remove and consolidate groupings of underscores
-    $p_packageName = $p_packageName -replace '[.]+', '.'  # Remove and consolidate groupings of dots
-    $p_packageName = $p_packageName -replace '([-_.])\1+', '.' # Remove and consolidate groupings of dots, underscores, and hyphens
-    $p_packageName = $p_packageName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
-    $p_packageName = $p_packageName.ToLower()  # Convert to lowercase
-    
+    Write-Host "    Package name after removing and consolidating groupings of hyphens: " -NoNewline -ForegroundColor Yellow
     Write-Host $p_packageName
+    $p_packageName = $p_packageName -replace '[_]+', '_'  # Remove and consolidate groupings of underscores
+    Write-Host "    Package name after removing and consolidating groupings of underscores: " -NoNewline -ForegroundColor Yellow
+    Write-Host $p_packageName
+    $p_packageName = $p_packageName -replace '[.]+', '.'  # Remove and consolidate groupings of dots
+    Write-Host "    Package name after removing and consolidating groupings of dots: " -NoNewline -ForegroundColor Yellow
+    Write-Host $p_packageName
+    $p_packageName = $p_packageName -replace '[-_.]+', '.'  # Remove and consolidate groupings of dots, underscores, and hyphens
+    Write-Host "    Package name after removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
+    Write-Host $p_packageName
+    $p_packageName = $p_packageName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
+    Write-Host "    Package name after removing leading and trailing hyphens, underscores, and dots: " -NoNewline -ForegroundColor Yellow
+    Write-Host $p_packageName
+    $p_packageName = $p_packageName.ToLower()  # Convert to lowercase
+    Write-Host "    Package name after converting to lowercase: " -NoNewline -ForegroundColor Yellow
+    Write-Host $p_packageName
+
 
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
     Write-Host "ConvertTo-ValidPackageName"
