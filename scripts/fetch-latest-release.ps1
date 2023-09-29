@@ -25,7 +25,7 @@ function ConvertTo-ValidPackageName {
     $p_packageName = $p_packageName -replace '[-]+', '-'  # Remove and consolidate groupings of hyphens
     $p_packageName = $p_packageName -replace '[_]+', '_'  # Remove and consolidate groupings of underscores
     $p_packageName = $p_packageName -replace '[.]+', '.'  # Remove and consolidate groupings of dots
-    $p_packageName = $p_packageName -replace '[-_.]+', '.'  # Remove and consolidate groupings of dots, underscores, and hyphens
+    $p_packageName = $p_packageName -replace '([-_.])\1+', '.' # Remove and consolidate groupings of dots, underscores, and hyphens
     $p_packageName = $p_packageName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
     $p_packageName = $p_packageName.ToLower()  # Convert to lowercase
     
