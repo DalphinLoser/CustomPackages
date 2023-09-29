@@ -327,49 +327,21 @@ function Format-Json {
         [Parameter(Mandatory=$false)]
         [int]$depth = 0
     )
-
-    # Color scale from dark blue to light blue
-    $colorScale = @('DarkBlue', 'Blue', 'Yellow')
-
-    if ($null -eq $json) {
-        Write-Host "Received null json object."
-        return
-    }
-
-    $currentColor = $colorScale[$depth % $colorScale.Length]
-
-    if ($json -is [pscustomobject]) {
-        $properties = $json.PSObject.Properties
-        if ($null -eq $properties) {
-            Write-Host "No properties found in object."
-            return
-        }
-
-        $properties | ForEach-Object {
-            if ($null -eq $_) {
-                Write-Host "Null property found."
-                return
-            }
-
-            Write-Host $_.Name -ForegroundColor $currentColor -NoNewline
-            if ($_.Value -is [pscustomobject] -or $_.Value -is [System.Collections.ArrayList]) {
-                Write-Host ":"
-                Format-Json -json $_.Value -depth ($depth + 1)
-            } else {
-                Write-Host ": $($_.Value)" -ForegroundColor White
-            }
-        }
-    } elseif ($json -is [System.Collections.ArrayList]) {
-        $json | ForEach-Object {
-            if ($_ -is [pscustomobject] -or $_ -is [System.Collections.ArrayList]) {
+    $indent = ' ' * $depth * 4
+    $json | Get-Member -MemberType *Property | ForEach-Object {
+        $name = $_.Name
+        $value = $json.$name
+        if ($value -is [System.Collections.IEnumerable] -and -not $value -is [string]) {
+            Write-Host "${$indent$name}: ["
+            $value | ForEach-Object {
                 Format-Json -json $_ -depth ($depth + 1)
-            } else {
-                Write-Host $_ -ForegroundColor White
             }
+            Write-Host "$indent]"
+        } else {
+            Write-Host "${$indent$name}: $value"
         }
-    } else {
-        Write-Host "Unsupported type: $($json.GetType().FullName)"
     }
+
 }
 function Write-LogHeader {
     param (
@@ -401,7 +373,7 @@ function Select-Asset {
     # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
     if (-not [string]::IsNullOrWhiteSpace($p_assetName)) {
         Write-Host "    Selecting asset with name: " -ForegroundColor Yellow
-    Write-Host "`"$p_assetName`""
+        Write-Host "`"$p_assetName`""
         $f_selectedAsset = $p_assets | Where-Object { $_.name -eq $p_assetName }
         # If there is no match for the asset name, throw an error
         if ($null -eq $f_selectedAsset) {
@@ -449,7 +421,7 @@ function Select-Asset {
     }
 
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
-Write-Host "Selected Asset"
+    Write-Host "Selected Asset"
     return $f_selectedAsset
 }
 function ConvertTo-SanitizedNugetVersion {
@@ -570,35 +542,39 @@ Write-Host "Get-LatestReleaseInfo function"
     Write-Host "    HTTP Status Code: $($response.StatusCode)"
 
     Write-Host "    Attempting to parse JSON content..."
-    $f_latestReleaseInfo = $response.Content | ConvertFrom-Json
-
+    $lr_json = $response.Content | ConvertFrom-Json
+    
     Write-Host "    Validating received data..."
-    if ($null -eq $f_latestReleaseInfo) {
+    if ($null -eq $lr_json) {
         Write-Error "   Received data is null. URL used: $p_baseRepoUrl"
         exit 1
     }
 
-    if ($f_latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
+    Write-Host "The type of lr_json is: " -NoNewline -ForegroundColor Yellow
+    Write-Host $lr_json.GetType().FullName -ForegroundColor Blue
+
+    Write-Host "##################################################" -ForegroundColor Red
+    $lr_json | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+    Write-Host "##################################################" -ForegroundColor Red
+
+    Write-Host "The type of lr_json.assets is: " -NoNewline -ForegroundColor Yellow
+    Write-Host $lr_json.assets.GetType().FullName -ForegroundColor Blue
+
+    if ($lr_json.PSObject.Properties.Name -notcontains 'tag_name') {
         Write-Error "   No 'tag_name' field in received data. URL used: $p_baseRepoUrl"
         exit 1
     }
 
-    $assetCount = ($f_latestReleaseInfo.assets | Measure-Object).Count
-    Write-Host "    Type of 'assets' field: $($f_latestReleaseInfo.assets.GetType().FullName)"
-    Write-Host "    Is 'assets' field null? $($null -eq $f_latestReleaseInfo.assets)"
-    Write-Host "    Is 'assets' field empty? ($assetCount -eq 0)"
-
-    if ($assetCount -gt 0) {
-        Write-Host "    Listing assets:"
-        $f_latestReleaseInfo.assets | ForEach-Object {
-            Write-Host $_.name
-        }
+    # Make sure the assets field is not null or empty
+    $assetCount = ($lr_json.assets | Measure-Object).Count
+    if ($null -eq $lr_json.assets -or $assetCount -eq 0) {
+        Write-Error "   No assets found for the latest release. URL used: $p_baseRepoUrl"
+        exit 1
     }
 
-    Write-Host "    Tag Name: $($f_latestReleaseInfo.tag_name)"
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
-Write-Host "latest release info"
-    return $f_latestReleaseInfo
+    Write-Host "latest release info"
+    return $lr_json
 }
 function Get-RootRepository {
     param (
@@ -650,7 +626,7 @@ Write-Host "ConvertTo-EscapedXmlContent function"
 function New-NuspecFile {
     param (
         [Parameter(Mandatory=$true)]
-        [hashtable]$p_Metadata,
+        [System.Object]$p_Metadata,
         [Parameter(Mandatory=$true)]
         [string]$p_packageDir
     )
@@ -670,6 +646,7 @@ function New-NuspecFile {
         iconUrl = 'IconUrl'
         tags = 'Tags'
         repository = 'Repository'
+        
     }
 
     # One per line, print the content of elementMapping
@@ -696,33 +673,33 @@ function New-NuspecFile {
 
         #Write-Host "Processing element: $elementName" -ForegroundColor Yellow
         
-        if (-not $elementMapping.ContainsKey($elementName)) {
+        # Assuming $elementMapping is now an object with properties instead of a hashtable
+        if (-not $elementMapping.PSObject.Properties.Name -contains $elementName) {
             Write-Host "Warning: $elementName not found in elementMapping" -ForegroundColor Yellow
             continue
         }
-
-        $key = $elementMapping[$elementName]
-
-        if (-not $p_Metadata.ContainsKey($key)) {
+    
+        $key = $elementMapping.$elementName
+    
+        # Assuming $p_Metadata is now an object with properties instead of a hashtable
+        if (-not $p_Metadata.PSObject.Properties.Name -contains $key) {
             Write-Host "Warning: $key not found in p_Metadata" -ForegroundColor Yellow
             continue
         }
-
-        $value = $p_Metadata[$key]
-
-        
-
+    
+        $value = $p_Metadata.$key
+    
         if ($null -eq $value) {
             Write-Host "Warning: Value for $key is null" -ForegroundColor Yellow
             continue
         }
-
+    
         Write-Host "Creating element with " -NoNewline -ForegroundColor Green
         Write-Host "name: " -NoNewline -ForegroundColor Cyan
         Write-Host "$elementName" -NoNewline -ForegroundColor White
         Write-Host " value: " -NoNewline -ForegroundColor Cyan
         Write-Host "$value" -ForegroundColor White -NoNewline
-
+    
         try {
             Write-Host "    Creating element..." -NoNewline
             $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
@@ -734,6 +711,7 @@ function New-NuspecFile {
         $metadataElem.AppendChild($elem)
         Write-Host "    Element created successfully" -ForegroundColor Green
     }
+    
 
     # If there are remaining elemetns in elementMapping, add them to the file
     $remainingElements = $elementMapping.Keys | Where-Object { $elementOrder -notcontains $_ }
@@ -746,7 +724,7 @@ function New-NuspecFile {
             Write-Host "$value" -ForegroundColor White -NoNewline
 
             $key = $elementMapping[$elementName]
-            $value = $p_Metadata[$key]
+            $value = $p_Metadata.$key
 
             if ($null -eq $value) {
                 Write-Host "Warning: Value for $key is null" -ForegroundColor Yellow
@@ -765,7 +743,7 @@ function New-NuspecFile {
     }
 
 
-    $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata['PackageName']).nuspec"
+    $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata.PackageName).nuspec"
     $xmlDoc.Save($f_nuspecPath)
 
     Write-Host "Nuspec file created at: $f_nuspecPath" -ForegroundColor Green
@@ -777,8 +755,8 @@ function New-NuspecFile {
 function New-InstallScript {
     param (
         [Parameter(Mandatory=$true)]
-        [hashtable]$p_Metadata,
-
+        [System.Object]$p_Metadata,
+        
         [Parameter(Mandatory=$true)]
         [string]$p_toolsDir
     )
@@ -1008,6 +986,8 @@ function Get-Updates {
             Remove-Item -Path $nuspecFile -Force
 
             Write-Host "    Updating metadata for $package"
+            Write-Host "    The latest release URL is: " -NoNewline -ForegroundColor Yellow
+            Write-Host $latestReleaseUrl_Update
             # Get the new metadata
             Initialize-GithubPackage -repoUrl $latestReleaseUrl_Update
             # Remove the old nuspec file
@@ -1289,7 +1269,7 @@ function Get-AssetInfo {
     $commitHash
 
     # repository variable in format : <repository type="git" url="https://github.com/NuGet/NuGet.Client.git" branch="dev" commit="e1c65e4524cd70ee6e22abe33e6cb6ec73938cb3" />
-    $repository = "<repository type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" />"
+    $repository = " type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" "
 
     Write-Host "    Repository: " -NoNewline -ForegroundColor Yellow
     Write-Host $repository
@@ -1324,7 +1304,8 @@ function Get-AssetInfo {
     Write-Host "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
     Write-Host $($packageMetadata.GetType().FullName)
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
-    Write-Host "Metadata"
+    Write-Host "Get-AssetInfo function"
+    # Ensure that the package metadata is returned as a hashtable
     return $packageMetadata
 }
 function Initialize-URLs{
@@ -1467,100 +1448,27 @@ function Initialize-GithubPackage{
     #region Get Asset Info
 
     # Get the asset metadata
-    Write-Host "Passing Latest Release Info to Get-AssetInfo: " -ForegroundColor Yellow
-    # Write the content of latestReleaseInfo_GHP one per line with the key in Cyan and the value in white
-    $latestReleaseInfo_GHP.PSObject.Properties | ForEach-Object {
-        Write-Host "    $($_.Name): " -NoNewline -ForegroundColor Yellow
-        # Check if the value is null or empty
-        if ([string]::IsNullOrWhiteSpace($_.Value)) {
-            Write-Host "null" -ForegroundColor White
-        }
-        else {
-            Write-Host "Exists"
-        }
-    }
 
-    Write-Host "Passing URLs to Get-AssetInfo: " -ForegroundColor Yellow
-    # Write the content of the hashtable one per line
-    $urls.GetEnumerator() | ForEach-Object {
-        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
-        if ([string]::IsNullOrWhiteSpace($_.Value)) {
-            Write-Host "null" -ForegroundColor White
-        }
-        else {
-            Write-Host "Exists"
-        }
-    }
+    Write-Host "##################################################" -ForegroundColor Green 
+    Write-Host "Passing Latest Release Info to Get-AssetInfo: "
+    Write-Host "Type of latestReleaseInfo_GHP: " -NoNewline -ForegroundColor Yellow
+    Write-Host $($latestReleaseInfo_GHP.GetType().FullName)
+    $latestReleaseInfo_GHP | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+    Write-Host "##################################################" -ForegroundColor Green
 
-    # Check if myMetadata already exists
-    if ($null -ne $myMetadata) {
-        Write-Host "`nmyMetadata already exists: " -NoNewline -ForegroundColor Yellow
-    Write-Host $myMetadata.GetEnumerator() | ForEach-Object { 
-            Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
-            if ([string]::IsNullOrWhiteSpace($_.Value)) {
-                Write-Host "null" -ForegroundColor White
-            }
-            else {
-                Write-Host "Exists"
-            }
-        }
-    }
-    else {
-        Write-Host "`nmyMetadata does not exist yet`n"
-    Write-Host "    Evicence: " -NoNewline -ForegroundColor Yellow
-    Write-Host "`"$myMetadata`"`n"
-    }
-
-    Write-Host "Passing variables to Get-AssetInfo: " -ForegroundColor Yellow
-    Write-Host "    Type of latestReleaseInfo_GHP: $($latestReleaseInfo_GHP.GetType().FullName)"
-    Write-Host "    Data in latestReleaseInfo_GHP: " -ForegroundColor Yellow
-    Write-Host "            $($latestReleaseInfo_GHP.PSObject.Properties)" | ForEach-Object {
-        # Print up to the first 100 characters of the name
-        Write-Host "        Name: " -write-host -NoNewline -ForegroundColor Yellow
-    Write-Host "$($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length)))" -ForegroundColor Yellow
-        # Check if the value is null or empty
-        if ([string]::IsNullOrWhiteSpace($_.Value)) {
-            Write-Host "null" -ForegroundColor White
-        }
-        else {
-            # Print up to the first 100 characters of the value
-            Write-Host "Value: " -NoNewline -ForegroundColor Yellow
-            Write-Host "$($_.Value.Substring(0, [Math]::Min(100, $_.Value.Length)))"
-        }
-    }
-    Write-Host "    Type of urls: " -ForegroundColor Yellow
+    Write-Host "##################################################" -ForegroundColor Cyan 
+    Write-Host "Passing URLs to Get-AssetInfo: "
+    Write-Host "Type of URLs: " -NoNewline -ForegroundColor Yellow
     Write-Host $($urls.GetType().FullName)
-    Write-Host "    Data in urls: " -ForegroundColor Yellow
-    Write-Host "            $($urls.GetEnumerator())" | ForEach-Object {
-        # Print up to the first 100 characters of the name
-        Write-Host "        $($_.Name.Substring(0, [Math]::Min(100, $_.Name.Length))): " -NoNewline -ForegroundColor Yellow
-        # Check if the value is null or empty
-        if ([string]::IsNullOrWhiteSpace($_.Value)) {
-            Write-Host "null" -ForegroundColor White
-        }
-        else {
-            # Print up to the first 100 characters of the value
-            Write-Host "$($_.Value.Substring(0, [Math]::Min(100, $_.Value.Length)))" -ForegroundColor Magenta
-        }
-    }
- 
-    Write-Host "##################################################"
+    $urls | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+    Write-Host "##################################################" -ForegroundColor Cyan
 
+    Write-Host "##################################################" -ForegroundColor Magenta
     $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
-
-    Write-Host "Type of myMetadata AFTER ASSET-INFO: $($myMetadata.GetType().FullName)"
-    Write-Host "`nMetadata Object's Content: " -ForegroundColor Yellow
-    # Display the contents of the metadata hashtable
-    $myMetadata.GetEnumerator() | ForEach-Object {
-        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Yellow
-        if ([string]::IsNullOrWhiteSpace($_.Value)) {
-            Write-Host "null" -ForegroundColor White
-        }
-        else {
-            # Display the value
-            Write-Host "$($_.Value)"
-        }
-    }
+    Write-Host "Type of myMetadata AFTER ASSET-INFO: " -NoNewline -ForegroundColor Magenta
+    Write-Host $($myMetadata.GetType().FullName)
+    $myMetadata | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+    Write-Host "##################################################" -ForegroundColor Magenta
 
     #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor Yellow
     #Format-Json -json $myMetadata
@@ -1584,7 +1492,8 @@ function Initialize-GithubPackage{
 
     # Create the nuspec file and install script
     $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
-    Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Yellow
+    # Variable to store only the path to the file
+    Write-Host "Nuspec file created at: " -NoNewline -ForegroundColor Yellow
     Write-Host $nuspecPath
     $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
 
@@ -1594,7 +1503,7 @@ function Initialize-GithubPackage{
     #region Create Chocolatey Package
 
     # Create the Chocolatey package
-    New-ChocolateyPackage -p_nuspecPath $nuspecPath -p_packageDir $packageDir
+    New-ChocolateyPackage -p_nuspecPath "$nuspecPath" -p_packageDir $packageDir
 
     #endregion
     ###################################################################################################
