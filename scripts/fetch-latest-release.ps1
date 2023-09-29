@@ -21,11 +21,14 @@ function ConvertTo-ValidPackageName {
         Write-Host $p_packageName
     }
 
-    Write-Host "    Removing and consolidating multiple dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
-    $p_packageName = $p_packageName -replace '[._-]+', {
-        if ($_.Value -match '\.') { '.' } else { $_[0] }
-    }
-    $p_packageName = $p_packageName -replace '([._-])\1+', { if ($_.Value -match '\.') { '.' } else { $_.Value[0] } }
+    Write-Host "    Removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
+    $p_packageName = $p_packageName -replace '[-]+', '-'  # Remove and consolidate groupings of hyphens
+    $p_packageName = $p_packageName -replace '[_]+', '_'  # Remove and consolidate groupings of underscores
+    $p_packageName = $p_packageName -replace '[.]+', '.'  # Remove and consolidate groupings of dots
+    $p_packageName = $p_packageName -replace '[-_.]+', '.'  # Remove and consolidate groupings of dots, underscores, and hyphens
+    $p_packageName = $p_packageName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
+    $p_packageName = $p_packageName.ToLower()  # Convert to lowercase
+    
     Write-Host $p_packageName
 
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
@@ -33,7 +36,6 @@ function ConvertTo-ValidPackageName {
 
     return $p_packageName 
 }
-
 function Find-IcoInRepo {
     param (
         [Parameter(Mandatory=$true)]
@@ -69,9 +71,9 @@ function Find-IcoInRepo {
     try {
         $webResponse = Invoke-WebRequest -Uri $apiUrl -Headers $headers
         $response = $webResponse.Content | ConvertFrom-Json
-        Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Yellow
-        Write-Host "Response Content:" -ForegroundColor Yellow
-        Write-Host $webResponse.Content
+        # Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Yellow
+        # Write-Host "Response Content:" -ForegroundColor Yellow
+        # Write-Host $webResponse.Content
     } catch {
         Write-Host "ERROR: Failed to query GitHub API."
         exit 1
@@ -95,80 +97,216 @@ function Get-Favicon {
         [Parameter(Mandatory=$true)]
         [string]$p_homepage
     )
-    # Log Start
+
     Write-Host "---------- Script Start ----------" -ForegroundColor Cyan
 
-    # Fetching webpage content
+    #region Fetching webpage content
     Write-Host "Fetching webpage content from $p_homepage" -ForegroundColor Cyan
     try {
         $webRequest = Invoke-WebRequest -Uri $p_homepage
     } catch {
         Write-Host "Failed to fetch webpage content. Please check your internet connection and the URL." -ForegroundColor Red
-        return
+        return $null
     }
-
+    #endregion
+    
     # Strip everything after the domain name
     $f_homepageTld = $p_homepage -replace '^(https?://[^/]+).*', '$1'
 
     # Output Information
-    Write-Host "    Homepage: $p_homepage" -ForegroundColor Yellow
-    Write-Host "    Homepage TLD: $f_homepageTld" -ForegroundColor Yellow
+    Write-Host "    Homepage: " -ForegroundColor Yellow -NoNewline
+    Write-Host "$p_homepage"
+    Write-Host "    Homepage TLD: " -ForegroundColor Yellow -NoNewline
+    Write-Host "$f_homepageTld"
 
-    # Create and initialize a hashtable to store image url and dimensions
-    $imageInfo = @{
-        url = ""
-        width = 0
-        height = 0
-    }
-
-    # Regex for matching
+    # Regex for matching all icon links
     $regex = "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`""
-    if ($webRequest.Content -match $regex) {
-        $faviconRelativeLink = $matches[2]
-        $faviconAbsoluteLink = if ($faviconRelativeLink -match "^/") { "$f_homepageTld$faviconRelativeLink" } else { "$f_homepageTld/$faviconRelativeLink" }
+    $iconMatches = $webRequest.Content | Select-String -Pattern $regex -AllMatches
 
-        Write-Host "    Favicon Absolute URL: $faviconAbsoluteLink" -ForegroundColor Yellow
+    if ($null -ne $iconMatches) {
+        $icons = $iconMatches.Matches | ForEach-Object { 
+            $faviconRelativeLink = $_.Groups[2].Value
+            if ($faviconRelativeLink -match "^(https?:\/\/)") {
+                $faviconRelativeLink  # It's already an absolute URL
+            } elseif ($faviconRelativeLink -match "^/") {
+                "$f_homepageTld$faviconRelativeLink"
+            } else {
+                "$f_homepageTld/$faviconRelativeLink"
+            }
+        }  
+        
+        Write-Host "    Available Icons: " -ForegroundColor Yellow
+        Write-Host $($icons -join ', ')
 
-        # Get file extension and create temporary file with the correct extension
-        $extension = [System.IO.Path]::GetExtension($faviconAbsoluteLink)
-        $invalidChars = [System.IO.Path]::GetInvalidFileNameChars()
-        $validExtension = ($extension -split "([?])")[0] -replace "[$invalidChars]", ""
-
-        # Create temp file with sanitized extension
-        $tempFile = [System.IO.Path]::GetTempFileName() + $validExtension
-        Invoke-WebRequest -Uri $faviconAbsoluteLink -OutFile $tempFile
-
-        # Shell application object for image dimensions
-        $shellApp = New-Object -ComObject 'shell.application'
-        $folderNamespace = $shellApp.Namespace((Get-Item $tempFile).DirectoryName)
-        $image = $folderNamespace.ParseName((Get-Item $tempFile).Name)
-
-    if ($null -eq $image) {
-        Write-Host "    Unable to parse image for dimensions retrieval." -ForegroundColor Red
-        Remove-Item -Path $tempFile
-        Write-Host "    Temporary File Deleted." -ForegroundColor Green
-        return
-    }
-
-        if ($folderNamespace.GetDetailsOf($image, 31) -match '(?<width>\d+) x (?<height>\d+)') {
-            Write-Host "    Image Dimensions: $($Matches.width) x $($Matches.height)" -ForegroundColor Green
-            $imageInfo.url = $faviconAbsoluteLink
-            $imageInfo.width = $Matches.width
-            $imageInfo.height = $Matches.height
+        # Find the highest quality icon
+        $highestQualityIcon = $null
+        $highestQualityDimensions = 0
+        foreach ($iconUrl in $icons) {
+            $tempFile = Get-TempIcon -iconUrl $iconUrl
+            if ($null -ne $tempFile) {
+                $dimensions = Get-IconDimensions -filePath $tempFile
+                Remove-Item -Path $tempFile  # Delete the temporary file
+                if ($null -ne $dimensions) {
+                    $currentDimensions = $dimensions.Width * $dimensions.Height
+                    if ($currentDimensions -gt $highestQualityDimensions) {
+                        $highestQualityIcon = $iconUrl
+                        $highestQualityDimensions = $currentDimensions
+                    }
+                }
+            }
+        }
+        
+        if ($null -ne $highestQualityIcon) {
+            Write-Host "    Highest Quality Icon: $highestQualityIcon ($highestQualityDimensions pixels)" -ForegroundColor Green
+            Write-Host "----------- Script End -----------" -ForegroundColor Cyan
+            return @{
+                url = $highestQualityIcon
+                width = [Math]::Sqrt($highestQualityDimensions)
+                height = [Math]::Sqrt($highestQualityDimensions)
+            }
         } else {
-            Write-Host "    Could not retrieve image dimensions." -ForegroundColor Red
+            Write-Host "No suitable icon found." -ForegroundColor Red
+            Write-Host "----------- Script End -----------" -ForegroundColor Cyan
+            return $null
         }
 
-        # Delete temporary file
-        Remove-Item -Path $tempFile
-        Write-Host "    Temporary File Deleted." -ForegroundColor Green
     } else {
         Write-Host "No favicon link found in HTML" -ForegroundColor Red
+        Write-Host "----------- Script End -----------" -ForegroundColor Cyan
+        return $null
     }
-    # Print the url from the hashtable
-    Write-Host "    Favicon URL: $($imageInfo.url)" -ForegroundColor Yellow 
-    # Log End
-    Write-Host "----------- Script End -----------" -ForegroundColor Cyan
+}
+function Get-IconDimensions {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$filePath
+    )
+
+    Write-Host "Analyzing file: $filePath" -ForegroundColor Yellow
+
+    # Ensure the file exists before proceeding
+    if (-not (Test-Path -Path $filePath)) {
+        Write-Host "File not found: $filePath" -ForegroundColor Red
+        return $null
+    }
+}
+function Get-IconDimensions {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$filePath
+    )
+
+    Write-Host "Analyzing file: $filePath" -ForegroundColor Yellow
+
+    # Ensure the file exists before proceeding
+    if (-not (Test-Path -Path $filePath)) {
+        Write-Host "File not found: $filePath" -ForegroundColor Red
+        return $null
+    }
+
+    # Create a Uri object from the file path
+    $uri = New-Object System.Uri $filePath
+
+    # Now get the extension from the LocalPath property of the Uri object
+    $extension = [System.IO.Path]::GetExtension($uri.LocalPath).ToLower().Trim()
+
+    switch ($extension) {
+        '.svg' {
+            Write-Host "SVG Identified, returning dummy dimensions" -ForegroundColor Yellow
+            # SVG dimension retrieval logic
+            # As SVG is a vector format, it doesn't have a fixed dimension in pixels.
+            return @{
+                Width = 999 # As SVG is a vector format, it doesn't have a fixed dimension in pixels.
+                Height = 999
+            }
+        }
+        '.ico' {
+            # ICO dimension retrieval logic
+            $fileStream = [System.IO.File]::OpenRead($filePath)
+            try {
+                # Initialize variables to keep track of the largest dimensions
+                $maxWidth = 0
+                $maxHeight = 0
+                
+                $fileStream.Seek(4, [System.IO.SeekOrigin]::Begin) | Out-Null  # Skip to the Count field in ICONDIR
+                $buffer = New-Object byte[] 2
+                $fileStream.Read($buffer, 0, 2) | Out-Null
+                $imageCount = [BitConverter]::ToUInt16($buffer, 0)
+
+                for ($i = 0; $i -lt $imageCount; $i++) {
+                    $buffer = New-Object byte[] 16
+                    $fileStream.Read($buffer, 0, 16) | Out-Null  # Read ICONDIRENTRY
+                    $width = $buffer[0]
+                    $height = $buffer[1]
+
+                    # Handle dimensions reported as 0 (which actually means 256)
+                    $width = if ($width -eq 0) { 256 } else { $width }
+                    $height = if ($height -eq 0) { 256 } else { $height }
+
+                    if ($width * $height -gt $maxWidth * $maxHeight) {
+                        $maxWidth = $width
+                        $maxHeight = $height
+                    }
+                }
+
+                Write-Host "ICO Dimensions: " -ForegroundColor Green -NoNewline
+                Write-Host "$maxWidth x $maxHeight"
+                return @{
+                    Width = $maxWidth
+                    Height = $maxHeight
+                }
+            } finally {
+                $fileStream.Close()
+            }
+        }
+        '.png' {
+            # PNG dimension retrieval logic
+            $fileStream = [System.IO.File]::OpenRead($filePath)
+            try {
+                $fileStream.Seek(16, [System.IO.SeekOrigin]::Begin) | Out-Null
+                $buffer = New-Object byte[] 8
+                $fileStream.Read($buffer, 0, 8) | Out-Null
+                [Array]::Reverse($buffer, 0, 4)
+                [Array]::Reverse($buffer, 4, 4)
+                $width = [BitConverter]::ToUInt32($buffer, 0)
+                $height = [BitConverter]::ToUInt32($buffer, 4)
+                Write-Host "PNG Dimensions: " -ForegroundColor Green -NoNewline
+                Write-Host "$width x $height"
+                return @{
+                    Width = $width
+                    Height = $height
+                }
+            } finally {
+                $fileStream.Close()
+            }
+        }
+        default {
+            Write-Host "Unsupported file extension: " -ForegroundColor Red -NoNewline
+            Write-Host "$extension"
+            return $null
+        }
+    }
+}
+
+function Get-TempIcon {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$iconUrl
+    )
+
+    # Get file extension and create temporary file with the correct extension
+    $extension = [System.IO.Path]::GetExtension($iconUrl)
+    $invalidChars = [System.IO.Path]::GetInvalidFileNameChars()
+    $validExtension = ($extension -split "([?])")[0] -replace "[$invalidChars]", ""
+    $tempFile = [System.IO.Path]::GetTempFileName() + $validExtension
+
+    try {
+        Invoke-WebRequest -Uri $iconUrl -OutFile $tempFile
+        return $tempFile
+    } catch {
+        Write-Host "Failed to download icon from $iconUrl" -ForegroundColor Red
+        return $null
+    }
 }
 function Format-Json {
     # Function to format and print JSON recursively, allowing for nested lists
@@ -859,7 +997,7 @@ function New-ChocolateyPackage {
         [string]$p_packageDir
     )
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "New-ChocolateyPackage function"
+    Write-Host "New-ChocolateyPackage function"
     # Check for Nuspec File
     Write-Host "    Checking for nuspec file..."
     if (-not (Test-Path $p_nuspecPath)) {
@@ -869,17 +1007,6 @@ Write-Host "New-ChocolateyPackage function"
     else {
         Write-Host "    Nuspec file found at: $p_nuspecPath" -ForegroundColor Yellow
     }
-
-    # Write the contents of the nuspec file to the console
-    Write-Host "##################################################"
-    Write-Host "    Nuspec file contents:" -ForegroundColor Yellow
-    # Get the contents of the nuspec file
-    [xml]$xmlContent = Get-Content -Path $p_nuspecPath -Raw
-    # Write the contents of the nuspec file to the console
-    $xmlContent.OuterXml
-    Write-Host "##################################################"
-
-
 
     # Create Chocolatey package
     try {
@@ -900,7 +1027,7 @@ function Get-AssetInfo {
         [hashtable]$p_urls
     )
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "Get-AssetInfo function"
+    Write-Host "Get-AssetInfo function"
     # Initialize variables
     $tag = $null
     $specifiedAssetName = $null
@@ -983,15 +1110,8 @@ if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
     $iconInfo = Get-Favicon -p_homepage $homepage
 
     if ($null -ne $iconInfo.url) {
-        Write-Host "    Found Favicon on Homepage: $($iconInfo.url)" -ForegroundColor Yellow
-
-        # Check if the favicon is of adequate size
-        if ($iconInfo.width -ge 64 -and $iconInfo.height -ge 64) {
-            Write-Host "    Favicon is at least 64x64. Using it." -ForegroundColor Green
-            $iconUrl = $iconInfo.url
-        } else {
-            Write-Host "    Favicon is too small. Looking for alternatives..." -ForegroundColor Yellow
-        }
+        Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow
+        Write-Host $iconInfo.url
     } else {
         Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
     }
@@ -1070,14 +1190,16 @@ Write-Host $orgName
     else {
         $cleanedSpecifiedAssetName = $specifiedAssetName
     }
-    #clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
+    # Clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
     $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
+    # Remove remaining leading and trailing special characters
+    $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Trim('.-_')
     Write-Host "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor Yellow
     Write-Host $cleanedSpecifiedAssetName
     }
 
     # Set the package name
-    $packageName = "${githubUser}.${githubRepoName}${cleanedSpecifiedAssetName}"
+    $packageName = "${githubUser}.${githubRepoName}.${cleanedSpecifiedAssetName}"
     # If the name contains the version number exactly, remove the version number from the package name
     if ($packageName -match $sanitizedVersion) {
         $packageName = $packageName -replace $sanitizedVersion, ''
@@ -1115,7 +1237,7 @@ Write-Host $orgName
         GithubRepoName      = $githubRepoName
         LicenseUrl          = $licenseUrl
     }
-    
+
     if ($packageMetadata -is [System.Collections.Hashtable]) {
         Write-Host "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
     Write-Host $($packageMetadata.GetType().FullName)
@@ -1364,7 +1486,6 @@ function Initialize-GithubPackage{
             Write-Host "$($_.Value)"
         }
     }
-    
 
     #Write-Host "    Package Metadata From Initialize-GithubPackage Method:" -ForegroundColor Yellow
     #Format-Json -json $myMetadata
