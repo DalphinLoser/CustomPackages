@@ -1,4 +1,4 @@
-$toolsDir = "C:\AutoPackages\Ryujinx.release-channel-master.testavaryujinxwinx64"
+$toolsDir = "C:\AutoPackages\ryujinx.release-channel-master.testavaryujinxwinx64"
 $shortcutPath = "$env:USERPROFILE\Desktop"
 
 # Initialize directories for shortcuts
