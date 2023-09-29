@@ -596,9 +596,10 @@ function Get-RootRepository {
         [string]$p_repoUrl
     )
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "Get-RootRepository function"
+    Write-Host "Get-RootRepository function"
     Write-Host "    Getting root repository for: " -NoNewline -ForegroundColor Yellow
     Write-Host $p_repoUrl
+    
     # Fetch the repository information
     try {
         Write-Host "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
@@ -1092,7 +1093,11 @@ function Get-AssetInfo {
     Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor Yellow
     Write-Host $rootRepoInfo.url
 
-    $myDefaultBranch = "$($rootRepoInfo.default_branch)"
+    # Get the default branch of the root repository
+    # TODO: I am sure this is redundant. It is late and this is a quick fix.
+    $baseRepoInfo = (Invoke-WebRequest -Uri "$($baseRepoUrl_Info)").Content | ConvertFrom-Json
+
+    $myDefaultBranch = "$($baseRepoInfo.default_branch)"
     Write-Host "Default Branch (Root): " -ForegroundColor Yellow
     Write-Host "`"$myDefaultBranch`""
     
