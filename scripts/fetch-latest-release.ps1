@@ -653,6 +653,7 @@ function New-NuspecFile {
         Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Magenta
         Write-Host $_.Value
     }
+
     # Define elementMapping
     $elementMapping = @{
         id = 'PackageName'
@@ -665,6 +666,8 @@ function New-NuspecFile {
         releaseNotes = 'VersionDescription'
         licenseUrl = 'LicenseUrl'
         iconUrl = 'IconUrl'
+        tags = 'Tags'
+        size = 'Size'
     }
     # Log elementMapping content
     Write-Host "Content of elementMapping: " -ForegroundColor Yellow
@@ -673,7 +676,7 @@ function New-NuspecFile {
         Write-Host $_.Value
     }
 
-    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags')
+    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags', 'size')
 
     # Create XML document
     $xmlDoc = New-Object System.Xml.XmlDocument
@@ -1143,7 +1146,7 @@ if ($null -eq $iconUrl) {
     if ($rootRepoInfo.owner.type -eq 'Organization') {
         $orgName = $rootRepoInfo.owner.login
         Write-Host "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor Yellow
-Write-Host $orgName
+    Write-Host $orgName
     }
 
     # Get the description
@@ -1223,6 +1226,8 @@ Write-Host $orgName
         Write-Host $licenseUrl
     }
 
+    $packageSize = $selectedAsset.size
+
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
         PackageName         = $packageName
@@ -1237,6 +1242,7 @@ Write-Host $orgName
         IconUrl             = $iconUrl
         GithubRepoName      = $githubRepoName
         LicenseUrl          = $licenseUrl
+        PackageSize         = $packageSize
     }
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
