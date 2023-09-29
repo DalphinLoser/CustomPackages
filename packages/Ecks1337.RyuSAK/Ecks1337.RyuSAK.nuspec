@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>Ecks1337.RyuSAK</id>
+    <id>ecks1337.ryusak</id>
     <title>RyuSAK</title>
     <version>1.6.2</version>
     <authors>Ecks1337</authors>
@@ -9,8 +9,7 @@
     <projectUrl>https://github.com/Ecks1337/RyuSAK</projectUrl>
     <packageSourceUrl>https://github.com/Ecks1337/RyuSAK/releases/download/v1.6.2/RyuSAK-1.6.2.Setup.exe</packageSourceUrl>
     <releaseNotes>Catch error thrown when GitHub API ignores a request</releaseNotes>
-    <licenseUrl>https://github.com/Ecks1337/RyuSAK/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/CapitaineJSparrow/emusak-ui/blob/main/LICENSE</licenseUrl>
     <iconUrl>https://raw.githubusercontent.com/Ecks1337/RyuSAK/main/src/assets/icon.ico</iconUrl>
-    <tags></tags>
   </metadata>
 </package>
