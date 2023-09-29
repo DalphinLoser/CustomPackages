@@ -668,7 +668,7 @@ function New-NuspecFile {
         licenseUrl = 'LicenseUrl'
         iconUrl = 'IconUrl'
         tags = 'Tags'
-        size = 'Size'
+        size = 'PackageSize'
     }
     # Log elementMapping content
     Write-Host "Content of elementMapping: " -ForegroundColor Yellow
@@ -1232,6 +1232,9 @@ if ($null -eq $iconUrl) {
     }
 
     $packageSize = $selectedAsset.size
+
+    Write-Host "    Package Size: " -NoNewline -ForegroundColor Yellow
+    Write-Host $packageSize
 
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
