@@ -677,7 +677,7 @@ function New-NuspecFile {
         Write-Host $_.Value
     }
 
-    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags', 'size')
+    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags')
 
     # Create XML document
     $xmlDoc = New-Object System.Xml.XmlDocument
