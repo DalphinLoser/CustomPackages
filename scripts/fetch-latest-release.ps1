@@ -31,7 +31,7 @@ function ConvertTo-ValidPackageName {
     $p_packageName = $p_packageName -replace '[.]+', '.'  # Remove and consolidate groupings of dots
     Write-Host "    Package name after removing and consolidating groupings of dots: " -NoNewline -ForegroundColor Yellow
     Write-Host $p_packageName
-    $p_packageName = $p_packageName -replace '[-_.]+', '.'  # Remove and consolidate groupings of dots, underscores, and hyphens
+    $p_packageName = $p_packageName -replace '([-_.])\1+', '.' # Remove and consolidate groupings of dots, underscores, and hyphens
     Write-Host "    Package name after removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
     Write-Host $p_packageName
     $p_packageName = $p_packageName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
@@ -40,7 +40,6 @@ function ConvertTo-ValidPackageName {
     $p_packageName = $p_packageName.ToLower()  # Convert to lowercase
     Write-Host "    Package name after converting to lowercase: " -NoNewline -ForegroundColor Yellow
     Write-Host $p_packageName
-
 
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
     Write-Host "ConvertTo-ValidPackageName"
@@ -386,7 +385,7 @@ function Select-Asset {
     )
 
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "Select-Asset function"
+    Write-Host "Select-Asset function"
 
     $p_assetName = $p_urls.specifiedAssetName
     $baseRepoUrl = $p_urls.baseRepoUrl
@@ -402,7 +401,7 @@ Write-Host "Select-Asset function"
     # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
     if (-not [string]::IsNullOrWhiteSpace($p_assetName)) {
         Write-Host "    Selecting asset with name: " -ForegroundColor Yellow
-Write-Host "`"$p_assetName`""
+    Write-Host "`"$p_assetName`""
         $f_selectedAsset = $p_assets | Where-Object { $_.name -eq $p_assetName }
         # If there is no match for the asset name, throw an error
         if ($null -eq $f_selectedAsset) {
@@ -656,108 +655,125 @@ function New-NuspecFile {
         [string]$p_packageDir
     )
 
-    Write-Host "ENTERING: " -NoNewline -ForegroundColor Cyan
-    Write-Host "New-NuspecFile function"
+    Write-Host "ENTERING: New-NuspecFile function" -ForegroundColor Cyan
 
-    # Log p_Metadata content
-    Write-Host "Content of p_Metadata: " -ForegroundColor Yellow
-    $p_Metadata.GetEnumerator() | ForEach-Object {
-        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Magenta
-        Write-Host $_.Value
-    }
-
-    # Define elementMapping
     $elementMapping = @{
         id = 'PackageName'
         title = 'GithubRepoName'
         version = 'Version'
         authors = 'Author'
         description = 'Description'
-        projectUrl = 'ProjectUrl'
+        projectUrl = 'ProjectSiteUrl'
         packageSourceUrl = 'Url'
         releaseNotes = 'VersionDescription'
         licenseUrl = 'LicenseUrl'
         iconUrl = 'IconUrl'
         tags = 'Tags'
-        size = 'PackageSize'
+        repository = 'Repository'
     }
-    # Log elementMapping content
-    Write-Host "Content of elementMapping: " -ForegroundColor Yellow
+
+    # One per line, print the content of elementMapping
+    Write-Host "Element Mapping:" -ForegroundColor Yellow
     $elementMapping.GetEnumerator() | ForEach-Object {
-        Write-Host "    $($_.Key): " -NoNewline -ForegroundColor Magenta
-        Write-Host $_.Value
+        Write-Host "    $($_.Key) -> $($_.Value)"
     }
 
-    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags')
+    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags', 'repository')
 
-    # Create XML document
     $xmlDoc = New-Object System.Xml.XmlDocument
-    if ($null -eq $xmlDoc) {
-        Write-Error "xmlDoc is null"
-        exit 1
-    }
 
-    # Load XML template into xmlDoc and create a Namespace Manager
     $xmlDoc.LoadXml('<?xml version="1.0"?><package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"><metadata></metadata></package>')
     $nsManager = New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable)
     $nsManager.AddNamespace('ns', 'http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd')
-
-    # Select the metadata element using the Namespace Manager
     $metadataElem = $xmlDoc.SelectSingleNode('/ns:package/ns:metadata', $nsManager)
-    if ($null -eq $metadataElem) {
-        Write-Error "Failed to select metadata element"
-        exit 1
-    }
 
+    Write-Host "Appending elements to metadata: " -ForegroundColor Yellow
 
-# Add elements to XML document
-Write-Host "    Appending elements to metadata: " -ForegroundColor Yellow
-$namespaceUri = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd" # Define the namespace URI
+    $namespaceUri = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
 
-foreach ($elementName in $elementOrder) {
-    Write-Host "        Checking for element: " -NoNewline -ForegroundColor Magenta
-    Write-Host $elementName
-    if ($elementMapping.ContainsKey($elementName)) {
+    # Add elements in the order specified by elementOrder
+    foreach ($elementName in $elementOrder) {
+
+        #Write-Host "Processing element: $elementName" -ForegroundColor Yellow
+        
+        if (-not $elementMapping.ContainsKey($elementName)) {
+            Write-Host "Warning: $elementName not found in elementMapping" -ForegroundColor Yellow
+            continue
+        }
+
         $key = $elementMapping[$elementName]
-        if ($p_Metadata.ContainsKey($key) -and $null -ne $p_Metadata[$key]) {
-            # Create element with namespace
+
+        if (-not $p_Metadata.ContainsKey($key)) {
+            Write-Host "Warning: $key not found in p_Metadata" -ForegroundColor Yellow
+            continue
+        }
+
+        $value = $p_Metadata[$key]
+
+        
+
+        if ($null -eq $value) {
+            Write-Host "Warning: Value for $key is null" -ForegroundColor Yellow
+            continue
+        }
+
+        Write-Host "Creating element with " -NoNewline -ForegroundColor Green
+        Write-Host "name: " -NoNewline -ForegroundColor Cyan
+        Write-Host "$elementName" -NoNewline -ForegroundColor White
+        Write-Host " value: " -NoNewline -ForegroundColor Cyan
+        Write-Host "$value" -ForegroundColor White -NoNewline
+
+        try {
+            Write-Host "    Creating element..." -NoNewline
             $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
-            if ($null -eq $elem) {
-                Write-Host "            Error: Failed to create element: " -ForegroundColor Red
-            } else {
-                $elem.InnerText = $p_Metadata[$key]
-                $appendResult = $metadataElem.AppendChild($elem)
-                if ($null -eq $appendResult) {
-                    Write-Host "Error: Failed to append element: " -ForegroundColor Red
-                } else {
-                    Write-Host "Appended element: " -ForegroundColor Green -NoNewline
-                    Write-Host $elementName
-                }
+        } catch {
+            Write-Host "Error creating element $($elementName): $_" -ForegroundColor Red
+            continue
+        }
+        $elem.InnerText = $value
+        $metadataElem.AppendChild($elem)
+        Write-Host "    Element created successfully" -ForegroundColor Green
+    }
+
+    # If there are remaining elemetns in elementMapping, add them to the file
+    $remainingElements = $elementMapping.Keys | Where-Object { $elementOrder -notcontains $_ }
+    try {
+        foreach ($elementName in $remainingElements) {
+            Write-Host "Creating remaining element with " -NoNewline -ForegroundColor Green
+            Write-Host "name: " -NoNewline -ForegroundColor Cyan
+            Write-Host "$elementName" -NoNewline -ForegroundColor White
+            Write-Host " value: " -NoNewline -ForegroundColor Cyan
+            Write-Host "$value" -ForegroundColor White -NoNewline
+
+            $key = $elementMapping[$elementName]
+            $value = $p_Metadata[$key]
+
+            if ($null -eq $value) {
+                Write-Host "Warning: Value for $key is null" -ForegroundColor Yellow
+                continue
             }
+
+            Write-Host "    Creating element..." -NoNewline
+            $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
+            $elem.InnerText = $value
+            $metadataElem.AppendChild($elem)
+            Write-Host "    Element created successfully" -ForegroundColor Green
         }
-        else {
-            Write-Host "Element not found in p_Metadata or value is null: " -ForegroundColor Red -NoNewline
-            Write-Host $elementName
-        }
+    } catch {
+        Write-Host "Error creating element $($elementName): $_" -ForegroundColor Red
+        continue
     }
-    else {
-        Write-Host "Element not found in elementMapping: " -ForegroundColor Red -NoNewline
-        Write-Host $elementName
-    }
-}
 
 
-    # Save XML document to file
     $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata['PackageName']).nuspec"
     $xmlDoc.Save($f_nuspecPath)
 
-    Write-Host "    Nuspec file created at: " -NoNewline -ForegroundColor Green
-    Write-Host $f_nuspecPath
+    Write-Host "Nuspec file created at: $f_nuspecPath" -ForegroundColor Green
     Write-Host "EXITING: New-NuspecFile function" -ForegroundColor Green
 
-    # Return the path to the saved .nuspec file
     return $f_nuspecPath
 }
+
 function New-InstallScript {
     param (
         [Parameter(Mandatory=$true)]
@@ -887,24 +903,24 @@ function Confirm-DirectoryExists {
         [string]$p_name
     )
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "Confirm-DirectoryExists function"
+    Write-Host "Confirm-DirectoryExists function"
     Write-Host "    Checking for $p_name directory..."
     if (-not (Test-Path $p_path)) {
         Write-Host "    No $p_name directory found, creating $p_name directory..."
         New-Item -Path $p_path -ItemType Directory | Out-Null
         Write-Host "    $p_name directory created at: $" -NoNewline -ForegroundColor Yellow
-Write-Host $p_path
+    Write-Host $p_path
     }
     else {
         Write-Host "    $p_name directory found at: " -NoNewline -ForegroundColor Yellow
-Write-Host $p_path
+    Write-Host $p_path
     }
     Write-Host "EXITING: " -NoNewLine -ForegroundColor Green
-Write-Host "Confirm-DirectoryExists function"
+    Write-Host "Confirm-DirectoryExists function"
 }
 function Get-Updates {
     Write-Host "ENTERING: " -NoNewLine -ForegroundColor Cyan
-Write-Host "Get-Updates function"
+    Write-Host "Get-Updates function"
     # Get all of the names of the folders in the packages directory
     Write-LogHeader "   Checking for updates"
     
@@ -1113,47 +1129,60 @@ function Get-AssetInfo {
     Write-Host "`"$myDefaultBranch`""
     
 
-
-    #TODO: Make sure we are getting the largest favicon
-
-
-# Initial variable declaration
-$iconUrl = $null
-$iconInfo = $null
-
-# Check if the root repository has a homepage
-if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
-    $homepage = $rootRepoInfo.homepage
-
-    # Attempt to get the favicon from the homepage
-    $iconInfo = Get-Favicon -p_homepage $homepage
-
-    if ($null -ne $iconInfo.url) {
-        Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
-        Write-Host $iconInfo.url
-        $iconUrl = $iconInfo.url
+    # Array table to store the tags. Uses the topics json result from the GitHub API
+    $tags = @()
+    # If the result is not null or empty, add the tags to the hash table from the base repo info. Otherwise, add the tags from the root repo info.
+    if ($null -ne $baseRepoInfo.topics -and $baseRepoInfo.topics -ne '') {
+        $tags += $baseRepoInfo.topics
     } else {
-        Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
+        $tags += $rootRepoInfo.topics
     }
-}
 
-# If no suitable favicon is found, look for an ICO file in the repo
-if ($null -eq $iconUrl) {
-    $icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $myDefaultBranch
-    
-    if ($null -ne $icoPath) {
-        $iconUrl = "https://raw.githubusercontent.com/$($p_urls.githubUser)/$($p_urls.githubRepoName)/main/$icoPath"
-        Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
+    Write-Host "Tags is of type: " -NoNewline -ForegroundColor Yellow
+    Write-Host $tags.GetType().FullName
+
+    # Print the tags, one per line 
+    Write-Host "    Tags: " -ForegroundColor Yellow
+    $tags | ForEach-Object {
+        Write-Host "    $_"
     }
-}
 
-# If still no suitable icon is found, use the owner's avatar
-if ($null -eq $iconUrl) {
-    $iconUrl = $rootRepoInfo.owner.avatar_url
-    Write-Host "    Using owner's avatar as icon: $iconUrl" -ForegroundColor Green
-}
+    # Initial variable declaration
+    $iconUrl = $null
+    $iconInfo = $null
 
-    
+    # Check if the root repository has a homepage
+    if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
+        $homepage = $rootRepoInfo.homepage
+
+        # Attempt to get the favicon from the homepage
+        $iconInfo = Get-Favicon -p_homepage $homepage
+
+        if ($null -ne $iconInfo.url) {
+            Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
+            Write-Host $iconInfo.url
+            $iconUrl = $iconInfo.url
+        } else {
+            Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
+        }
+    }
+
+    # If no suitable favicon is found, look for an ICO file in the repo
+    if ($null -eq $iconUrl) {
+        $icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $myDefaultBranch
+        
+        if ($null -ne $icoPath) {
+            $iconUrl = "https://raw.githubusercontent.com/$($p_urls.githubUser)/$($p_urls.githubRepoName)/main/$icoPath"
+            Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
+        }
+    }
+
+    # If still no suitable icon is found, use the owner's avatar
+    if ($null -eq $iconUrl) {
+        $iconUrl = $rootRepoInfo.owner.avatar_url
+        Write-Host "    Using owner's avatar as icon: $iconUrl" -ForegroundColor Green
+    }
+
 
     # TODO: Check if the org name or repo name most closely match the name of the file, use the one that most closely matches
 
@@ -1237,7 +1266,7 @@ if ($null -eq $iconUrl) {
     # Set thhe license URL to the license URL of the root repository if it is not null or whitespace
     if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.license.url)) {
         # Set the license url equal to (repo url)/blob/(default branch)/LICENSE
-        $licenseUrl = "$($rootRepoInfo.html_url)/blob/$($rootRepoInfo.default_branch)/LICENSE"
+        $licenseUrl = "$($rootRepoInfo.html_url)/blob/$myDefaultBranch/LICENSE"
         Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
         Write-Host $licenseUrl
     }
@@ -1246,6 +1275,24 @@ if ($null -eq $iconUrl) {
 
     Write-Host "    Package Size: " -NoNewline -ForegroundColor Yellow
     Write-Host $packageSize
+
+    # Build the URL for the API request
+    $hashUrl = "https://api.github.com/repos/$githubUser/$githubRepoName/git/refs/tags/$($latestReleaseInfo_GETINFO.tag_name)"
+
+    # Make the API request
+    $response = Invoke-RestMethod -Uri $hashUrl
+
+    # Extract the commit hash from the response
+    $commitHash = $response.object.sha
+
+    # Output the commit hash
+    $commitHash
+
+    # repository variable in format : <repository type="git" url="https://github.com/NuGet/NuGet.Client.git" branch="dev" commit="e1c65e4524cd70ee6e22abe33e6cb6ec73938cb3" />
+    $repository = "<repository type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" />"
+
+    Write-Host "    Repository: " -NoNewline -ForegroundColor Yellow
+    Write-Host $repository
 
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
@@ -1262,6 +1309,9 @@ if ($null -eq $iconUrl) {
         GithubRepoName      = $githubRepoName
         LicenseUrl          = $licenseUrl
         PackageSize         = $packageSize
+        Tags                = $tags
+        Repository          = $repository
+        ProjectSiteUrl      = $homepage
     }
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
@@ -1269,7 +1319,6 @@ if ($null -eq $iconUrl) {
     Write-Host $($packageMetadata.GetType().FullName)
     } else {
         Write-Host "    Type of packageMetadata before return: NOT Hashtable"
-        
     }
     
     Write-Host "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
