@@ -1110,8 +1110,9 @@ if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
     $iconInfo = Get-Favicon -p_homepage $homepage
 
     if ($null -ne $iconInfo.url) {
-        Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow
+        Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
         Write-Host $iconInfo.url
+        $iconUrl = $iconInfo.url
     } else {
         Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
     }
