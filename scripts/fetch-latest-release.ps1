@@ -3,42 +3,93 @@ $ErrorActionPreference = 'Stop'
 #region Functions
 
 #region Debugging
-function Format-Json {
-    # Function to format and print JSON recursively, allowing for nested lists
+function Get-ObjectProperties {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [psobject]$json,
-        
-        [Parameter(Mandatory=$false)]
-        [int]$depth = 0
+        [Object]$Object,
+
+        [Parameter()]
+        [int]$MaxDepth = 4
     )
-    $indent = ' ' * $depth * 4
-    $json | Get-Member -MemberType *Property | ForEach-Object {
-        $name = $_.Name
-        $value = $json.$name
-        if ($value -is [System.Collections.IEnumerable] -and -not $value -is [string]) {
-            Write-Host "${$indent$name}: ["
-            $value | ForEach-Object {
-                Format-Json -json $_ -depth ($depth + 1)
+
+    # Internal function for recursion
+    function Get-InternalProperties {
+        param (
+            [Object]$Obj,
+            [string]$Indent,
+            [int]$Depth
+        )
+
+        if ($Depth -ge $MaxDepth) {
+            Write-Host "${Indent}... (max depth reached)" -ForegroundColor DarkYellow
+            return
+        }
+
+        if ($Obj -is [PSCustomObject]) {
+            $props = $Obj.PSObject.Properties
+        } elseif ($Obj -is [Hashtable]) {
+            $props = $Obj.GetEnumerator() | ForEach-Object { 
+                New-Object PSObject -Property @{
+                    Name = $_.Key
+                    Value = $_.Value
+                }
             }
-            Write-Host "$indent]"
         } else {
-            Write-Host "${$indent$name}: $value"
+            return
+        }
+
+        $maxTypeLength = ($props | ForEach-Object { if ($null -ne $_.Value) { $_.Value.GetType().Name.Length } else { 6 }} | Measure-Object -Maximum).Maximum
+
+        foreach ($prop in $props) {
+            $propType = if ($null -ne $prop.Value) { $prop.Value.GetType().Name } else { '<null>' }
+            $propValue = if ($null -ne $prop.Value) { ($prop.Value.ToString() -replace "`r`n|`r|`n", " ") } else { '<null>' }
+            $valueColor = if ($propValue.Length -gt 200) {
+                $propValue = $propValue.Substring(0, 197) + "..."
+                'DarkYellow'
+            } elseif ($propValue -eq '') {
+                $propValue = '<empty>'
+                'DarkGray'
+            } else {
+                'DarkGreen'
+            }
+
+            $typePadding = '.' * ($maxTypeLength - $propType.Length + 1)
+            Write-Host "${Indent}Name: " -NoNewline -ForegroundColor DarkCyan
+            Write-Host "$($prop.Name)" -BackgroundColor DarkGray
+            Write-Host "${Indent}$propType${typePadding}:" -NoNewline
+            Write-Host "$propValue" -ForegroundColor $valueColor
+            if ($prop.Value -is [PSCustomObject] -or $prop.Value -is [Hashtable]) {
+                Get-InternalProperties -Obj $prop.Value -Indent "$Indent  |" -Depth ($Depth + 1)
+            }
         }
     }
 
+    Get-InternalProperties -Obj $Object -Indent "" -Depth 0
 }
+
 function Write-LogHeader {
     param (
-        [string]$Message
+        [string]$Message,
+        [System.ConsoleColor]$Color
     )
-    Write-Host "`n=== [ ENTER: $Message ] ===" -BackgroundColor DarkGray
+    # If a color is not specified, use Dark Gray
+    if (-not $Color) {
+        $Color = 'DarkGray'
+    }
+    Write-Host "`n=== [ ENTER: $Message ] ===" -BackgroundColor $Color
 }
 function Write-LogFooter {
     param (
-        [string]$Message
+        [string]$Message,
+        [System.ConsoleColor]$Color
     )
-    Write-Host "`n=== [ EXIT: $Message ] ===" -BackgroundColor DarkGray
+    # If a color is not specified, use Dark Gray
+    if (-not $Color) {
+        $Color = 'DarkGray'
+    }
+    Write-Host "=== [ EXIT: $Message ] ===" -BackgroundColor $Color
+    Write-Host
 }
 #endregion
 
@@ -321,7 +372,7 @@ function Select-Asset {
     Write-LogHeader "Select-Asset function"
 
     $p_assetName = $p_urls.specifiedAssetName
-    $baseRepoUrl = $p_urls.baseRepoUrl
+    $baseRepoApiUrl= $p_urls.baseRepoUrl
     # Validation check for the assets
     $f_supportedTypes = $acceptedExtensions
 
@@ -530,49 +581,51 @@ function Get-MostRecentValidRelease {
 function Get-LatestReleaseInfo {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_baseRepoUrl
+        [string]$BaseRepoApiUrl
     )
 
-    Write-LogHeader "Get-LatestReleaseInfo function"
-    Write-Host "    Target GitHub API URL: $p_baseRepoUrl"
+    Write-LogHeader "Get-LatestReleaseInfo"
+    Write-Host "    Target GitHub API URL: $BaseRepoApiUrl"
 
     Write-Host "    Initiating web request to GitHub API..."
-    $response = Invoke-WebRequest -Uri $p_baseRepoUrl
+    $response = Invoke-WebRequest -Uri $BaseRepoApiUrl
     Write-Host "    HTTP Status Code: $($response.StatusCode)"
 
     Write-Host "    Attempting to parse JSON content..."
-    $lr_json = $response.Content | ConvertFrom-Json
+    $latestReleaseInfo = $response | ConvertFrom-Json
+    # Content of latestReleaseInfo
+    Get-ObjectProperties -Object $latestReleaseInfo
     
     Write-Host "    Validating received data..."
-    if ($null -eq $lr_json) {
-        Write-Error "   Received data is null. URL used: $p_baseRepoUrl"
+    if ($null -eq $latestReleaseInfo) {
+        Write-Error "   Received data is null. URL used: $BaseRepoApiUrl"
         exit 1
     }
 
-    Write-Host "The type of lr_json is: " -NoNewline -ForegroundColor Yellow
-    Write-Host $lr_json.GetType().FullName -ForegroundColor Blue
+    Write-Host "The type of latestReleaseInfo is: " -NoNewline -ForegroundColor Yellow
+    Write-Host $latestReleaseInfo.GetType().FullName -ForegroundColor Blue
 
     Write-Host "##################################################" -ForegroundColor Red
-    $lr_json | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+    $latestReleaseInfo | ConvertTo-Json -Depth 10 | Out-String | Write-Host
     Write-Host "##################################################" -ForegroundColor Red
 
-    Write-Host "The type of lr_json.assets is: " -NoNewline -ForegroundColor Yellow
-    Write-Host $lr_json.assets.GetType().FullName -ForegroundColor Blue
+    Write-Host "The type of latestReleaseInfo.assets is: " -NoNewline -ForegroundColor Yellow
+    Write-Host $latestReleaseInfo.assets.GetType().FullName -ForegroundColor Blue
 
-    if ($lr_json.PSObject.Properties.Name -notcontains 'tag_name') {
-        Write-Error "   No 'tag_name' field in received data. URL used: $p_baseRepoUrl"
+    if ($latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
+        Write-Error "   No 'tag_name' field in received data. URL used: $BaseRepoApiUrl"
         exit 1
     }
 
     # Make sure the assets field is not null or empty
-    $assetCount = ($lr_json.assets | Measure-Object).Count
-    if ($null -eq $lr_json.assets -or $assetCount -eq 0) {
-        Write-Error "   No assets found for the latest release. URL used: $p_baseRepoUrl"
+    $assetCount = ($latestReleaseInfo.assets | Measure-Object).Count
+    if ($null -eq $latestReleaseInfo.assets -or $assetCount -eq 0) {
+        Write-Error "   No assets found for the latest release. URL used: $BaseRepoApiUrl"
         exit 1
     }
 
-    Write-LogFooter "latest release info"
-    return $lr_json
+    Write-LogFooter "Get-LatestReleaseInfo"
+    return $latestReleaseInfo
 }
 function Get-AssetInfo {
     param (
@@ -1257,7 +1310,6 @@ function New-ChocolateyPackage {
     Write-LogFooter "New-ChocolateyPackage function"
 }
 #endregion
-
 function Get-Updates {
     Write-LogHeader "Get-Updates function"
     # Get all of the names of the folders in the packages directory
@@ -1305,7 +1357,7 @@ function Get-Updates {
 
         # Get the latest release info for the package
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
-        $latestReleaseInfo_UP = Get-LatestReleaseInfo -p_baseRepoUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
+        $latestReleaseInfo_UP = Get-LatestReleaseInfo -p_baseRepoApiUrl"https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
         $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
@@ -1359,22 +1411,23 @@ function Get-Updates {
     }
     Write-LogFooter "Get-Updates function"
 }
-function Initialize-URLs{
+function Initialize-URLs {
     param (
-        [Parameter(Mandatory=$true)]
-        [string]$p_repoUrl
+        [Parameter(Mandatory = $true)]
+        [string]$InputGithubUrl
     )
     Write-LogHeader "Initialize-URLs function"
     # Check if the URL is a GitHub repository URL
-    if ($p_repoUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
+    if ($InputGithubUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
 
         # Stores an array of the URL segments, split by '/'
-        $urlParts = $p_repoUrl -split '/'
+        $urlParts = $InputGithubUrl -split '/'
         # Get the GitHub user and repo name from the provided URL
         $githubUser = $urlParts[3]
         $githubRepoName = $urlParts[4]
         # Create the base URL for the GitHub repository
         $baseRepoApiUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
+        $latestReleaseUrl = ($baseRepoApiUrl + '/releases/latest')
 
         #region Display URL information for debugging
         Write-Host "    GitHub User: " -NoNewline -ForegroundColor Magenta
@@ -1399,37 +1452,40 @@ function Initialize-URLs{
             Write-Host $specifiedAssetName
             #endregion
         }
-    } else {
-        Write-Error "Please provide a valid GitHub repository URL. URL provided: $p_repoUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo Name: $githubRepoName "
+    }
+    else {
+        Write-Error "Please provide a valid GitHub repository URL. URL provided: $InputGithubUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo Name: $githubRepoName "
         exit 1
     }
 
     # hash table to store the URLs and information
-    $urls_init = @{
-        baseRepoApiUrl = $baseRepoApiUrl
-        user = $githubUser
-        repoName = $githubRepoName
+    $packageData = @{
+        baseRepoApiUrl      = $baseRepoApiUrl
+        user                = $githubUser
+        repoName            = $githubRepoName
+        latestReleaseUrl    = $latestReleaseUrl
     }
 
     # Add optional keys if they are not null or empty
     if (-not [string]::IsNullOrWhiteSpace($tag) -and -not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
-        $urls_init.Add('tag', $tag)
-        $urls_init.Add('specifiedAssetName', $specifiedAssetName)
-        $urls_init.Add('specifiedAssetApiUrl', "$baseRepoApiUrl/releases/download/$tag/$specifiedAssetName")
+        $packageData.Add('tag', $tag)
+        $packageData.Add('specifiedAssetName', $specifiedAssetName)
+        $packageData.Add('specifiedAssetApiUrl', "$baseRepoApiUrl/releases/download/$tag/$specifiedAssetName")
     }
 
     # List of expected keys. This is important as other functions will expect these keys to exist
-    $expectedKeys = @('baseRepoApiUrl', 'user', 'repoName')
+    $requiredKeys = @('baseRepoApiUrl', 'user', 'repoName', 'latestReleaseUrl')
 
     # Verify each expected key
-    foreach ($key in $expectedKeys) {
-        if ($urls_init.ContainsKey($key)) {
+    foreach ($key in $requiredKeys) {
+        if ($packageData.ContainsKey($key)) {
             # Key exists, check if its value is null or empty
-            if ([string]::IsNullOrWhiteSpace($urls_init[$key])) {
+            if ([string]::IsNullOrWhiteSpace($packageData[$key])) {
                 Write-Error "The value for '$key' is null or empty in the hash table."
                 exit 1
             }
-        } else {
+        }
+        else {
             Write-Error "The key '$key' does not exist in the hash table."
             exit 1
         }
@@ -1438,7 +1494,7 @@ function Initialize-URLs{
     Write-LogFooter "Initialize-URLs function"
 
     # Return the hash table
-    return $urls_init
+    return $packageData
 }
 
 #endregion
@@ -1446,19 +1502,20 @@ function Initialize-URLs{
 function Initialize-GithubPackage{
     param (
         [Parameter(Mandatory=$true)]
-        [string]$repoUrl
+        [string]$InputUrl
     )
-    Write-LogHeader "Initialize-GithubPackage function"
-    Write-Host "    Input Received: $repoUrl"
+    Write-LogHeader -Color Blue "Initialize-GithubPackage function"
+    Write-Host "    Input Received: " -NoNewline -ForegroundColor Magenta
+    Write-Host $InputUrl
 
     # Create a hashtable to store the URLs
-    $urls = Initialize-URLs -p_repoUrl $repoUrl
+    $retrievedPackageData = Initialize-URLs -InputGithubUrl $InputUrl
 
     # Fetch latest release information
     Write-Host "    Fetching latest release information from GitHub..."
-    $latestReleaseUrl = ($urls.baseRepoUrl + '/releases/latest')
+    $latestReleaseUrl = ($retrievedPackageData.baseRepoApiUrl+ '/releases/latest')
     Write-Host "    Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
-    $latestReleaseInfo_GHP = Get-LatestReleaseInfo -p_baseRepoUrl $latestReleaseUrl
+    $latestReleaseInfo_GHP = Get-LatestReleaseInfo -BaseRepoApiUrl $latestReleaseUrl
 
     #region Get Asset Info
 
@@ -1467,21 +1524,22 @@ function Initialize-GithubPackage{
         Write-Host "Passing Latest Release Info to Get-AssetInfo: "
         Write-Host "Type of latestReleaseInfo_GHP: " -NoNewline -ForegroundColor Yellow
         Write-Host $($latestReleaseInfo_GHP.GetType().FullName)
-        $latestReleaseInfo_GHP | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+        Get-ObjectProperties -Object $latestReleaseInfo_GHP
         Write-Host "##################################################" -ForegroundColor Green
         #endregion
 
-        #region Check urls
+        #region Check retrievedPackageData
         Write-Host "##################################################" -ForegroundColor Cyan 
         Write-Host "Passing URLs to Get-AssetInfo: "
         Write-Host "Type of URLs: " -NoNewline -ForegroundColor Yellow
-        Write-Host $($urls.GetType().FullName)
-        $urls | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+        Write-Host $($retrievedPackageData.GetType().FullName)
+        # Change this to a version of Get-ObjectProperties that can handle hashtables
+        Get-ObjectProperties -Object $retrievedPackageData
         Write-Host "##################################################" -ForegroundColor Cyan
         #endregion
 
     # Get the asset metadata
-    $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $urls
+    $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $retrievedPackageData
 
         #region Check myMetadata
         Write-Host "##################################################" -ForegroundColor Magenta
@@ -1553,7 +1611,7 @@ function Initialize-GithubPackage{
     New-ChocolateyPackage -p_nuspecPath "$nuspecPath" -p_packageDir $packageDir
 
     #endregion
-Write-LogFooter "Initialize-GithubPackage function"
+Write-LogFooter -Color Blue "Initialize-GithubPackage function"
 }
 ###################################################################################################
 
