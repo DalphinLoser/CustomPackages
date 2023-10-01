@@ -10,8 +10,10 @@ function Get-ObjectProperties {
         [Object]$Object,
 
         [Parameter()]
-        [int]$MaxDepth = 4
+        [int]$MaxDepth = $StartingDepth+4
     )
+
+    $currentColor = 'DarkGreen'
 
     # Internal function for recursion
     function Get-InternalProperties {
@@ -26,16 +28,17 @@ function Get-ObjectProperties {
             return
         }
 
-        if ($Obj -is [PSCustomObject]) {
-            $props = $Obj.PSObject.Properties
+        $props = if ($Obj -is [PSCustomObject]) {
+            $Obj.PSObject.Properties
         } elseif ($Obj -is [Hashtable]) {
-            $props = $Obj.GetEnumerator() | ForEach-Object { 
+            $Obj.GetEnumerator() | ForEach-Object { 
                 New-Object PSObject -Property @{
                     Name = $_.Key
                     Value = $_.Value
                 }
             }
         } else {
+            Write-Host "${Indent}Unsupported type: $($Obj.GetType().Name)" -ForegroundColor Red
             return
         }
 
@@ -43,31 +46,34 @@ function Get-ObjectProperties {
 
         foreach ($prop in $props) {
             $propType = if ($null -ne $prop.Value) { $prop.Value.GetType().Name } else { '<null>' }
-            $propValue = if ($null -ne $prop.Value) { ($prop.Value.ToString() -replace "`r`n|`r|`n", " ") } else { '<null>' }
-            $valueColor = if ($propValue.Length -gt 200) {
-                $propValue = $propValue.Substring(0, 197) + "..."
-                'DarkYellow'
-            } elseif ($propValue -eq '') {
-                $propValue = '<empty>'
-                'DarkGray'
-            } else {
-                'DarkGreen'
+
+            # Determine the display value based on the type of the property
+            $propValue = switch ($prop.Value) {
+                { $_ -is [PSCustomObject] -or $_ -is [Hashtable] } { '' }
+                { $_ -is [Array] } { "<array of $($_.Length) items>" } # placeholder for arrays
+                { $null -eq $_ } { '<null>' }
+                { [string]::IsNullOrWhiteSpace($_.ToString()) } { '<empty or whitespace>' }
+                default { ($_.ToString() -replace "`r`n|`r|`n", " ") }
             }
 
-            $typePadding = '.' * ($maxTypeLength - $propType.Length + 1)
-            Write-Host "${Indent}Name: " -NoNewline -ForegroundColor DarkCyan
+            # Toggle color for the whole group
+            $currentColor = if ($currentColor -eq 'DarkGreen') { 'DarkCyan' } else { 'DarkGreen' }
+
+            $typePadding = '.' * ($maxTypeLength - $propType.Length + 5)
+            Write-Host "$Depth" -NoNewline
+            Write-Host "$Indent| Name: " -NoNewline -ForegroundColor $currentColor
             Write-Host "$($prop.Name)" -BackgroundColor DarkGray
-            Write-Host "${Indent}$propType${typePadding}:" -NoNewline
-            Write-Host "$propValue" -ForegroundColor $valueColor
-            if ($prop.Value -is [PSCustomObject] -or $prop.Value -is [Hashtable]) {
-                Get-InternalProperties -Obj $prop.Value -Indent "$Indent  |" -Depth ($Depth + 1)
+            Write-Host "$Depth" -NoNewline
+            Write-Host "$Indent| $propType${typePadding}:" -NoNewline -ForegroundColor $currentColor
+            Write-Host "$propValue" -ForegroundColor $currentColor
+            if ($prop.Value -is [PSCustomObject] -or $prop.Value -is [Hashtable] -or $prop.Value -is [Array]) {
+                Get-InternalProperties -Obj $prop.Value -Indent "$Indent    " -Depth ($Depth + 1)
             }
         }
     }
 
-    Get-InternalProperties -Obj $Object -Indent "" -Depth 0
+    Get-InternalProperties -Obj $Object -Indent "   " -Depth 1
 }
-
 function Write-LogHeader {
     param (
         [string]$Message,
@@ -364,51 +370,51 @@ function Get-TempIcon {
 }
 function Select-Asset {
     param (
-        [array]$p_assets,
         [Parameter(Mandatory=$true)]
-        [hashtable]$p_urls
+        # PSCustomCbject
+        [System.Object[]]$LatestReleaseObj,
+
+        [Parameter(Mandatory=$true)]
+        [hashtable]$PackageData
     )
 
     Write-LogHeader "Select-Asset function"
 
-    $p_assetName = $p_urls.specifiedAssetName
-    $baseRepoApiUrl= $p_urls.baseRepoUrl
+    $specifiedAssetName = $PackageData.specifiedAssetName
+    
+  
+
+    $baseRepoApiUrl= $PackageData.baseRepoApiUrl
     # Validation check for the assets
     $f_supportedTypes = $acceptedExtensions
 
     # Validate that assets is not null or empty
-    if ($null -eq $p_assets -or $p_assets.Count -eq 0) {
-        Write-Error "No assets found for the latest release. Assets is Null or Empty"
+    if ($null -eq $LatestReleaseObj.assets -or $LatestReleaseObj.assets.Count -eq 0) {
+        Write-Error "No assets found for the latest release. LatestReleaseObj is Null or Empty"
         exit 1
     }
 
     # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
-    if (-not [string]::IsNullOrWhiteSpace($p_assetName)) {
-        Write-Host "    Selecting asset with name: " -ForegroundColor Yellow
-        Write-Host "`"$p_assetName`""
-        $f_selectedAsset = $p_assets | Where-Object { $_.name -eq $p_assetName }
+    if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
+        # if the specified asset name contains the version number, replace it with the version number from the latest release
+        if ($specifiedAssetName -match $PackageData.tag) {
+            $cleanedSpecifiedAssetName = $specifiedAssetName -replace $PackageData.tag, $LatestReleaseObj.tag_name
+            Write-Host "    Specified Asset Name contains version number. Replacing with version number from latest release: " -ForegroundColor Yellow
+            Write-Host "    `"$specifiedAssetName`""
+            Write-Host "    `"$cleanedSpecifiedAssetName`""
+            $specifiedAssetName = $cleanedSpecifiedAssetName
+        }
+        Write-Host "    Selecting asset with name: " -ForegroundColor Yellow -NoNewline
+        Write-Host "`"$specifiedAssetName`""
+        $f_selectedAsset = $LatestReleaseObj.assets | Where-Object { $_.name -eq $specifiedAssetName }
         # If there is no match for the asset name, throw an error
         if ($null -eq $f_selectedAsset) {
-            # This is messy but works. Should be cleaned up.
-            # Try checking for the asset in all releases
-            Write-Host "No asset found in latest release with name: `"$p_assetName`". Checking all releases..."
-            $releasesUrl = "$baseRepoUrl/releases"
-            $releasesInfo = (Invoke-WebRequest -Uri $releasesUrl).Content | ConvertFrom-Json
-            foreach ($release in $releasesInfo) {
-                $f_selectedAsset = $release.assets | Where-Object { $_.name -eq $p_assetName }
-                if ($null -ne $f_selectedAsset) {
-                    Write-Host "Asset found in release: $($release.tag_name)"
-                    break
-                }
-            }
             # If there is still no match, throw an error
-            if ($null -eq $f_selectedAsset) {
-                Write-Error "No asset found with name: `"$p_assetName`""
-                exit 1
-            }
+            Write-Error "No asset found with name: `"$specifiedAssetName`""
+            exit 1
         }
     } else {
-        $f_selectedAsset = $p_assets | 
+        $f_selectedAsset = $LatestReleaseObj.assets | 
         Where-Object { 
             if ($_.name -match '\.([^.]+)$') {
                 return $f_supportedTypes -contains $matches[1]
@@ -444,6 +450,8 @@ function Get-RootRepository {
     Write-Host "    Getting root repository for: " -NoNewline -ForegroundColor Yellow
     Write-Host $p_repoUrl
     
+    # Broken TODO: This is broken. It is not returning the root repo
+
     # Fetch the repository information
     try {
         Write-Host "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
@@ -578,104 +586,62 @@ function Get-MostRecentValidRelease {
     Write-Host "No valid release found."
     return $null
 }
-function Get-LatestReleaseInfo {
+function Get-LatestReleaseObject {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$BaseRepoApiUrl
+        [string]$LatestReleaseApiUrl
     )
 
-    Write-LogHeader "Get-LatestReleaseInfo"
-    Write-Host "    Target GitHub API URL: $BaseRepoApiUrl"
+    Write-LogHeader "Get-LatestReleaseObject"
+    Write-Host "    Target GitHub API URL: $LatestReleaseApiUrl"
 
     Write-Host "    Initiating web request to GitHub API..."
-    $response = Invoke-WebRequest -Uri $BaseRepoApiUrl
+    $response = Invoke-WebRequest -Uri $LatestReleaseApiUrl
     Write-Host "    HTTP Status Code: $($response.StatusCode)"
 
-    Write-Host "    Attempting to parse JSON content..."
-    $latestReleaseInfo = $response | ConvertFrom-Json
-    # Content of latestReleaseInfo
-    Get-ObjectProperties -Object $latestReleaseInfo
     
-    Write-Host "    Validating received data..."
-    if ($null -eq $latestReleaseInfo) {
-        Write-Error "   Received data is null. URL used: $BaseRepoApiUrl"
-        exit 1
-    }
-
-    Write-Host "The type of latestReleaseInfo is: " -NoNewline -ForegroundColor Yellow
-    Write-Host $latestReleaseInfo.GetType().FullName -ForegroundColor Blue
-
-    Write-Host "##################################################" -ForegroundColor Red
-    $latestReleaseInfo | ConvertTo-Json -Depth 10 | Out-String | Write-Host
-    Write-Host "##################################################" -ForegroundColor Red
-
-    Write-Host "The type of latestReleaseInfo.assets is: " -NoNewline -ForegroundColor Yellow
-    Write-Host $latestReleaseInfo.assets.GetType().FullName -ForegroundColor Blue
-
-    if ($latestReleaseInfo.PSObject.Properties.Name -notcontains 'tag_name') {
-        Write-Error "   No 'tag_name' field in received data. URL used: $BaseRepoApiUrl"
+    $latestReleaseObj = $response | ConvertFrom-Json
+    # Content of latestReleaseObj
+    Write-Host "Type of latestReleaseObj: " -NoNewline -ForegroundColor Yellow
+    Write-Host $latestReleaseObj.GetType().FullName
+    
+    if ($null -eq $latestReleaseObj) {
+        Write-Error "   Received data is null. URL used: $LatestReleaseApiUrl"
         exit 1
     }
 
     # Make sure the assets field is not null or empty
-    $assetCount = ($latestReleaseInfo.assets | Measure-Object).Count
-    if ($null -eq $latestReleaseInfo.assets -or $assetCount -eq 0) {
-        Write-Error "   No assets found for the latest release. URL used: $BaseRepoApiUrl"
+    $assetCount = ($latestReleaseObj.assets | Measure-Object).Count
+    if ($null -eq $latestReleaseObj.assets -or $assetCount -eq 0) {
+        Write-Error "   No assets found for the latest release. URL used: $LatestReleaseApiUrl"
         exit 1
     }
 
-    Write-LogFooter "Get-LatestReleaseInfo"
-    return $latestReleaseInfo
+    Write-LogFooter "Get-LatestReleaseObject"
+    return $latestReleaseObj
 }
 function Get-AssetInfo {
     param (
         [Parameter(Mandatory=$true)]
-        [PSCustomObject]$latestReleaseInfo_GETINFO,
-        [Parameter(Mandatory=$true)]
-        [hashtable]$p_urls
+        [hashtable]$PackageData
     )
     Write-LogHeader "Get-AssetInfo function"
-    # Initialize variables
-    $tag = $null
-    $specifiedAssetName = $null
-
-    Write-Host "    Writing Content of p_urls" -ForegroundColor Yellow
-    # Check if specifiedasset is null or empty
-    if (-not [string]::IsNullOrWhiteSpace($p_urls.specifiedAssetName)) {
-        $specifiedAssetName = $p_urls.specifiedAssetName
-        Write-Host "        Specified Asset Name: " -NoNewline -ForegroundColor Magenta
-        Write-Host $specifiedAssetName
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($p_urls.tag)) {
-        $tag = $p_urls.tag
-        Write-Host "        Tag: " -NoNewline -ForegroundColor Magenta
-        Write-Host $tag
-    }
-    $repo = $p_urls.repo
-    Write-Host "        Repo: " -NoNewline -ForegroundColor Magenta
-    Write-Host $repo
-    $githubUser = $p_urls.githubUser
-    Write-Host "        GitHub User: " -NoNewline -ForegroundColor Magenta
-    Write-Host $githubUser
-    $githubRepoName = $p_urls.githubRepoName
-    Write-Host "        GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
-    Write-Host $githubRepoName    
-
-    # Validation check for the asset
-    if ($null -eq $latestReleaseInfo_GETINFO) {
-        Write-Error "No assets found for the latest release. Latest Release Info is Null"
-        exit 1
-    }
-
-    # Fetch rate limit information
-    #$rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
-    #Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
-    #Write-Host $rateLimitInfo
     
+    $retreivedLatestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $PackageData.latestReleaseApiUrl
+
+    Write-Host "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
+    Write-Host $retreivedLatestReleaseObj
+    Get-ObjectProperties -Object $retreivedLatestReleaseObj
+
     # Select the best asset based on supported types
-    $selectedAsset = Select-Asset -p_assets $latestReleaseInfo_GETINFO.assets -p_urls $p_urls
+    $selectedAsset = Select-Asset -LatestReleaseObj $retreivedLatestReleaseObj -PackageData $PackageData
     Write-Host "    Selected asset: " -NoNewline -ForegroundColor Yellow
+    Write-Host $selectedAsset.name
+    Write-Host $selectedAsset
+
+    # Print the content of selectedAsset
+    Write-Host "    Selected Asset Object: " -NoNewline -ForegroundColor Yellow
+    Write-Host $selectedAsset
     Write-Host $selectedAsset.name
 
     # Determine file type from asset name
@@ -689,16 +655,16 @@ function Get-AssetInfo {
 
     # Find the root repository
     # get the url from the latest release info and replace everything after the repo name with nothing
-    $baseRepoUrl_Info = $latestReleaseInfo_GETINFO.url -replace '/releases/.*', ''
+    $PackageData.baseRepoApiUrl = $retreivedLatestReleaseObj.url -replace '/releases/.*', ''
     Write-Host "    Base Repo URL: " -NoNewline -ForegroundColor Yellow
-    Write-Host $baseRepoUrl_Info
-    $rootRepoInfo = Get-RootRepository -p_repoUrl $baseRepoUrl_Info
+    Write-Host $PackageData.baseRepoApiUrl
+    $rootRepoInfo = Get-RootRepository -p_repoUrl $PackageData.baseRepoApiUrl
     Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor Yellow
     Write-Host $rootRepoInfo.url
 
     # Get the default branch of the root repository
     # TODO: I am sure this is redundant. It is late and this is a quick fix.
-    $baseRepoInfo = (Invoke-WebRequest -Uri "$($baseRepoUrl_Info)").Content | ConvertFrom-Json
+    $baseRepoInfo = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)").Content | ConvertFrom-Json
 
     $myDefaultBranch = "$($baseRepoInfo.default_branch)"
     Write-Host "Default Branch (Root): " -ForegroundColor Yellow
@@ -745,10 +711,10 @@ function Get-AssetInfo {
 
     # If no suitable favicon is found, look for an ICO file in the repo
     if ($null -eq $iconUrl) {
-        $icoPath = Find-IcoInRepo -owner $p_urls.githubUser -repo $p_urls.githubRepoName -defaultBranch $myDefaultBranch
+        $icoPath = Find-IcoInRepo -owner $PackageData.githubUser -repo $PackageData.githubRepoName -defaultBranch $myDefaultBranch
         
         if ($null -ne $icoPath) {
-            $iconUrl = "https://raw.githubusercontent.com/$($p_urls.githubUser)/$($p_urls.githubRepoName)/main/$icoPath"
+            $iconUrl = "https://raw.githubusercontent.com/$($PackageData.githubUser)/$($PackageData.githubRepoName)/main/$icoPath"
             Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
         }
     }
@@ -778,7 +744,7 @@ function Get-AssetInfo {
         $description = $rootRepoInfo.description
         # If the description is still null, get content of the readme
         if ([string]::IsNullOrWhiteSpace($rootRepoInfo.description)){
-            $readmeInfo = (Invoke-WebRequest -Uri "$($baseRepoUrl_Info.url/"readme")").Content | ConvertFrom-Json
+            $readmeInfo = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl.url/"readme")").Content | ConvertFrom-Json
             $description = $readmeInfo.content
             Write-Host "    Description not found. Using readme content" -ForegroundColor Yellow
         }
@@ -796,7 +762,7 @@ function Get-AssetInfo {
 
 
     # Get the latest release version number
-    $rawVersion = $latestReleaseInfo_GETINFO.tag_name
+    $rawVersion = $retreivedLatestReleaseObj.tag_name
     Write-Host "    Raw Version: " -NoNewline -ForegroundColor Yellow
     Write-Host $rawVersion
     # Sanitize the version number
@@ -853,7 +819,7 @@ function Get-AssetInfo {
     Write-Host $packageSize
 
     # Build the URL for the API request
-    $hashUrl = "https://api.github.com/repos/$githubUser/$githubRepoName/git/refs/tags/$($latestReleaseInfo_GETINFO.tag_name)"
+    $hashUrl = "https://api.github.com/repos/$githubUser/$githubRepoName/git/refs/tags/$($retreivedLatestReleaseObj.tag_name)"
 
     # Make the API request
     $response = Invoke-RestMethod -Uri $hashUrl
@@ -877,15 +843,15 @@ function Get-AssetInfo {
     $packageMetadata        = @{
         PackageName         = $packageName
         Version             = $sanitizedVersion
-        Author              = $githubUser
+        Author              = $PackageData.githubUser
         Description         = $description
-        VersionDescription  = $latestReleaseInfo_GETINFO.body -replace "\r\n", " "
+        VersionDescription  = $retreivedLatestReleaseObj.body -replace "\r\n", " "
         Url                 = $selectedAsset.browser_download_url
-        ProjectUrl          = $repo
+        ProjectUrl          = $PackageData.baseRepoUrl
         FileType            = $fileType
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
-        GithubRepoName      = $githubRepoName
+        GithubRepoName      = $PackageData.githubRepoName
         LicenseUrl          = $licenseUrl
         PackageSize         = $packageSize
         Tags                = $tagsStr
@@ -895,7 +861,7 @@ function Get-AssetInfo {
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
         Write-Host "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
-    Write-Host $($packageMetadata.GetType().FullName)
+        Write-Host $($packageMetadata.GetType().FullName)
     } else {
         Write-Host "    Type of packageMetadata before return: NOT Hashtable"
     }
@@ -1357,7 +1323,7 @@ function Get-Updates {
 
         # Get the latest release info for the package
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
-        $latestReleaseInfo_UP = Get-LatestReleaseInfo -p_baseRepoApiUrl"https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
+        $latestReleaseObj_UP = Get-LatestReleaseObject -p_baseRepoApiUrl"https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
         $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
@@ -1380,7 +1346,7 @@ function Get-Updates {
         }
         Write-Host "    Old Version URL: $oldVersion"
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseInfo_UP.tag_name
+        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseObj_UP.tag_name
         Write-Host "    Latest Release URL: $latestReleaseUrl_Update"
         # Compate the two urls
         # Compare the two URLs
@@ -1411,12 +1377,12 @@ function Get-Updates {
     }
     Write-LogFooter "Get-Updates function"
 }
-function Initialize-URLs {
+function Initialize-PackageTable {
     param (
         [Parameter(Mandatory = $true)]
         [string]$InputGithubUrl
     )
-    Write-LogHeader "Initialize-URLs function"
+    Write-LogHeader "Initialize-PackageTable function"
     # Check if the URL is a GitHub repository URL
     if ($InputGithubUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
 
@@ -1425,9 +1391,10 @@ function Initialize-URLs {
         # Get the GitHub user and repo name from the provided URL
         $githubUser = $urlParts[3]
         $githubRepoName = $urlParts[4]
-        # Create the base URL for the GitHub repository
+        # Create the new URL's from the input URL
+        $baseRepoUrl = ($InputGithubUrl -split '/')[0..4] -join '/'
         $baseRepoApiUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
-        $latestReleaseUrl = ($baseRepoApiUrl + '/releases/latest')
+        $latestReleaseApiUrl = ($baseRepoApiUrl + '/releases/latest')
 
         #region Display URL information for debugging
         Write-Host "    GitHub User: " -NoNewline -ForegroundColor Magenta
@@ -1458,29 +1425,30 @@ function Initialize-URLs {
         exit 1
     }
 
-    # hash table to store the URLs and information
-    $packageData = @{
-        baseRepoApiUrl      = $baseRepoApiUrl
-        user                = $githubUser
-        repoName            = $githubRepoName
-        latestReleaseUrl    = $latestReleaseUrl
+    # hash table to store the PackageTable and information
+    $packageTable = @{
+        baseRepoUrl             = $baseRepoUrl
+        baseRepoApiUrl          = $baseRepoApiUrl
+        user                    = $githubUser
+        repoName                = $githubRepoName
+        latestReleaseApiUrl     = $latestReleaseApiUrl
     }
 
     # Add optional keys if they are not null or empty
     if (-not [string]::IsNullOrWhiteSpace($tag) -and -not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
-        $packageData.Add('tag', $tag)
-        $packageData.Add('specifiedAssetName', $specifiedAssetName)
-        $packageData.Add('specifiedAssetApiUrl', "$baseRepoApiUrl/releases/download/$tag/$specifiedAssetName")
+        $packageTable.Add('tag', $tag)
+        $packageTable.Add('specifiedAssetName', $specifiedAssetName)
+        $packageTable.Add('specifiedAssetApiUrl', "$baseRepoApiUrl/releases/download/$tag/$specifiedAssetName")
     }
 
     # List of expected keys. This is important as other functions will expect these keys to exist
-    $requiredKeys = @('baseRepoApiUrl', 'user', 'repoName', 'latestReleaseUrl')
+    $requiredKeys = @('baseRepoApiUrl', 'user', 'repoName', 'latestReleaseApiUrl', 'baseRepoUrl')
 
     # Verify each expected key
     foreach ($key in $requiredKeys) {
-        if ($packageData.ContainsKey($key)) {
+        if ($packageTable.ContainsKey($key)) {
             # Key exists, check if its value is null or empty
-            if ([string]::IsNullOrWhiteSpace($packageData[$key])) {
+            if ([string]::IsNullOrWhiteSpace($packageTable[$key])) {
                 Write-Error "The value for '$key' is null or empty in the hash table."
                 exit 1
             }
@@ -1491,10 +1459,10 @@ function Initialize-URLs {
         }
     }
 
-    Write-LogFooter "Initialize-URLs function"
+    Write-LogFooter "Initialize-PackageTable function"
 
     # Return the hash table
-    return $packageData
+    return $packageTable
 }
 
 #endregion
@@ -1508,38 +1476,23 @@ function Initialize-GithubPackage{
     Write-Host "    Input Received: " -NoNewline -ForegroundColor Magenta
     Write-Host $InputUrl
 
-    # Create a hashtable to store the URLs
-    $retrievedPackageData = Initialize-URLs -InputGithubUrl $InputUrl
-
-    # Fetch latest release information
-    Write-Host "    Fetching latest release information from GitHub..."
-    $latestReleaseUrl = ($retrievedPackageData.baseRepoApiUrl+ '/releases/latest')
-    Write-Host "    Passing Latest Release URL to Get-Info: $latestReleaseUrl"  
-    $latestReleaseInfo_GHP = Get-LatestReleaseInfo -BaseRepoApiUrl $latestReleaseUrl
-
+    # Create a hashtable to store the PackageTable
+    $retrievedPackageTable = Initialize-PackageTable -InputGithubUrl $InputUrl
+    
     #region Get Asset Info
 
-        #region Check latestReleaseInfo_GHP
-        Write-Host "##################################################" -ForegroundColor Green 
-        Write-Host "Passing Latest Release Info to Get-AssetInfo: "
-        Write-Host "Type of latestReleaseInfo_GHP: " -NoNewline -ForegroundColor Yellow
-        Write-Host $($latestReleaseInfo_GHP.GetType().FullName)
-        Get-ObjectProperties -Object $latestReleaseInfo_GHP
-        Write-Host "##################################################" -ForegroundColor Green
-        #endregion
-
-        #region Check retrievedPackageData
+        #region Check retrievedPackageTable
         Write-Host "##################################################" -ForegroundColor Cyan 
-        Write-Host "Passing URLs to Get-AssetInfo: "
-        Write-Host "Type of URLs: " -NoNewline -ForegroundColor Yellow
-        Write-Host $($retrievedPackageData.GetType().FullName)
-        # Change this to a version of Get-ObjectProperties that can handle hashtables
-        Get-ObjectProperties -Object $retrievedPackageData
+        Write-Host "Type of PackageTable: " -NoNewline -ForegroundColor Yellow
+        Write-Host $($retrievedPackageTable.GetType().FullName)
+        # Print for debugging
+        Get-ObjectProperties -Object $retrievedPackageTable
         Write-Host "##################################################" -ForegroundColor Cyan
         #endregion
 
     # Get the asset metadata
-    $myMetadata = Get-AssetInfo -latestReleaseInfo_GETINFO $latestReleaseInfo_GHP -p_urls $retrievedPackageData
+    # retrievedAssetTable
+    $myMetadata = Get-AssetInfo -PackageData $retrievedPackageTable
 
         #region Check myMetadata
         Write-Host "##################################################" -ForegroundColor Magenta
