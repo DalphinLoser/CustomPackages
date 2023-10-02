@@ -1352,9 +1352,11 @@ function Get-Updates {
         Write-Host "        $_"
     }
 
+    # For each directory in PackagesDir...
+    $packageDirNames = Get-ChildItem -Path $PackagesDir -Directory
 
     # For each item in the packages directory, get the latest release info.
-    foreach ($dirInfo in $PackagesDir) {
+    foreach ($dirInfo in $packageDirNames) {
         
         # Validate that dirinfo is not null or empty
         if ([string]::IsNullOrWhiteSpace($dirInfo)) {
