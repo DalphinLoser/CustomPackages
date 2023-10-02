@@ -1,10 +1,10 @@
 $ErrorActionPreference = 'Stop';
 
 $packageArgs = @{
-    packageName     = "maah.protonvpn-win-app"
+    packageName     = "obsidianmd.obsidian-releases"
     fileType        = "exe"
-    url             = "https://github.com/maah/ProtonVPN-win-app/releases/download/3.2.1/ProtonVPN_v3.2.1.exe"
-    softwareName    = "ProtonVPN"
+    url             = "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.4.14/Obsidian.1.4.14-32.exe"
+    softwareName    = "obsidian"
     silentArgs      = "/S /s /Q /q /SP- /VERYSILENT /NORESTART /quiet /silent"
     validExitCodes  = @(0)
 }
