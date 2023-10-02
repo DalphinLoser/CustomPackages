@@ -1357,7 +1357,6 @@ function Get-Updates {
 
         Write-Host "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
         Write-Host $latestReleaseObj_UP
-        Get-ObjectProperties -Object $latestReleaseObj_UP
 
         $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
 
@@ -1408,7 +1407,7 @@ function Get-Updates {
             Write-Host "    The latest release URL is: " -NoNewline -ForegroundColor Yellow
             Write-Host $latestReleaseUrl_Update
             # Get the new metadata
-            Initialize-GithubPackage InputUrl $latestReleaseUrl_Update
+            Initialize-GithubPackage InputUrl "$latestReleaseUrl_Update"
             # Remove the old nuspec file
             Write-Host "    Removing old nuspec file"
             
