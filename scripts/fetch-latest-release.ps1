@@ -1372,14 +1372,9 @@ function Get-Updates {
         # Extract just the directory name from the DirectoryInfo object
         $package = $dirInfo.Name
     
-        # Find the nuspec file in the package directory
-        $nuspecFile = Get-ChildItem -Path "$PackagesDir" -Filter "*.nuspec"
-
+        
         # List the content of PackagesDir
-        Write-Host "    Listing content of PackagesDir: " -ForegroundColor Yellow
-        Get-ChildItem -Path "$PackagesDir" -Filter "*.nuspec" | ForEach-Object {
-            Write-Host "        $_"
-        }
+
     
         Write-Host "    Checking for updates for: $package" -ForegroundColor Magenta
     
@@ -1392,8 +1387,14 @@ function Get-Updates {
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
         $latestReleaseObj_UP = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
+
+        Write-Host "    Listing content of PackagesDir: " -ForegroundColor Yellow
+        Get-ChildItem -Path "$packageDirNames" -Filter "*.nuspec" | ForEach-Object {
+            Write-Host "        $_"
+        }
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
-        $nuspecFile = Get-ChildItem -Path "$PackagesDir" -Filter "*.nuspec"
+        $nuspecFile = Get-ChildItem -Path "$packageDirNames" -Filter "*.nuspec"
+        
         $nuspecFileContent = Get-Content -Path $nuspecFile -Raw
         # Find the value of the packageSourceUrl field in the nuspec file
         if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
