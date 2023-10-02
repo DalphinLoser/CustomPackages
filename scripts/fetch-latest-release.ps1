@@ -1339,6 +1339,9 @@ function Get-Updates {
     $f_packageDir = $null
     # Search for the 'packages' directory starting from the parent directory
     $possibleDir = Get-ChildItem -Path ".." -Filter "packages" -Directory
+    Write-Host "    Searching for 'packages' directory..."
+    Write-Host "    Possible directories count: $($possibleDir.Count)"
+    Write-Host "    Possible directories: $($possibleDir.Name -join ', ')"
     # Check if the directory was found
     if ($null -eq $possibleDir) {
         Write-Error "No 'packages' directory found."
@@ -1347,6 +1350,7 @@ function Get-Updates {
         # If the directory is found, use it
         $f_packageDir = $possibleDir.Name
         Write-Host "    Found 'packages' directory: $f_packageDir"
+        Write-Host "    Full path: $(Join-Path $PSScriptRoot $f_packageDir)"
     }
 
     # List the directories in the packages directory
