@@ -710,8 +710,7 @@ function Get-AssetInfo {
         Write-Host "$($rootRepoInfo.topics)"
     }
     else {
-        Write-Error "No tags found."
-        exit 1
+        Write-Host "No tags found."
     }
     
 
