@@ -1350,7 +1350,6 @@ function Get-Updates {
         # If the directory is found, use it
         $f_packageDir = $possibleDir.Name
         Write-Host "    Found 'packages' directory: $f_packageDir"
-        Write-Host "    Full path: $(Join-Path $PSScriptRoot $f_packageDir)"
     }
 
     # List the directories in the packages directory
