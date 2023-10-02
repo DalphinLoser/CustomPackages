@@ -116,6 +116,7 @@ function Write-LogFooter {
         $Color = 'DarkGray'
     }
     Write-Host "=== [ EXIT: $Message ] ===" -BackgroundColor $Color
+    Write-Host
 }
 #endregion
 
@@ -1370,32 +1371,20 @@ function Get-Updates {
             exit 1
         }
         
-
-
-        # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseObj_UP.tag_name
-        Write-Host "    Latest Release URL: $latestReleaseUrl_Update"
-        # Compate the version numbers
         Write-Host "    Package Source URL: $packageSourceUrl"
-
-        Write-Host "    Checking for updates for: $package"
-
         # Extract the old version number using regex. This assumes the version follows right after '/download/'
         if ($packageSourceUrl -match '/download/([^/]+)/') {
             $oldVersion = $matches[1]
-            Write-Host "    Current Version: $oldVersion"
         } else {
             Write-Error "Could not find the version number in the URL."
             exit 1
         }
-        if ($latestReleaseUrl_Update -match '/download/([^/]+)/') {
-            $newVersion = $matches[1]
-            Write-Host "    New Version: $newVersion"
-
-        } else {
-            Write-Error "Could not find the version number in the URL."
-            exit 1
-        }
+        Write-Host "    Current Version URL: $oldVersion"
+        Write-Host "    Latest Version: $($latestReleaseObj_UP.tag_name)"
+        # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
+        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseObj_UP.tag_name
+        Write-Host "    Latest Release URL: $latestReleaseUrl_Update"
+        # Compate the two urls
         # Compare the two URLs
         if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
             Write-Host "    The URLs are identical. No new version seems to be available."
