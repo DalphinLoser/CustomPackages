@@ -73,7 +73,7 @@ jobs:
       run: |
         cd $env:tempDir
         . $env:scriptPath
-        Get-Updates
+        Get-Updates -PackagesDir $env:packagesDir
       shell: pwsh
     
     - name: Copy Everything Fron The Temp Directory to The Packages Directory

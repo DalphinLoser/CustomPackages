@@ -1330,34 +1330,18 @@ function New-ChocolateyPackage {
 }
 #endregion
 function Get-Updates {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$PackagesDir
+    )
     Write-LogHeader "Get-Updates function"
-    # Get all of the names of the folders in the packages directory
-    
-    # Not a great way to do this. Change it if one day happens to be 27 hours long.
-
-    # Initialize package directory to null
-    $f_packageDir = $null
-    # Search for the 'packages' directory starting from the parent directory
-    $possibleDir = Get-ChildItem -Path ".." -Filter "packages" -Directory
-    Write-Host "    Searching for 'packages' directory..."
-    Write-Host "    Possible directories count: $($possibleDir.Count)"
-    Write-Host "    Possible directories: $($possibleDir.Name -join ', ')"
-    # Check if the directory was found
-    if ($null -eq $possibleDir) {
-        Write-Error "No 'packages' directory found."
-        exit 1
-    } else {
-        # If the directory is found, use it
-        $f_packageDir = $possibleDir.Name
-        Write-Host "    Found 'packages' directory: $f_packageDir"
-    }
 
     # List the directories in the packages directory
-    $f_packageDirs = Get-ChildItem -Path $f_packageDir -Directory
-    Write-Host "    The packages directory contains the following directories: $($f_packageDirs.Name -join ', ')"
+    $PackagesDir = Get-ChildItem -Path $f_packageDir -Directory
+    Write-Host "    The packages directory contains the following directories: $($PackagesDir.Name -join ', ')"
     
     # For each item in the packages directory, get the latest release info.
-    foreach ($dirInfo in $f_packageDirs) {
+    foreach ($dirInfo in $PackagesDir) {
         # Extract just the directory name from the DirectoryInfo object
         $package = $dirInfo.Name
     
