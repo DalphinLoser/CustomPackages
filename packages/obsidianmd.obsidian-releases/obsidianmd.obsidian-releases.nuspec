@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>obsidianmd.obsidian-releases</id>
+    <title>obsidian-releases</title>
+    <version>1.4.14</version>
+    <packageSourceUrl>https://github.com/obsidianmd/obsidian-releases/releases/download/v1.4.14/Obsidian.1.4.14.exe</packageSourceUrl>
+    <releaseNotes>https://obsidian.md/changelog/2023-09-26-desktop-v1.4.14  EDIT: Re-built a couple of hours after the original release due to the original one using the wrong Electron version.</releaseNotes>
+    <licenseUrl>https://github.com/obsidianmd/obsidian-releases/blob/master/LICENSE</licenseUrl>
+    <authors>obsidianmd</authors>
+    <iconUrl>https://obsidian.md/favicon.svg</iconUrl>
+    <tags>obsidian obsidian-md</tags>
+    <projectUrl>https://github.com/obsidianmd/obsidian-releases</projectUrl>
+    <description>Community plugins list, theme list, and releases of Obsidian.</description>
+  </metadata>
+</package>
