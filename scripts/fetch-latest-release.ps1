@@ -1355,9 +1355,18 @@ function Get-Updates {
     # For each directory in PackagesDir...
     $packageDirNames = Get-ChildItem -Path $PackagesDir -Directory
 
+    # List all of the content of PackagesDir
+    Write-Host "    Listing all files in packageDirNames: " -ForegroundColor Yellow
+    Get-ChildItem -Path $packageDirNames | ForEach-Object {
+        Write-Host "        $_"
+    }
+
     # For each item in the packages directory, get the latest release info.
     foreach ($dirInfo in $packageDirNames) {
         
+
+
+
         # Validate that dirinfo is not null or empty
         if ([string]::IsNullOrWhiteSpace($dirInfo)) {
             Write-Error "dirInfo is null or empty"
@@ -1371,10 +1380,6 @@ function Get-Updates {
 
         # Extract just the directory name from the DirectoryInfo object
         $package = $dirInfo.Name
-    
-        
-        # List the content of PackagesDir
-
     
         Write-Host "    Checking for updates for: $package" -ForegroundColor Magenta
     
@@ -1394,7 +1399,7 @@ function Get-Updates {
         }
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
         $nuspecFile = Get-ChildItem -Path "$packageDirNames" -Filter "*.nuspec"
-        
+
         $nuspecFileContent = Get-Content -Path $nuspecFile -Raw
         # Find the value of the packageSourceUrl field in the nuspec file
         if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
