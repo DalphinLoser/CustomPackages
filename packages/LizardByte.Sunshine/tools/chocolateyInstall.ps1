@@ -1,10 +1,10 @@
 $ErrorActionPreference = 'Stop';
 
 $packageArgs = @{
-    packageName     = "LizardByte.Sunshine"
+    packageName     = "lizardbyte.sunshine"
     fileType        = "exe"
     url             = "https://github.com/LizardByte/Sunshine/releases/download/v0.20.0/sunshine-windows-installer.exe"
-    softwareName    = "LizardByte"
+    softwareName    = "Sunshine"
     silentArgs      = "/S /s /Q /q /SP- /VERYSILENT /NORESTART /quiet /silent"
     validExitCodes  = @(0)
 }
