@@ -1390,7 +1390,7 @@ function Get-Updates {
 
         # Get the latest release info for the package
         # The repo owner is the first part of the package name and the repo name is the second part of the package name
-        $latestReleaseObj_UP = Get-LatestReleaseObject -p_baseRepoApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
+        $latestReleaseObj_UP = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
         $nuspecFile = Get-ChildItem -Path "$PackagesDir" -Filter "*.nuspec"
