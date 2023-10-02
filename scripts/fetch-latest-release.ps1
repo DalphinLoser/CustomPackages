@@ -881,7 +881,11 @@ function Get-AssetInfo {
 
     $tagsStr = $tags -join ' '
 
+    # $packageTitle = Get-MostSimilarString -key "ProtonVPN_v3.2.1.exe" -strings @("maah", "ProtonVPN-win-app", "ProtonVPN")
     $packageTitle = Get-MostSimilarString -key $selectedAsset.name -strings @($PackageData.user, $PackageData.repoName, $rootRepoInfo.name)
+
+    Write-Host "    Package Title: " -NoNewline -ForegroundColor Yellow
+    Write-Host $packageTitle
 
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
@@ -1543,24 +1547,23 @@ function Get-MostSimilarString {
         $str1Length = $str1.Length
         $str2Length = $str2.Length
         $len = 0
-        $prev = 0
-        $table = @(,@(0 * $str2Length))
+        
+        # Initialize the table as a hashtable
+        $table = @{}
+        for ($i = 0; $i -le $str1Length; $i++) {
+            for ($j = 0; $j -le $str2Length; $j++) {
+                $table["$i,$j"] = 0
+            }
+        }
 
-        0..$str1Length | ForEach-Object { $table[$_] = @(0 * $str2Length) }
-
-        for ($i = 0; $i -lt $str1Length; $i++) {
-            for ($j = 0; $j -lt $str2Length; $j++) {
-                if ($i -eq 0 -or $j -eq 0) {
-                    $table[$i][$j] = 0
-                } elseif ($str1[$i - 1] -eq $str2[$j - 1]) {
-                    $table[$i][$j] = $table[$i - 1][$j - 1] + 1
-                    if ($table[$i][$j] -gt $len) {
-                        $len = $table[$i][$j]
-                        $x = $i - 1
-                        $result = $str1.Substring($x - $len + 1, $len)
+        for ($i = 1; $i -le $str1Length; $i++) {
+            for ($j = 1; $j -le $str2Length; $j++) {
+                if ($str1[$i - 1] -eq $str2[$j - 1]) {
+                    $table["$i,$j"] = $table["$($i - 1),$($j - 1)"] + 1
+                    if ($table["$i,$j"] -gt $len) {
+                        $len = $table["$i,$j"]
+                        $result = $str1.Substring($i - $len, $len)
                     }
-                } else {
-                    $table[$i][$j] = 0
                 }
             }
         }
@@ -1569,18 +1572,31 @@ function Get-MostSimilarString {
 
     # Main logic of Get-MostSimilarString
     $maxSimilarity = 0
-    $mostSimilarString = ""
+    $mostSimilarStrings = @()
 
     foreach ($string in $strings) {
         $similarity = Get-JaccardSimilarity -str1 $key -str2 $string
         if ($similarity -gt $maxSimilarity) {
             $maxSimilarity = $similarity
-            $mostSimilarString = $string
+            $mostSimilarStrings = @($string)
+        } elseif ($similarity -eq $maxSimilarity) {
+            $mostSimilarStrings += $string
         }
     }
 
-    $lcs = Get-LongestCommonSubstring -str1 $key.ToLower() -str2 $mostSimilarString.ToLower()
-    return $mostSimilarString.Substring($mostSimilarString.ToLower().IndexOf($lcs), $lcs.Length)
+    $maxLcsLength = 0
+    $finalString = ""
+
+    foreach ($string in $mostSimilarStrings) {
+        $lcs = Get-LongestCommonSubstring -str1 $key.ToLower() -str2 $string.ToLower()
+        if ($lcs.Length -gt $maxLcsLength) {
+            $maxLcsLength = $lcs.Length
+            $finalString = $string
+        }
+    }
+
+    $finalLcs = Get-LongestCommonSubstring -str1 $key.ToLower() -str2 $finalString.ToLower()
+    return $finalString.Substring($finalString.ToLower().IndexOf($finalLcs), $finalLcs.Length)
 }
 
 
