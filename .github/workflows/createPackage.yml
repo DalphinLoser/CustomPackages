@@ -74,7 +74,7 @@ jobs:
       run: |
         cd $env:tempDir
         . $env:scriptPath
-        Initialize-GithubPackage -repoUrl "${{ github.event.inputs.repoUrl }}"
+        Initialize-GithubPackage -InputUrl "${{ github.event.inputs.repoUrl }}"
       shell: pwsh
     
     - name: Copy Everything Fron The Temp Directory to The Packages Directory
