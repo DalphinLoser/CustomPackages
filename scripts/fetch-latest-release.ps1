@@ -10,12 +10,11 @@ function Get-ObjectProperties {
         [Object]$Object,
 
         [Parameter()]
-        [int]$MaxDepth = $StartingDepth+4
+        [int]$MaxDepth = 4
     )
 
     $currentColor = 'DarkGreen'
 
-    # Internal function for recursion
     function Get-InternalProperties {
         param (
             [Object]$Obj,
@@ -37,43 +36,65 @@ function Get-ObjectProperties {
                     Value = $_.Value
                 }
             }
+        } elseif ($Obj -is [Array]) {
+            $Obj | ForEach-Object -Begin { $i = 0 } -Process {
+                New-Object PSObject -Property @{
+                    Name = "Index $i"
+                    Value = $_
+                }
+                $i++
+            }
         } else {
             Write-Host "${Indent}Unsupported type: $($Obj.GetType().Name)" -ForegroundColor Red
             return
         }
 
-        $maxTypeLength = ($props | ForEach-Object { if ($null -ne $_.Value) { $_.Value.GetType().Name.Length } else { 6 }} | Measure-Object -Maximum).Maximum
-
         foreach ($prop in $props) {
             $propType = if ($null -ne $prop.Value) { $prop.Value.GetType().Name } else { '<null>' }
+            $propValue = if (-not [string]::IsNullOrWhiteSpace($prop.Value)) {
+                $prop.Value.ToString() -replace "`r`n|`r|`n", " "
+            } else {
+                '<empty or whitespace>'
+            }
 
-            # Determine the display value based on the type of the property
-            $propValue = switch ($prop.Value) {
-                { $_ -is [PSCustomObject] -or $_ -is [Hashtable] } { '' }
-                { $_ -is [Array] } { "<array of $($_.Length) items>" } # placeholder for arrays
-                { $null -eq $_ } { '<null>' }
-                { [string]::IsNullOrWhiteSpace($_.ToString()) } { '<empty or whitespace>' }
-                default { ($_.ToString() -replace "`r`n|`r|`n", " ") }
+            if ($prop.Value -is [Array]) {
+                $propType = 'Object[]'
+                $propValue = "<array of $($prop.Value.Length) items>"
+            }
+            elseif ($prop.Value -is [PSCustomObject]) {
+                $propType = 'PSCustomObject'
+                $propValue = "<custom object>"
+            }
+            elseif ($prop.Value -is [Hashtable]) {
+                $propType = 'Hashtable'
+                $propValue = "<hashtable with $($prop.Value.Count) items>"
             }
 
             # Toggle color for the whole group
             $currentColor = if ($currentColor -eq 'DarkGreen') { 'DarkCyan' } else { 'DarkGreen' }
 
-            $typePadding = '.' * ($maxTypeLength - $propType.Length + 5)
             Write-Host "$Depth" -NoNewline
             Write-Host "$Indent| Name: " -NoNewline -ForegroundColor $currentColor
             Write-Host "$($prop.Name)" -BackgroundColor DarkGray
             Write-Host "$Depth" -NoNewline
-            Write-Host "$Indent| $propType${typePadding}:" -NoNewline -ForegroundColor $currentColor
-            Write-Host "$propValue" -ForegroundColor $currentColor
             if ($prop.Value -is [PSCustomObject] -or $prop.Value -is [Hashtable] -or $prop.Value -is [Array]) {
-                Get-InternalProperties -Obj $prop.Value -Indent "$Indent    " -Depth ($Depth + 1)
+                $index = 0
+                foreach ($item in $prop.Value) {
+                    Write-Host "$Indent| Type: $propType" -ForegroundColor $currentColor
+                    Get-InternalProperties -Obj $item -Indent "$Indent    " -Depth ($Depth + 1)
+                    $index++
+                }
+            } else {
+                Write-Host "$Indent| Type: $propType" -ForegroundColor $currentColor
+                Write-Host "$Depth" -NoNewline
+                Write-Host "$Indent| Value: $propValue" -ForegroundColor $currentColor
             }
         }
     }
 
     Get-InternalProperties -Obj $Object -Indent "   " -Depth 1
 }
+
 function Write-LogHeader {
     param (
         [string]$Message,
@@ -156,15 +177,15 @@ function Find-IcoInRepo {
 function Get-Favicon {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_homepage
+        [string]$Homepage
     )
 
     Write-Host "---------- Script Start ----------" -ForegroundColor Cyan
 
     #region Fetching webpage content
-    Write-Host "Fetching webpage content from $p_homepage" -ForegroundColor Cyan
+    Write-Host "Fetching webpage content from $Homepage" -ForegroundColor Yellow
     try {
-        $webRequest = Invoke-WebRequest -Uri $p_homepage
+        $webRequest = Invoke-WebRequest -Uri $Homepage
     } catch {
         Write-Host "Failed to fetch webpage content. Please check your internet connection and the URL." -ForegroundColor Red
         return $null
@@ -172,13 +193,13 @@ function Get-Favicon {
     #endregion
     
     # Strip everything after the domain name
-    $f_homepageTld = $p_homepage -replace '^(https?://[^/]+).*', '$1'
+    $HomepageTld = $Homepage -replace '^(https?://[^/]+).*', '$1'
 
     # Output Information
     Write-Host "    Homepage: " -ForegroundColor Yellow -NoNewline
-    Write-Host "$p_homepage"
+    Write-Host "$Homepage"
     Write-Host "    Homepage TLD: " -ForegroundColor Yellow -NoNewline
-    Write-Host "$f_homepageTld"
+    Write-Host "$HomepageTld"
 
     # Regex for matching all icon links
     $regex = "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`""
@@ -190,14 +211,14 @@ function Get-Favicon {
             if ($faviconRelativeLink -match "^(https?:\/\/)") {
                 $faviconRelativeLink  # It's already an absolute URL
             } elseif ($faviconRelativeLink -match "^/") {
-                "$f_homepageTld$faviconRelativeLink"
+                "$HomepageTld$faviconRelativeLink"
             } else {
-                "$f_homepageTld/$faviconRelativeLink"
+                "$HomepageTld/$faviconRelativeLink"
             }
         }  
         
         Write-Host "    Available Icons: " -ForegroundColor Yellow
-        Write-Host $($icons -join ', ')
+        Write-Host "    $($icons -join ', ')"
 
         # Find the highest quality icon
         $highestQualityIcon = $null
@@ -243,7 +264,9 @@ function Get-IconDimensions {
         [string]$filePath
     )
 
-    Write-Host "Analyzing file: $filePath" -ForegroundColor Yellow
+    Write-Host "    Analyzing file: " -ForegroundColor Yellow -NoNewline
+    Write-Host "$filePath"
+    
 
     # Ensure the file exists before proceeding
     if (-not (Test-Path -Path $filePath)) {
@@ -331,7 +354,7 @@ function Get-IconDimensions {
                 [Array]::Reverse($buffer, 4, 4)
                 $width = [BitConverter]::ToUInt32($buffer, 0)
                 $height = [BitConverter]::ToUInt32($buffer, 4)
-                Write-Host "PNG Dimensions: " -ForegroundColor Green -NoNewline
+                Write-Host "    PNG Dimensions: " -ForegroundColor Green -NoNewline
                 Write-Host "$width x $height"
                 return @{
                     Width = $width
@@ -603,7 +626,7 @@ function Get-LatestReleaseObject {
     $latestReleaseObj = $response | ConvertFrom-Json
     # Content of latestReleaseObj
     Write-Host "Type of latestReleaseObj: " -NoNewline -ForegroundColor Yellow
-    Write-Host $latestReleaseObj.GetType().FullName
+    Write-Host $latestReleaseObj.GetType().Name
     
     if ($null -eq $latestReleaseObj) {
         Write-Error "   Received data is null. URL used: $LatestReleaseApiUrl"
@@ -630,19 +653,22 @@ function Get-AssetInfo {
     $retreivedLatestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $PackageData.latestReleaseApiUrl
 
     Write-Host "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
-    Write-Host $retreivedLatestReleaseObj
+    Write-Host $retreivedLatestReleaseObj.name
     Get-ObjectProperties -Object $retreivedLatestReleaseObj
 
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -LatestReleaseObj $retreivedLatestReleaseObj -PackageData $PackageData
-    Write-Host "    Selected asset: " -NoNewline -ForegroundColor Yellow
+    Write-Host "Selected asset name: " -NoNewline -ForegroundColor Yellow
     Write-Host $selectedAsset.name
-    Write-Host $selectedAsset
+    
 
     # Print the content of selectedAsset
-    Write-Host "    Selected Asset Object: " -NoNewline -ForegroundColor Yellow
+    Write-Host "Selected asset type: " -NoNewline -ForegroundColor Yellow
+    Write-Host $selectedAsset.GetType()
+    Write-Host "Selected Asset: " -ForegroundColor Yellow
     Write-Host $selectedAsset
-    Write-Host $selectedAsset.name
+    Write-Host "Selected Asset Object: " -ForegroundColor Yellow
+    Get-ObjectProperties -Object $selectedAsset     
 
     # Determine file type from asset name
     $fileType = Get-Filetype -p_fileName $selectedAsset.name
@@ -673,15 +699,24 @@ function Get-AssetInfo {
 
     # Array table to store the tags. Uses the topics json result from the GitHub API
     $tags = @()
-    # If the result is not null or empty, add the tags to the hash table from the base repo info. Otherwise, add the tags from the root repo info.
-    if ($null -ne $baseRepoInfo.topics -and $baseRepoInfo.topics -ne '') {
+    # If the result is not null or empty or whitespace, add the tags to the hash table from the base repo info. Otherwise, add the tags from the root repo info.
+    if (-not [string]::IsNullOrWhiteSpace($baseRepoInfo.topics)) {
         $tags += $baseRepoInfo.topics
-    } else {
+        Write-Host "    Tags from base repo info: " -NoNewline -ForegroundColor Yellow
+        Write-Host "$($baseRepoInfo.topics)"
+    } elseif (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.topics)) {
         $tags += $rootRepoInfo.topics
+        Write-Host "    Tags from root repo info: " -NoNewline -ForegroundColor Yellow
+        Write-Host "$($rootRepoInfo.topics)"
     }
+    else {
+        Write-Error "No tags found."
+        exit 1
+    }
+    
 
     Write-Host "Tags is of type: " -NoNewline -ForegroundColor Yellow
-    Write-Host $tags.GetType().FullName
+    Write-Host $tags.GetType().Name
 
     # Print the tags, one per line 
     Write-Host "    Tags: " -ForegroundColor Yellow
@@ -698,7 +733,7 @@ function Get-AssetInfo {
         $homepage = $rootRepoInfo.homepage
 
         # Attempt to get the favicon from the homepage
-        $iconInfo = Get-Favicon -p_homepage $homepage
+        $iconInfo = Get-Favicon -Homepage $homepage
 
         if ($null -ne $iconInfo.url) {
             Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
@@ -711,10 +746,10 @@ function Get-AssetInfo {
 
     # If no suitable favicon is found, look for an ICO file in the repo
     if ($null -eq $iconUrl) {
-        $icoPath = Find-IcoInRepo -owner $PackageData.githubUser -repo $PackageData.githubRepoName -defaultBranch $myDefaultBranch
+        $icoPath = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
         
         if ($null -ne $icoPath) {
-            $iconUrl = "https://raw.githubusercontent.com/$($PackageData.githubUser)/$($PackageData.githubRepoName)/main/$icoPath"
+            $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/main/$icoPath"
             Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
         }
     }
@@ -773,30 +808,36 @@ function Get-AssetInfo {
     # If specifiedasset is not null or empty print it
     if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
         # If the asset name contains the version number, remove it.
-    if ($specifiedAssetName -match $tag) {
-        $cleanedSpecifiedAssetName = $specifiedAssetName -replace $tag, ''
-        # Split by . and remove the last element if it is a valid extension
-        $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Split('.') | Where-Object { $_ -notin $acceptedExtensions }
-    }   
-    else {
-        $cleanedSpecifiedAssetName = $specifiedAssetName
-    }
-    # Clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
-    $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
-    # Remove remaining leading and trailing special characters
-    $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Trim('.-_')
-    Write-Host "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor Yellow
-    Write-Host $cleanedSpecifiedAssetName
+        if ($specifiedAssetName -match $tag) {
+            $cleanedSpecifiedAssetName = $specifiedAssetName -replace $tag, ''
+            # Split by . and remove the last element if it is a valid extension
+            $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Split('.') | Where-Object { $_ -notin $acceptedExtensions }
+        }   
+        else {
+            $cleanedSpecifiedAssetName = $specifiedAssetName
+        }
+        # Clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
+        $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
+        # Remove remaining leading and trailing special characters
+        $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Trim('.-_')
+        Write-Host "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor Yellow
+        Write-Host $cleanedSpecifiedAssetName
     }
 
     # Set the package name
-    $packageName = "${githubUser}.${githubRepoName}.${cleanedSpecifiedAssetName}"
+    $chocoPackageName = "$($PackageData.user).$($PackageData.repoName).$($PackageData.cleanedSpecifiedAssetName)"
     # If the name contains the version number exactly, remove the version number from the package name
-    if ($packageName -match $sanitizedVersion) {
-        $packageName = $packageName -replace $sanitizedVersion, ''
+    if ($chocoPackageName -match $sanitizedVersion) {
+        Write-Host "Package name: " -NoNewline -ForegroundColor Yellow
+        Write-Host $chocoPackageName -NoNewline
+        Write-Host " contains version number: " -NoNewline -ForegroundColor Yellow
+        Write-Host $sanitizedVersion
+        $chocoPackageName = $chocoPackageName -replace $sanitizedVersion, ''
     }
+    Write-Host "    Package Name: " -NoNewline -ForegroundColor Yellow
+    Write-Host $chocoPackageName
     # Convert to valid package name
-    $packageName = ConvertTo-ValidPackageName -p_packageName $packageName
+    $chocoPackageName = ConvertTo-ValidPackageName -PackageName $chocoPackageName
     
     # If the org name is not null or empty, use it as the repo name
     if (-not [string]::IsNullOrWhiteSpace($orgName)) {
@@ -819,7 +860,7 @@ function Get-AssetInfo {
     Write-Host $packageSize
 
     # Build the URL for the API request
-    $hashUrl = "https://api.github.com/repos/$githubUser/$githubRepoName/git/refs/tags/$($retreivedLatestReleaseObj.tag_name)"
+    $hashUrl = "https://api.github.com/repos/$($PackageData.user)/$($PackageData.repoName)/git/refs/tags/$($retreivedLatestReleaseObj.tag_name)"
 
     # Make the API request
     $response = Invoke-RestMethod -Uri $hashUrl
@@ -832,18 +873,18 @@ function Get-AssetInfo {
     Write-Host $commitHash
 
     # repository variable in format : <repository type="git" url="https://github.com/NuGet/NuGet.Client.git" branch="dev" commit="e1c65e4524cd70ee6e22abe33e6cb6ec73938cb3" />
-    $sa_repoUrl = " type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" "
+    $nu_repoUrl = " type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" "
 
     Write-Host "    Repository: " -NoNewline -ForegroundColor Yellow
-    Write-Host $sa_repoUrl
+    Write-Host $nu_repoUrl
 
     $tagsStr = $tags -join ' '
 
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
-        PackageName         = $packageName
+        PackageName         = $chocoPackageName
         Version             = $sanitizedVersion
-        Author              = $PackageData.githubUser
+        Author              = $PackageData.user
         Description         = $description
         VersionDescription  = $retreivedLatestReleaseObj.body -replace "\r\n", " "
         Url                 = $selectedAsset.browser_download_url
@@ -851,23 +892,23 @@ function Get-AssetInfo {
         FileType            = $fileType
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
-        GithubRepoName      = $PackageData.githubRepoName
+        GithubRepoName      = $PackageData.repoName
         LicenseUrl          = $licenseUrl
         PackageSize         = $packageSize
         Tags                = $tagsStr
-        Repository          = $sa_repoUrl
+        Repository          = $nu_repoUrl
         ProjectSiteUrl      = $homepage
     }
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
         Write-Host "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
-        Write-Host $($packageMetadata.GetType().FullName)
+        Write-Host $($packageMetadata.GetType().Name)
     } else {
         Write-Host "    Type of packageMetadata before return: NOT Hashtable"
     }
     
     Write-Host "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
-    Write-Host $($packageMetadata.GetType().FullName)
+    Write-Host $($packageMetadata.GetType().Name)
     Write-LogFooter "Get-AssetInfo function"
     # Ensure that the package metadata is returned as a hashtable
     return $packageMetadata
@@ -877,44 +918,49 @@ function Get-AssetInfo {
 #region Process and Validate Arguments
 function ConvertTo-ValidPackageName {
     param (
-        [string]$p_packageName
+        [Parameter(Mandatory=$true)]
+        [string]$PackageName
     )
     Write-LogHeader "ConvertTo-ValidPackageName"
 
+    Write-Host "    Package name before conversion: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageName
+
     # Check for invalid characters and spaces
-    if (-not ($p_packageName -match '^[a-z0-9._-]+$') -or $p_packageName.Contains(' ')) {
+    if (-not ($PackageName -match '^[a-z0-9._-]+$') -or $PackageName.Contains(' ')) {
         Write-Host "    Invalid characters or spaces found in package name: " -NoNewline -ForegroundColor Yellow
-        Write-Host $p_packageName
+        Write-Host $PackageName
         # Remove invalid characters and spaces
-        $p_packageName = $p_packageName -replace ' ', '-'
-        $p_packageName = $p_packageName -replace '[^a-z0-9._-]', ''
+        $PackageName = $PackageName -replace ' ', '-'
+        $PackageName = $PackageName -replace '[^a-z0-9._-]', ''
         Write-Host "    Package name after removing invalid characters and spaces: " -NoNewline -ForegroundColor Yellow
-        Write-Host $p_packageName
+        Write-Host $PackageName
     }
 
     Write-Host "    Removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
-    $p_packageName = $p_packageName -replace '[-]+', '-'  # Remove and consolidate groupings of hyphens
+    $PackageName = $PackageName -replace '[-]+', '-'  # Remove and consolidate groupings of hyphens
+    Write-Host $PackageName
     Write-Host "    Package name after removing and consolidating groupings of hyphens: " -NoNewline -ForegroundColor Yellow
-    Write-Host $p_packageName
-    $p_packageName = $p_packageName -replace '[_]+', '_'  # Remove and consolidate groupings of underscores
+    Write-Host $PackageName
+    $PackageName = $PackageName -replace '[_]+', '_'  # Remove and consolidate groupings of underscores
     Write-Host "    Package name after removing and consolidating groupings of underscores: " -NoNewline -ForegroundColor Yellow
-    Write-Host $p_packageName
-    $p_packageName = $p_packageName -replace '[.]+', '.'  # Remove and consolidate groupings of dots
+    Write-Host $PackageName
+    $PackageName = $PackageName -replace '[.]+', '.'  # Remove and consolidate groupings of dots
     Write-Host "    Package name after removing and consolidating groupings of dots: " -NoNewline -ForegroundColor Yellow
-    Write-Host $p_packageName
-    $p_packageName = $p_packageName -replace '([-_.])\1+', '.' # Remove and consolidate groupings of dots, underscores, and hyphens
+    Write-Host $PackageName
+    $PackageName = $PackageName -replace '([-_.])\1+', '.' # Remove and consolidate groupings of dots, underscores, and hyphens
     Write-Host "    Package name after removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
-    Write-Host $p_packageName
-    $p_packageName = $p_packageName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
+    Write-Host $PackageName
+    $PackageName = $PackageName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
     Write-Host "    Package name after removing leading and trailing hyphens, underscores, and dots: " -NoNewline -ForegroundColor Yellow
-    Write-Host $p_packageName
-    $p_packageName = $p_packageName.ToLower()  # Convert to lowercase
+    Write-Host $PackageName
+    $PackageName = $PackageName.ToLower()  # Convert to lowercase
     Write-Host "    Package name after converting to lowercase: " -NoNewline -ForegroundColor Yellow
-    Write-Host $p_packageName
+    Write-Host $PackageName
 
     Write-LogFooter "ConvertTo-ValidPackageName"
 
-    return $p_packageName 
+    return $PackageName 
 }
 function ConvertTo-EscapedXmlContent {
     param (
@@ -981,9 +1027,9 @@ function Confirm-DirectoryExists {
 function New-NuspecFile {
     param (
         [Parameter(Mandatory=$true)]
-        [System.Object]$p_Metadata,
+        [System.Object]$Metadata,
         [Parameter(Mandatory=$true)]
-        [string]$p_packageDir
+        [string]$PackageDir
     )
 
     Write-LogHeader "New-NuspecFile function"
@@ -1000,7 +1046,7 @@ function New-NuspecFile {
         licenseUrl = 'LicenseUrl'
         iconUrl = 'IconUrl'
         tags = 'Tags'
-        repository = 'Repository'
+        # repository = 'Repository' # Does not work with chocolatey, only nuget
         
     }
 
@@ -1010,16 +1056,16 @@ function New-NuspecFile {
         Write-Host "    $($_.Key) -> $($_.Value)"
     }
 
-    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags', 'repository')
+    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags')
 
-    $xmlDoc = New-Object System.Xml.XmlDocument
+    $xmlDoc = (New-Object System.Xml.XmlDocument)
 
-    $xmlDoc.LoadXml('<?xml version="1.0"?><package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"><metadata></metadata></package>')
-    $nsManager = New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable)
+    $loadXml = ($xmlDoc.LoadXml('<?xml version="1.0"?><package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"><metadata></metadata></package>'))
+    $nsManager = (New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable))
     $nsManager.AddNamespace('ns', 'http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd')
-    $metadataElem = $xmlDoc.SelectSingleNode('/ns:package/ns:metadata', $nsManager)
+    $metadataElem = ($xmlDoc.SelectSingleNode('/ns:package/ns:metadata', $nsManager))
 
-    Write-Host "Appending elements to metadata: " -ForegroundColor Yellow
+    Write-Host "Appending required elements to metadata: " -ForegroundColor Yellow
 
     $namespaceUri = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
 
@@ -1031,22 +1077,19 @@ function New-NuspecFile {
         # Assuming $elementMapping is now an object with properties instead of a hashtable
         if (-not $elementMapping.PSObject.Properties.Name -contains $elementName) {
             Write-Host "Warning: $elementName not found in elementMapping" -ForegroundColor Yellow
-            continue
         }
     
         $key = $elementMapping.$elementName
     
-        # Assuming $p_Metadata is now an object with properties instead of a hashtable
-        if (-not $p_Metadata.PSObject.Properties.Name -contains $key) {
-            Write-Host "Warning: $key not found in p_Metadata" -ForegroundColor Yellow
-            continue
+        # Assuming $Metadata is now an object with properties instead of a hashtable
+        if (-not $Metadata.PSObject.Properties.Name -contains $key) {
+            Write-Host "Warning: $key not found in Metadata" -ForegroundColor Yellow
         }
     
-        $value = $p_Metadata.$key
+        $value = $Metadata.$key
     
         if ($null -eq $value) {
             Write-Host "Warning: Value for $key is null" -ForegroundColor Yellow
-            continue
         }
     
         Write-Host "Creating element with " -NoNewline -ForegroundColor Green
@@ -1057,77 +1100,79 @@ function New-NuspecFile {
     
         try {
             Write-Host "    Creating element..." -NoNewline
-            $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
+            $elem = ($xmlDoc.CreateElement($elementName, $namespaceUri))
+            Write-Host "    Element created successfully" -ForegroundColor Green
+
         } catch {
             Write-Host "Error creating element $($elementName): $_" -ForegroundColor Red
-            continue
         }
         $elem.InnerText = $value
         $metadataElem.AppendChild($elem)
-        Write-Host "    Element created successfully" -ForegroundColor Green
     }
     
 
     # If there are remaining elemetns in elementMapping, add them to the file
     $remainingElements = $elementMapping.Keys | Where-Object { $elementOrder -notcontains $_ }
+    Write-Host "Appending optional elements to metadata... " -ForegroundColor Yellow
     try {
         foreach ($elementName in $remainingElements) {
-            Write-Host "Creating remaining element with " -NoNewline -ForegroundColor Green
+            Write-Host "Creating element with " -NoNewline -ForegroundColor Green
             Write-Host "name: " -NoNewline -ForegroundColor Cyan
             Write-Host "$elementName" -NoNewline -ForegroundColor White
             Write-Host " value: " -NoNewline -ForegroundColor Cyan
             Write-Host "$value" -ForegroundColor White -NoNewline
 
             $key = $elementMapping[$elementName]
-            $value = $p_Metadata.$key
+            $value = $Metadata.$key
 
             if ($null -eq $value) {
                 Write-Host "Warning: Value for $key is null" -ForegroundColor Yellow
-                continue
             }
 
             Write-Host "    Creating element..." -NoNewline
-            $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
+            $elem = ($xmlDoc.CreateElement($elementName, $namespaceUri))
             $elem.InnerText = $value
             $metadataElem.AppendChild($elem)
             Write-Host "    Element created successfully" -ForegroundColor Green
         }
     } catch {
         Write-Host "Error creating element $($elementName): $_" -ForegroundColor Red
-        continue
     }
 
     # Check if f_nuspecPath is null or empty
     if ([string]::IsNullOrWhiteSpace($f_nuspecPath)) {
-        Write-Error "Nuspec file variable is empty (this is a good thing)" -ForegroundColor Green
+        Write-Host "Nuspec file variable is empty (this is a good thing)" -ForegroundColor Green
     }
     else {
-        Write-Error "Nuspec file variable is not empty (this is a bad thing): " -ForegroundColor Red -NoNewline
-        Write-Error $f_nuspecPath
+        Write-Host "Nuspec file variable is not empty (this is a bad thing): " -NoNewline
+        Write-Host $f_nuspecPath
     }
 
     Write-Host "Creating nuspec path using package directory and package name" -ForegroundColor Yellow
     Write-Host "    Package Directory Type: " -NoNewline -ForegroundColor Cyan
-    Write-Host $p_packageDir.GetType().FullName
+    Write-Host $PackageDir.GetType().Name
     Write-Host "    Package Directory: " -NoNewline -ForegroundColor Cyan
-    Write-Host "$p_packageDir"
+    Write-Host "$PackageDir"
     Write-Host "    Package Name Type: " -NoNewline -ForegroundColor Cyan
-    Write-Host $p_Metadata.PackageName.GetType().FullName
+    Write-Host $Metadata.PackageName.GetType().Name
     Write-Host "    Package Name: " -NoNewline -ForegroundColor Cyan
-    Write-Host "$($p_Metadata.PackageName)"
+    Write-Host "$($Metadata.PackageName)"
 
-    $f_nuspecPath = Join-Path $p_packageDir "$($p_Metadata.PackageName).nuspec"
-    $xmlDoc.Save($f_nuspecPath)
+    $f_nuspecPath = Join-Path $PackageDir "$($Metadata.PackageName).nuspec"
+    $result = ($xmlDoc.Save($f_nuspecPath))
 
     Write-Host "Nuspec file created at: $f_nuspecPath" -ForegroundColor Green
-    Write-LogFooter "New-NuspecFile function"
+    Write-Host "    Type of f_nuspecPath: " -NoNewline -ForegroundColor Yellow
+    Write-Host $f_nuspecPath.GetType().Name
+    Write-Host "    Returning f_nuspecPath: " -NoNewline -ForegroundColor Yellow
+    Write-Host $f_nuspecPath
 
-    return $f_nuspecPath
+    Write-LogFooter "New-NuspecFile function"
 }
 function New-InstallScript {
     param (
         [Parameter(Mandatory=$true)]
-        [System.Object]$p_Metadata,
+        [System.Object]$Metadata,
         
         [Parameter(Mandatory=$true)]
         [string]$p_toolsDir
@@ -1136,22 +1181,22 @@ function New-InstallScript {
     Write-LogHeader "New-InstallScript function"
 
     # Validation
-    if (-not $p_Metadata.PackageName -or -not $p_Metadata.ProjectUrl -or -not $p_Metadata.Url -or -not $p_Metadata.Version -or -not $p_Metadata.Author -or -not $p_Metadata.Description) {
+    if (-not $Metadata.PackageName -or -not $Metadata.ProjectUrl -or -not $Metadata.Url -or -not $Metadata.Version -or -not $Metadata.Author -or -not $Metadata.Description) {
         Write-Error "Missing mandatory metadata for install script."
         return
     }
 
     # Check the file type
-    if ($p_Metadata.FileType -eq "zip") {
-        $globalInstallDir = "C:\AutoPackages\$($p_Metadata.PackageName)"
+    if ($Metadata.FileType -eq "zip") {
+        $globalInstallDir = "C:\AutoPackages\$($Metadata.PackageName)"
 
         $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 `$toolsDir   = "$globalInstallDir"
 
 `$packageArgs = @{
-    packageName     = "$($p_Metadata.PackageName)"
-    url             = "$($p_Metadata.Url)"
+    packageName     = "$($Metadata.PackageName)"
+    url             = "$($Metadata.Url)"
     unzipLocation   = `$toolsDir
 }
 
@@ -1168,19 +1213,19 @@ if (!(Test-Path -Path `$startMenuDir)) { New-Item -Path `$startMenuDir -ItemType
 # Dynamically find all .exe files in the extracted directory and create shortcuts for them
 `$exes = Get-ChildItem -Path `$toolsDir -Recurse -Include *.exe
 foreach (`$exe in `$exes) {
-    `$exeName = [System.IO.Path]::GetFileNameWithoutExtension(`$exe.FullName)
+    `$exeName = [System.IO.Path]::GetFileNameWithoutExtension(`$exe.Name)
     
     # Create Desktop Shortcut
     `$desktopShortcutPath = Join-Path `$desktopDir "`$exeName.lnk"
     `$WshShell = New-Object -comObject WScript.Shell
     `$DesktopShortcut = `$WshShell.CreateShortcut(`$desktopShortcutPath)
-    `$DesktopShortcut.TargetPath = `$exe.FullName
+    `$DesktopShortcut.TargetPath = `$exe.Name
     `$DesktopShortcut.Save()
     
     # Create Start Menu Shortcut
     `$startMenuShortcutPath = Join-Path `$startMenuDir "`$exeName.lnk"
     `$StartMenuShortcut = `$WshShell.CreateShortcut(`$startMenuShortcutPath)
-    `$StartMenuShortcut.TargetPath = `$exe.FullName
+    `$StartMenuShortcut.TargetPath = `$exe.Name
     `$StartMenuShortcut.Save()
 }
 "@
@@ -1196,7 +1241,7 @@ foreach (`$exe in `$exes) {
 # Dynamically find all .exe files in the extracted directory and create shortcuts for them
 `$exes = Get-ChildItem -Path `$toolsDir -Recurse -Include *.exe
 foreach (`$exe in `$exes) {
-    `$exeName = [System.IO.Path]::GetFileNameWithoutExtension(`$exe.FullName)
+    `$exeName = [System.IO.Path]::GetFileNameWithoutExtension(`$exe.Name)
     
     # Remove Desktop Shortcut
     `$desktopShortcutPath = Join-Path `$desktopDir "`$exeName.lnk"
@@ -1220,11 +1265,11 @@ if (Test-Path `$toolsDir) {
 `$ErrorActionPreference = 'Stop';
 
 `$packageArgs = @{
-    packageName     = "$($p_Metadata.PackageName)"
-    fileType        = "$($p_Metadata.FileType)"
-    url             = "$($p_Metadata.Url)"
-    softwareName    = "$($p_Metadata.GithubRepoName)"
-    silentArgs      = "$($p_Metadata.SilentArgs)"
+    packageName     = "$($Metadata.PackageName)"
+    fileType        = "$($Metadata.FileType)"
+    url             = "$($Metadata.Url)"
+    softwareName    = "$($Metadata.GithubRepoName)"
+    silentArgs      = "$($Metadata.SilentArgs)"
     validExitCodes  = @(0)
 }
 
@@ -1245,30 +1290,30 @@ Install-ChocolateyPackage @packageArgs
 function New-ChocolateyPackage {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_nuspecPath,
+        [string]$NuspecPath,
         [Parameter(Mandatory=$true)]
-        [string]$p_packageDir
+        [string]$PackageDir
     )
     Write-LogHeader "New-ChocolateyPackage function"
     # Check the type of the nuspecPath
-    Write-Host "    The type of p_nuspecPath is: " -NoNewline -ForegroundColor Yellow
-    Write-Host $p_nuspecPath.GetType().FullName -ForegroundColor Blue
+    Write-Host "    The type of NuspecPath is: " -NoNewline -ForegroundColor Yellow
+    Write-Host $NuspecPath.GetType().Name -ForegroundColor Blue
     # Write the content of the nuspecPath
 
     # Check for Nuspec File
     Write-Host "    Checking for nuspec file..."
-    if (-not (Test-Path $p_nuspecPath)) {
-        Write-Error "Nuspec file not found at: $p_nuspecPath"
+    if (-not (Test-Path $NuspecPath)) {
+        Write-Error "Nuspec file not found at: $NuspecPath"
         exit 1
     }
     else {
-        Write-Host "    Nuspec file found at: $p_nuspecPath" -ForegroundColor Yellow
+        Write-Host "    Nuspec file found at: $NuspecPath" -ForegroundColor Yellow
     }
 
     # Create Chocolatey package
     try {
         Write-Host "    Creating Chocolatey package..."
-        choco pack $p_nuspecPath -Force -Verbose --out $p_packageDir
+        choco pack $NuspecPath -Force -Verbose --out $PackageDir
     } catch {
         Write-Error "Failed to create Chocolatey package."
         exit 1
@@ -1292,7 +1337,7 @@ function Get-Updates {
         exit 1
     } else {
         # If the directory is found, use it
-        $f_packageDir = $possibleDir.FullName
+        $f_packageDir = $possibleDir.Name
         Write-Host "    Found 'packages' directory: $f_packageDir"
     }
 
@@ -1481,26 +1526,9 @@ function Initialize-GithubPackage{
     
     #region Get Asset Info
 
-        #region Check retrievedPackageTable
-        Write-Host "##################################################" -ForegroundColor Cyan 
-        Write-Host "Type of PackageTable: " -NoNewline -ForegroundColor Yellow
-        Write-Host $($retrievedPackageTable.GetType().FullName)
-        # Print for debugging
-        Get-ObjectProperties -Object $retrievedPackageTable
-        Write-Host "##################################################" -ForegroundColor Cyan
-        #endregion
-
-    # Get the asset metadata
     # retrievedAssetTable
-    $myMetadata = Get-AssetInfo -PackageData $retrievedPackageTable
 
-        #region Check myMetadata
-        Write-Host "##################################################" -ForegroundColor Magenta
-        Write-Host "Type of myMetadata AFTER ASSET-INFO: " -NoNewline -ForegroundColor Magenta
-        Write-Host $($myMetadata.GetType().FullName)
-        $myMetadata | ConvertTo-Json -Depth 10 | Out-String | Write-Host
-        Write-Host "##################################################" -ForegroundColor Magenta
-        #endregion
+    $myMetadata = Get-AssetInfo -PackageData $retrievedPackageTable
 
     # Set the path to the package directory and create it if it doesn't exist
     $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
@@ -1516,52 +1544,34 @@ function Initialize-GithubPackage{
 
     # Write the type of the metadata object
     Write-Host "Type of myMetadata before NUSPEC: " -NoNewline -ForegroundColor Magenta
-    Write-Host $($myMetadata.GetType().FullName)
+    Write-Host $($myMetadata.GetType().Name)
 
     # Create the nuspec file and install script
-    $nuspecPath = New-NuspecFile -p_Metadata $myMetadata -p_packageDir $packageDir
-    # Variable to store only the path to the file
-    Write-Host "Nuspec file created at: " -NoNewline -ForegroundColor Yellow
-    Write-Host $
+    New-NuspecFile -Metadata $myMetadata -PackageDir $packageDir
+    Write-Host "    Nuspec File Created Successfully" -ForegroundColor Green
     
-    # Check the type of the nuspecPath before passing it to New-InstallScript
-    Write-Host "Type of nuspecPath before New-InstallScript: " -NoNewline -ForegroundColor Magenta
-    Write-Host $($nuspecPath.GetType().FullName)
-    # Check the nuspecPath System Object or string before passing it to New-InstallScript
-    Write-Host "Content of nuspecPath before New-InstallScript: " -NoNewline -ForegroundColor Magenta
-    $nuspecPath | ConvertTo-Json -Depth 10 | Out-String | Write-Host
-
-    $installScriptPath = New-InstallScript -p_Metadata $myMetadata -p_toolsDir $toolsDir
-
-    # Check the type of the nuspecPath after passing it to New-InstallScript
-    Write-Host "Type of nuspecPath after New-InstallScript: " -NoNewline -ForegroundColor Magenta
-    Write-Host $($nuspecPath.GetType().FullName)
-    # Check the nuspecPath System Object or string after passing it to New-InstallScript
-    Write-Host "Content of nuspecPath after New-InstallScript: " -NoNewline -ForegroundColor Magenta
-    $nuspecPath | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+    Write-Host "    Creating Instal Script..." -NoNewline -ForegroundColor Yellow
+    New-InstallScript -Metadata $myMetadata -p_toolsDir $toolsDir
+    Write-Host "    Install Script Created Successfully" -ForegroundColor Green
 
     #endregion
 
     #region Create Chocolatey Package
 
-        #region Check the nuspecPath and packageDir
-        Write-Host "Type of nuspecPath before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
-        Write-Host $($nuspecPath.GetType().FullName)
-
         Write-Host "Type of packageDir before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
-        Write-Host $($packageDir.GetType().FullName)
+        Write-Host $($packageDir.GetType().Name)
+
+        $nuspecPath = Join-Path $packageDir "$($myMetadata.PackageName).nuspec"
 
         # Check the nuspecPath System Object or string before passing it to New-ChocolateyPackage
-        Write-Host "Content of nuspecPath before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
-        $nuspecPath | ConvertTo-Json -Depth 10 | Out-String | Write-Host
+        Write-Host "nuspecPath before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
+        Write-Host $nuspecPath
 
-        # Check the packageDir before passing it to New-ChocolateyPackage
-        Write-Host "Content of packageDir before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
-        $packageDir | ConvertTo-Json -Depth 10 | Out-String | Write-Host
         #endregion
 
-    # Create the Chocolatey package
-    New-ChocolateyPackage -p_nuspecPath "$nuspecPath" -p_packageDir $packageDir
+        
+        # Create the Chocolatey package
+        New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir $packageDir
 
     #endregion
 Write-LogFooter -Color Blue "Initialize-GithubPackage function"
