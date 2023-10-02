@@ -1,4 +1,4 @@
-$toolsDir = "C:\AutoPackages\ryujinx.release.channel.master.testavaryujinxwinx64"
+$toolsDir = "C:\AutoPackages\ryujinx.release-channel-master"
 $shortcutPath = "$env:USERPROFILE\Desktop"
 
 # Initialize directories for shortcuts
@@ -8,7 +8,7 @@ $startMenuDir = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
 # Dynamically find all .exe files in the extracted directory and create shortcuts for them
 $exes = Get-ChildItem -Path $toolsDir -Recurse -Include *.exe
 foreach ($exe in $exes) {
-    $exeName = [System.IO.Path]::GetFileNameWithoutExtension($exe.FullName)
+    $exeName = [System.IO.Path]::GetFileNameWithoutExtension($exe.Name)
     
     # Remove Desktop Shortcut
     $desktopShortcutPath = Join-Path $desktopDir "$exeName.lnk"

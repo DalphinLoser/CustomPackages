@@ -1363,10 +1363,6 @@ function Get-Updates {
         }
 
         $nuspecFileContent = Get-Content -Path $nuspecFile.FullName -Raw
-        # [Rest of the code remains the same...]
-        
-    
-    Write-LogFooter "Get-Updates function"
         # Find the value of the packageSourceUrl field in the nuspec file
         if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
             $packageSourceUrl = $matches[1]
