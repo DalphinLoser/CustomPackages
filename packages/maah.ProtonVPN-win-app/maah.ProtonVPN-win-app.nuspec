@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>maah.ProtonVPN-win-app</id>
-    <title>ProtonVPN</title>
-    <version>3.1.1</version>
-    <authors>maah</authors>
-    <description>Official ProtonVPN Windows app</description>
-    <projectUrl>https://github.com/maah/ProtonVPN-win-app</projectUrl>
-    <packageSourceUrl>https://github.com/maah/ProtonVPN-win-app/releases/download/3.1.1/ProtonVPN_v3.1.1.exe</packageSourceUrl>
-    <releaseNotes>### Upstream - Minor UI and performance improvements.  </releaseNotes>
+    <id>maah.protonvpn-win-app</id>
+    <title>ProtonVPN-win-app</title>
+    <version>3.2.1</version>
+    <packageSourceUrl>https://github.com/maah/ProtonVPN-win-app/releases/download/3.2.1/ProtonVPN_v3.2.1.exe</packageSourceUrl>
+    <releaseNotes>### Upstream - Minor UI and stability improvements.</releaseNotes>
     <licenseUrl>https://github.com/maah/ProtonVPN-win-app/blob/master/LICENSE</licenseUrl>
+    <description>Official ProtonVPN Windows app</description>
+    <tags>vpn windows</tags>
     <iconUrl>https://protonvpn.com/favicon.ico</iconUrl>
-    <tags></tags>
+    <projectUrl>https://github.com/maah/ProtonVPN-win-app</projectUrl>
+    <authors>maah</authors>
   </metadata>
 </package>
