@@ -1337,8 +1337,8 @@ function Get-Updates {
     Write-LogHeader "Get-Updates function"
 
     # List the directories in the packages directory
-    $PackagesDir = Get-ChildItem -Path $f_packageDir -Directory
-    Write-Host "    The packages directory contains the following directories: $($PackagesDir.Name -join ', ')"
+    Write-Host "    The packages directory is: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackagesDir
     
     # For each item in the packages directory, get the latest release info.
     foreach ($dirInfo in $PackagesDir) {
