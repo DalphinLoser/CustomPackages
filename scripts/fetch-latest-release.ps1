@@ -135,7 +135,7 @@ function Find-IcoInRepo {
     Write-LogHeader "Find-IcoInRepo function"
     $token = $env:GITHUB_TOKEN
 
-    Write-Verbose "Default branch recieved: $defaultBranch"
+    Write-Host "Default branch recieved: $defaultBranch"
 
     if (-not $token) {
         Write-Error "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding."
@@ -149,14 +149,14 @@ function Find-IcoInRepo {
 
     # Using the Trees API now
     $apiUrl = "https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1"
-    Write-Verbose "Query URL: $apiUrl" -ForegroundColor Yellow
+    Write-Host "Query URL: $apiUrl" -ForegroundColor Yellow
 
     try {
         $webResponse = Invoke-WebRequest -Uri $apiUrl -Headers $headers
         $response = $webResponse.Content | ConvertFrom-Json
-        # Write-Verbose "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Yellow
-        # Write-Verbose "Response Content:" -ForegroundColor Yellow
-        # Write-Verbose $webResponse.Content
+        # Write-Host "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Yellow
+        # Write-Host "Response Content:" -ForegroundColor Yellow
+        # Write-Host $webResponse.Content
     } catch {
         Write-Error "ERROR: Failed to query GitHub API."
         exit 1
@@ -179,14 +179,14 @@ function Get-Favicon {
         [string]$Homepage
     )
 
-    Write-Verbose "---------- Script Start ----------" -ForegroundColor Cyan
+    Write-Host "---------- Script Start ----------" -ForegroundColor Cyan
 
     #region Fetching webpage content
-    Write-Verbose "Fetching webpage content from $Homepage" -ForegroundColor Yellow
+    Write-Host "Fetching webpage content from $Homepage" -ForegroundColor Yellow
     try {
         $webRequest = Invoke-WebRequest -Uri $Homepage
     } catch {
-        Write-Verbose "Failed to fetch webpage content. Please check your internet connection and the URL." -ForegroundColor Red
+        Write-Host "Failed to fetch webpage content. Please check your internet connection and the URL." -ForegroundColor Red
         return $null
     }
     #endregion
@@ -195,10 +195,10 @@ function Get-Favicon {
     $HomepageTld = $Homepage -replace '^(https?://[^/]+).*', '$1'
 
     # Output Information
-    Write-Verbose "    Homepage: " -ForegroundColor Yellow -NoNewline
-    Write-Verbose "$Homepage"
-    Write-Verbose "    Homepage TLD: " -ForegroundColor Yellow -NoNewline
-    Write-Verbose "$HomepageTld"
+    Write-Host "    Homepage: " -ForegroundColor Yellow -NoNewline
+    Write-Host "$Homepage"
+    Write-Host "    Homepage TLD: " -ForegroundColor Yellow -NoNewline
+    Write-Host "$HomepageTld"
 
     # Regex for matching all icon links
     $regex = "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`""
@@ -216,8 +216,8 @@ function Get-Favicon {
             }
         }  
         
-        Write-Verbose "    Available Icons: " -ForegroundColor Yellow
-        Write-Verbose "    $($icons -join ', ')"
+        Write-Host "    Available Icons: " -ForegroundColor Yellow
+        Write-Host "    $($icons -join ', ')"
 
         # Find the highest quality icon
         $highestQualityIcon = $null
@@ -238,22 +238,22 @@ function Get-Favicon {
         }
         
         if ($null -ne $highestQualityIcon) {
-            Write-Verbose "    Highest Quality Icon: $highestQualityIcon ($highestQualityDimensions pixels)" -ForegroundColor Green
-            Write-Verbose "----------- Script End -----------" -ForegroundColor Cyan
+            Write-Host "    Highest Quality Icon: $highestQualityIcon ($highestQualityDimensions pixels)" -ForegroundColor Green
+            Write-Host "----------- Script End -----------" -ForegroundColor Cyan
             return @{
                 url = $highestQualityIcon
                 width = [Math]::Sqrt($highestQualityDimensions)
                 height = [Math]::Sqrt($highestQualityDimensions)
             }
         } else {
-            Write-Verbose "No suitable icon found." -ForegroundColor Red
-            Write-Verbose "----------- Script End -----------" -ForegroundColor Cyan
+            Write-Host "No suitable icon found." -ForegroundColor Red
+            Write-Host "----------- Script End -----------" -ForegroundColor Cyan
             return $null
         }
 
     } else {
-        Write-Verbose "No favicon link found in HTML" -ForegroundColor Red
-        Write-Verbose "----------- Script End -----------" -ForegroundColor Cyan
+        Write-Host "No favicon link found in HTML" -ForegroundColor Red
+        Write-Host "----------- Script End -----------" -ForegroundColor Cyan
         return $null
     }
 }
@@ -263,13 +263,13 @@ function Get-IconDimensions {
         [string]$filePath
     )
 
-    Write-Verbose "    Analyzing file: " -ForegroundColor Yellow -NoNewline
-    Write-Verbose "$filePath"
+    Write-Host "    Analyzing file: " -ForegroundColor Yellow -NoNewline
+    Write-Host "$filePath"
     
 
     # Ensure the file exists before proceeding
     if (-not (Test-Path -Path $filePath)) {
-        Write-Verbose "File not found: $filePath" -ForegroundColor Red
+        Write-Host "File not found: $filePath" -ForegroundColor Red
         return $null
     }
 }
@@ -279,11 +279,11 @@ function Get-IconDimensions {
         [string]$filePath
     )
 
-    Write-Verbose "Analyzing file: $filePath" -ForegroundColor Yellow
+    Write-Host "Analyzing file: $filePath" -ForegroundColor Yellow
 
     # Ensure the file exists before proceeding
     if (-not (Test-Path -Path $filePath)) {
-        Write-Verbose "File not found: $filePath" -ForegroundColor Red
+        Write-Host "File not found: $filePath" -ForegroundColor Red
         return $null
     }
 
@@ -295,7 +295,7 @@ function Get-IconDimensions {
 
     switch ($extension) {
         '.svg' {
-            Write-Verbose "SVG Identified, returning dummy dimensions" -ForegroundColor Yellow
+            Write-Host "SVG Identified, returning dummy dimensions" -ForegroundColor Yellow
             # SVG dimension retrieval logic
             # As SVG is a vector format, it doesn't have a fixed dimension in pixels.
             return @{
@@ -332,8 +332,8 @@ function Get-IconDimensions {
                     }
                 }
 
-                Write-Verbose "ICO Dimensions: " -ForegroundColor Green -NoNewline
-                Write-Verbose "$maxWidth x $maxHeight"
+                Write-Host "ICO Dimensions: " -ForegroundColor Green -NoNewline
+                Write-Host "$maxWidth x $maxHeight"
                 return @{
                     Width = $maxWidth
                     Height = $maxHeight
@@ -353,8 +353,8 @@ function Get-IconDimensions {
                 [Array]::Reverse($buffer, 4, 4)
                 $width = [BitConverter]::ToUInt32($buffer, 0)
                 $height = [BitConverter]::ToUInt32($buffer, 4)
-                Write-Verbose "    PNG Dimensions: " -ForegroundColor Green -NoNewline
-                Write-Verbose "$width x $height"
+                Write-Host "    PNG Dimensions: " -ForegroundColor Green -NoNewline
+                Write-Host "$width x $height"
                 return @{
                     Width = $width
                     Height = $height
@@ -364,8 +364,8 @@ function Get-IconDimensions {
             }
         }
         default {
-            Write-Verbose "Unsupported file extension: " -ForegroundColor Red -NoNewline
-            Write-Verbose "$extension"
+            Write-Host "Unsupported file extension: " -ForegroundColor Red -NoNewline
+            Write-Host "$extension"
             return $null
         }
     }
@@ -386,7 +386,7 @@ function Get-TempIcon {
         Invoke-WebRequest -Uri $iconUrl -OutFile $tempFile
         return $tempFile
     } catch {
-        Write-Verbose "Failed to download icon from $iconUrl" -ForegroundColor Red
+        Write-Host "Failed to download icon from $iconUrl" -ForegroundColor Red
         return $null
     }
 }
@@ -421,13 +421,13 @@ function Select-Asset {
         # if the specified asset name contains the version number, replace it with the version number from the latest release
         if ($specifiedAssetName -match $PackageData.tag) {
             $cleanedSpecifiedAssetName = $specifiedAssetName -replace $PackageData.tag, $LatestReleaseObj.tag_name
-            Write-Verbose "    Specified Asset Name contains version number. Replacing with version number from latest release: " -ForegroundColor Yellow
-            Write-Verbose "    `"$specifiedAssetName`""
-            Write-Verbose "    `"$cleanedSpecifiedAssetName`""
+            Write-Host "    Specified Asset Name contains version number. Replacing with version number from latest release: " -ForegroundColor Yellow
+            Write-Host "    `"$specifiedAssetName`""
+            Write-Host "    `"$cleanedSpecifiedAssetName`""
             $specifiedAssetName = $cleanedSpecifiedAssetName
         }
-        Write-Verbose "    Selecting asset with name: " -ForegroundColor Yellow -NoNewline
-        Write-Verbose "`"$specifiedAssetName`""
+        Write-Host "    Selecting asset with name: " -ForegroundColor Yellow -NoNewline
+        Write-Host "`"$specifiedAssetName`""
         $f_selectedAsset = $LatestReleaseObj.assets | Where-Object { $_.name -eq $specifiedAssetName }
         # If there is no match for the asset name, throw an error
         if ($null -eq $f_selectedAsset) {
@@ -452,7 +452,7 @@ function Select-Asset {
             }
         } |
         Select-Object -First 1
-        Write-Verbose "    Selected asset after sorting: $($f_selectedAsset.name)"
+        Write-Host "    Selected asset after sorting: $($f_selectedAsset.name)"
     }
     # Validation check for the selected asset
     if ($null -eq $f_selectedAsset) {
@@ -469,16 +469,16 @@ function Get-RootRepository {
         [string]$p_repoUrl
     )
     Write-LogHeader "Get-RootRepository function"
-    Write-Verbose "    Getting root repository for: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $p_repoUrl
+    Write-Host "    Getting root repository for: " -NoNewline -ForegroundColor Yellow
+    Write-Host $p_repoUrl
     
     # Broken TODO: This is broken. It is not returning the root repo
 
     # Fetch the repository information
     try {
-        Write-Verbose "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
+        Write-Host "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
         $repoInfo = (Invoke-WebRequest -Uri $p_repoUrl).Content | ConvertFrom-Json
-        Write-Verbose $repoInfo.full_name
+        Write-Host $repoInfo.full_name
     }
     catch {
         Write-Error "Failed to fetch repository information."
@@ -516,7 +516,7 @@ function Get-Filetype {
     
     if ($found) {
         # The file name ends with one of the accepted extensions
-        Write-Verbose "    File name ends with an accepted extension" -ForegroundColor Yellow
+        Write-Host "    File name ends with an accepted extension" -ForegroundColor Yellow
         # return the extension that was found
         Write-LogFooter "File Type"
         return $ext
@@ -576,8 +576,8 @@ function Get-MostRecentValidRelease {
 
     try { # Fetch the release information
         $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
-        Write-Verbose "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
-        Write-Verbose $rateLimitInfo
+        Write-Host "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
+        Write-Host $rateLimitInfo
         
         $f_releasesInfo = (Invoke-WebRequest -Uri "$p_repoUrl/releases").Content | ConvertFrom-Json
     }
@@ -587,7 +587,7 @@ function Get-MostRecentValidRelease {
     }
 
     if ($null -eq $f_releasesInfo -or $f_releasesInfo.Count -eq 0) {
-        Write-Verbose "No releases found."
+        Write-Host "No releases found."
         return $null
     }
 
@@ -605,7 +605,7 @@ function Get-MostRecentValidRelease {
         }
     }
 
-    Write-Verbose "No valid release found."
+    Write-Host "No valid release found."
     return $null
 }
 function Get-LatestReleaseObject {
@@ -615,17 +615,17 @@ function Get-LatestReleaseObject {
     )
 
     Write-LogHeader "Get-LatestReleaseObject"
-    Write-Verbose "    Target GitHub API URL: $LatestReleaseApiUrl"
+    Write-Host "    Target GitHub API URL: $LatestReleaseApiUrl"
 
-    Write-Verbose "    Initiating web request to GitHub API..."
+    Write-Host "    Initiating web request to GitHub API..."
     $response = Invoke-WebRequest -Uri $LatestReleaseApiUrl
-    Write-Verbose "    HTTP Status Code: $($response.StatusCode)"
+    Write-Host "    HTTP Status Code: $($response.StatusCode)"
 
     
     $latestReleaseObj = $response | ConvertFrom-Json
     # Content of latestReleaseObj
-    Write-Verbose "Type of latestReleaseObj: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $latestReleaseObj.GetType().Name
+    Write-Host "Type of latestReleaseObj: " -NoNewline -ForegroundColor Yellow
+    Write-Host $latestReleaseObj.GetType().Name
     
     if ($null -eq $latestReleaseObj) {
         Write-Error "   Received data is null. URL used: $LatestReleaseApiUrl"
@@ -653,34 +653,34 @@ function Get-AssetInfo {
 
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -LatestReleaseObj $retreivedLatestReleaseObj -PackageData $PackageData
-    Write-Verbose "Selected asset name: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $selectedAsset.name
+    Write-Host "Selected asset name: " -NoNewline -ForegroundColor Yellow
+    Write-Host $selectedAsset.name
 
     # Determine file type from asset name
     $fileType = Get-Filetype -p_fileName $selectedAsset.name
-    Write-Verbose "    File type: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $fileType
+    Write-Host "    File type: " -NoNewline -ForegroundColor Yellow
+    Write-Host $fileType
     # Determine silent installation arguments based on file type
     $silentArgs = Get-SilentArgs -p_fileType $fileType
-    Write-Verbose "    Silent arguments: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $silentArgs
+    Write-Host "    Silent arguments: " -NoNewline -ForegroundColor Yellow
+    Write-Host $silentArgs
 
     # Find the root repository
     # get the url from the latest release info and replace everything after the repo name with nothing
     $PackageData.baseRepoApiUrl = $retreivedLatestReleaseObj.url -replace '/releases/.*', ''
-    Write-Verbose "    Base Repo URL: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $PackageData.baseRepoApiUrl
+    Write-Host "    Base Repo URL: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageData.baseRepoApiUrl
     $rootRepoInfo = Get-RootRepository -p_repoUrl $PackageData.baseRepoApiUrl
-    Write-Verbose "    Root Repo URL: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $rootRepoInfo.url
+    Write-Host "    Root Repo URL: " -NoNewline -ForegroundColor Yellow
+    Write-Host $rootRepoInfo.url
 
     # Get the default branch of the root repository
     # TODO: I am sure this is redundant. It is late and this is a quick fix.
     $baseRepoInfo = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)").Content | ConvertFrom-Json
 
     $myDefaultBranch = "$($baseRepoInfo.default_branch)"
-    Write-Verbose "Default Branch (Root): " -ForegroundColor Yellow
-    Write-Verbose "`"$myDefaultBranch`""
+    Write-Host "Default Branch (Root): " -ForegroundColor Yellow
+    Write-Host "`"$myDefaultBranch`""
     
 
     # Array table to store the tags. Uses the topics json result from the GitHub API
@@ -688,29 +688,29 @@ function Get-AssetInfo {
     # If the result is not null or empty or whitespace, add the tags to the hash table from the base repo info. Otherwise, add the tags from the root repo info.
     if (-not [string]::IsNullOrWhiteSpace($baseRepoInfo.topics)) {
         $tags += $baseRepoInfo.topics
-        Write-Verbose "    Tags from base repo info: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose "$($baseRepoInfo.topics)"
+        Write-Host "    Tags from base repo info: " -NoNewline -ForegroundColor Yellow
+        Write-Host "$($baseRepoInfo.topics)"
     } elseif (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.topics)) {
         $tags += $rootRepoInfo.topics
-        Write-Verbose "    Tags from root repo info: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose "$($rootRepoInfo.topics)"
+        Write-Host "    Tags from root repo info: " -NoNewline -ForegroundColor Yellow
+        Write-Host "$($rootRepoInfo.topics)"
     }
     else {
-        Write-Verbose "No tags found."
+        Write-Host "No tags found."
     }
     
 
-    Write-Verbose "Tags is of type: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $tags.GetType().Name
+    Write-Host "Tags is of type: " -NoNewline -ForegroundColor Yellow
+    Write-Host $tags.GetType().Name
 
     # if the tags array is not null or empty, print the tags
     if ($null -ne $tags -and $tags.Count -gt 0) {
-        Write-Verbose "    Tags: " -ForegroundColor Yellow
+        Write-Host "    Tags: " -ForegroundColor Yellow
         $tags | ForEach-Object {
-            Write-Verbose "    $_"
+            Write-Host "    $_"
         }
     } else {
-        Write-Verbose "    No tags found."
+        Write-Host "    No tags found."
     }
 
     # Initial variable declaration
@@ -725,11 +725,11 @@ function Get-AssetInfo {
         $iconInfo = Get-Favicon -Homepage $homepage
 
         if ($null -ne $iconInfo.url) {
-            Write-Verbose "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
-            Write-Verbose $iconInfo.url
+            Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
+            Write-Host $iconInfo.url
             $iconUrl = $iconInfo.url
         } else {
-            Write-Verbose "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
+            Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
         }
     }
 
@@ -739,14 +739,14 @@ function Get-AssetInfo {
         
         if ($null -ne $icoPath) {
             $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/main/$icoPath"
-            Write-Verbose "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
+            Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
         }
     }
 
     # If still no suitable icon is found, use the owner's avatar
     if ($null -eq $iconUrl) {
         $iconUrl = $rootRepoInfo.owner.avatar_url
-        Write-Verbose "    Using owner's avatar as icon: $iconUrl" -ForegroundColor Green
+        Write-Host "    Using owner's avatar as icon: $iconUrl" -ForegroundColor Green
     }
 
 
@@ -756,13 +756,13 @@ function Get-AssetInfo {
     # If the owner of the root repository is an organization, use the organization name as package name
     if ($rootRepoInfo.owner.type -eq 'Organization') {
         $orgName = $rootRepoInfo.owner.login
-        Write-Verbose "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $orgName
+        Write-Host "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor Yellow
+    Write-Host $orgName
     }
 
     # Get the description
-    # Write-Verbose "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor Yellow
-    # Write-Verbose $rootRepoInfo
+    # Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor Yellow
+    # Write-Host $rootRepoInfo
     # If the description is null or empty, get the description from the root repository
     if ([string]::IsNullOrWhiteSpace($rootRepoInfo.description)) {
         $description = $rootRepoInfo.description
@@ -770,10 +770,10 @@ function Get-AssetInfo {
         if ([string]::IsNullOrWhiteSpace($rootRepoInfo.description)){
             $readmeInfo = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl.url/"readme")").Content | ConvertFrom-Json
             $description = $readmeInfo.content
-            Write-Verbose "    Description not found. Using readme content" -ForegroundColor Yellow
+            Write-Host "    Description not found. Using readme content" -ForegroundColor Yellow
         }
         else {
-            Write-Verbose "    Description could not be found."
+            Write-Host "    Description could not be found."
             $description = "Description could not be found."
         }
     }
@@ -781,18 +781,18 @@ function Get-AssetInfo {
         $description = $rootRepoInfo.description
     }
 
-    Write-Verbose "    Description: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $description
+    Write-Host "    Description: " -NoNewline -ForegroundColor Yellow
+    Write-Host $description
 
 
     # Get the latest release version number
     $rawVersion = $retreivedLatestReleaseObj.tag_name
-    Write-Verbose "    Raw Version: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $rawVersion
+    Write-Host "    Raw Version: " -NoNewline -ForegroundColor Yellow
+    Write-Host $rawVersion
     # Sanitize the version number
     $sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
-    Write-Verbose "    Sanitized Version: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $sanitizedVersion
+    Write-Host "    Sanitized Version: " -NoNewline -ForegroundColor Yellow
+    Write-Host $sanitizedVersion
 
     # If specifiedasset is not null or empty print it
     if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
@@ -809,22 +809,22 @@ function Get-AssetInfo {
         $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
         # Remove remaining leading and trailing special characters
         $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Trim('.-_')
-        Write-Verbose "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose $cleanedSpecifiedAssetName
+        Write-Host "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor Yellow
+        Write-Host $cleanedSpecifiedAssetName
     }
 
     # Set the package name
     $chocoPackageName = "$($PackageData.user).$($PackageData.repoName).$($PackageData.cleanedSpecifiedAssetName)"
     # If the name contains the version number exactly, remove the version number from the package name
     if ($chocoPackageName -match $sanitizedVersion) {
-        Write-Verbose "Package name: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose $chocoPackageName -NoNewline
-        Write-Verbose " contains version number: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose $sanitizedVersion
+        Write-Host "Package name: " -NoNewline -ForegroundColor Yellow
+        Write-Host $chocoPackageName -NoNewline
+        Write-Host " contains version number: " -NoNewline -ForegroundColor Yellow
+        Write-Host $sanitizedVersion
         $chocoPackageName = $chocoPackageName -replace $sanitizedVersion, ''
     }
-    Write-Verbose "    Package Name: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $chocoPackageName
+    Write-Host "    Package Name: " -NoNewline -ForegroundColor Yellow
+    Write-Host $chocoPackageName
     # Convert to valid package name
     $chocoPackageName = ConvertTo-ValidPackageName -PackageName $chocoPackageName
     
@@ -839,21 +839,21 @@ function Get-AssetInfo {
     if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.license.url)) {
         # Set the license url equal to (repo url)/blob/(default branch)/LICENSE
         $licenseUrl = "$($rootRepoInfo.html_url)/blob/$myDefaultBranch/LICENSE"
-        Write-Verbose "    License URL: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose $licenseUrl
+        Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
+        Write-Host $licenseUrl
     } elseif (-not [string]::IsNullOrWhiteSpace($baseRepoInfo.license.url)) {
         # Set the license url equal to (repo url)/blob/(default branch)/LICENSE
         $licenseUrl = "$($baseRepoInfo.html_url)/blob/$myDefaultBranch/LICENSE"
-        Write-Verbose "    License URL: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose $licenseUrl
+        Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
+        Write-Host $licenseUrl
     } else {
-        Write-Verbose "    No license URL found."
+        Write-Host "    No license URL found."
     }
 
     $packageSize = $selectedAsset.size
 
-    Write-Verbose "    Package Size: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $packageSize
+    Write-Host "    Package Size: " -NoNewline -ForegroundColor Yellow
+    Write-Host $packageSize
 
     # Build the URL for the API request
     $hashUrl = "https://api.github.com/repos/$($PackageData.user)/$($PackageData.repoName)/git/refs/tags/$($retreivedLatestReleaseObj.tag_name)"
@@ -865,26 +865,26 @@ function Get-AssetInfo {
     $commitHash = $response.object.sha
 
     # Output the commit hash
-    Write-Verbose "    Commit Hash: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $commitHash
+    Write-Host "    Commit Hash: " -NoNewline -ForegroundColor Yellow
+    Write-Host $commitHash
 
     # repository variable in format : <repository type="git" url="https://github.com/NuGet/NuGet.Client.git" branch="dev" commit="e1c65e4524cd70ee6e22abe33e6cb6ec73938cb3" />
     $nu_repoUrl = " type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" "
 
     # Shoule probably (maybe) use root instead
     $licenseUrl = "$($PackageData.baseRepoUrl)/blob/$myDefaultBranch/LICENSE"
-    Write-Verbose "    License URL: " -NoNewline -ForegroundColor Yellow
+    Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
 
-    Write-Verbose "    Repository: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $nu_repoUrl
+    Write-Host "    Repository: " -NoNewline -ForegroundColor Yellow
+    Write-Host $nu_repoUrl
 
     $tagsStr = $tags -join ' '
 
     # $packageTitle = Get-MostSimilarString -key "ProtonVPN_v3.2.1.exe" -strings @("maah", "ProtonVPN-win-app", "ProtonVPN")
     $packageTitle = Get-MostSimilarString -key $selectedAsset.name -strings @($PackageData.user, $PackageData.repoName, $rootRepoInfo.name)
 
-    Write-Verbose "    Package Title: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $packageTitle
+    Write-Host "    Package Title: " -NoNewline -ForegroundColor Yellow
+    Write-Host $packageTitle
 
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
@@ -907,14 +907,14 @@ function Get-AssetInfo {
     }
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
-        Write-Verbose "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose $($packageMetadata.GetType().Name)
+        Write-Host "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
+        Write-Host $($packageMetadata.GetType().Name)
     } else {
-        Write-Verbose "    Type of packageMetadata before return: NOT Hashtable"
+        Write-Host "    Type of packageMetadata before return: NOT Hashtable"
     }
     
-    Write-Verbose "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $($packageMetadata.GetType().Name)
+    Write-Host "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
+    Write-Host $($packageMetadata.GetType().Name)
     Write-LogFooter "Get-AssetInfo function"
     # Ensure that the package metadata is returned as a hashtable
     return $packageMetadata
@@ -929,40 +929,40 @@ function ConvertTo-ValidPackageName {
     )
     Write-LogHeader "ConvertTo-ValidPackageName"
 
-    Write-Verbose "    Package name before conversion: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $PackageName
+    Write-Host "    Package name before conversion: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageName
 
     # Check for invalid characters and spaces
     if (-not ($PackageName -match '^[a-z0-9._-]+$') -or $PackageName.Contains(' ')) {
-        Write-Verbose "    Invalid characters or spaces found in package name: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose $PackageName
+        Write-Host "    Invalid characters or spaces found in package name: " -NoNewline -ForegroundColor Yellow
+        Write-Host $PackageName
         # Remove invalid characters and spaces
         $PackageName = $PackageName -replace ' ', '-'
         $PackageName = $PackageName -replace '[^a-z0-9._-]', ''
-        Write-Verbose "    Package name after removing invalid characters and spaces: " -NoNewline -ForegroundColor Yellow
-        Write-Verbose $PackageName
+        Write-Host "    Package name after removing invalid characters and spaces: " -NoNewline -ForegroundColor Yellow
+        Write-Host $PackageName
     }
 
-    Write-Verbose "    Removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
+    Write-Host "    Removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
     $PackageName = $PackageName -replace '[-]+', '-'  # Remove and consolidate groupings of hyphens
-    Write-Verbose $PackageName
-    Write-Verbose "    Package name after removing and consolidating groupings of hyphens: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $PackageName
+    Write-Host $PackageName
+    Write-Host "    Package name after removing and consolidating groupings of hyphens: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageName
     $PackageName = $PackageName -replace '[_]+', '_'  # Remove and consolidate groupings of underscores
-    Write-Verbose "    Package name after removing and consolidating groupings of underscores: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $PackageName
+    Write-Host "    Package name after removing and consolidating groupings of underscores: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageName
     $PackageName = $PackageName -replace '[.]+', '.'  # Remove and consolidate groupings of dots
-    Write-Verbose "    Package name after removing and consolidating groupings of dots: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $PackageName
+    Write-Host "    Package name after removing and consolidating groupings of dots: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageName
     $PackageName = $PackageName -replace '([-_.])\1+', '.' # Remove and consolidate groupings of dots, underscores, and hyphens
-    Write-Verbose "    Package name after removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $PackageName
+    Write-Host "    Package name after removing and consolidating groupings of dots, underscores, and hyphens: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageName
     $PackageName = $PackageName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
-    Write-Verbose "    Package name after removing leading and trailing hyphens, underscores, and dots: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $PackageName
+    Write-Host "    Package name after removing leading and trailing hyphens, underscores, and dots: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageName
     $PackageName = $PackageName.ToLower()  # Convert to lowercase
-    Write-Verbose "    Package name after converting to lowercase: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $PackageName
+    Write-Host "    Package name after converting to lowercase: " -NoNewline -ForegroundColor Yellow
+    Write-Host $PackageName
 
     Write-LogFooter "ConvertTo-ValidPackageName"
 
@@ -974,8 +974,8 @@ function ConvertTo-EscapedXmlContent {
         [string]$Content
     )
     Write-LogHeader "ConvertTo-EscapedXmlContent function"
-    Write-Verbose "    Escaping XML Content: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $Content
+    Write-Host "    Escaping XML Content: " -NoNewline -ForegroundColor Yellow
+    Write-Host $Content
     $escapedContent = $Content -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;' -replace "'", '&apos;'
     Write-LogFooter "ConvertTo-EscapedXmlContent function"
     return $escapedContent
@@ -1014,16 +1014,16 @@ function Confirm-DirectoryExists {
         [string]$p_name
     )
     Write-LogHeader "Confirm-DirectoryExists function"
-    Write-Verbose "    Checking for $p_name directory..."
+    Write-Host "    Checking for $p_name directory..."
     if (-not (Test-Path $p_path)) {
-        Write-Verbose "    No $p_name directory found, creating $p_name directory..."
+        Write-Host "    No $p_name directory found, creating $p_name directory..."
         New-Item -Path $p_path -ItemType Directory | Out-Null
-        Write-Verbose "    $p_name directory created at: $" -NoNewline -ForegroundColor Yellow
-    Write-Verbose $p_path
+        Write-Host "    $p_name directory created at: $" -NoNewline -ForegroundColor Yellow
+    Write-Host $p_path
     }
     else {
-        Write-Verbose "    $p_name directory found at: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $p_path
+        Write-Host "    $p_name directory found at: " -NoNewline -ForegroundColor Yellow
+    Write-Host $p_path
     }
     Write-LogFooter "Confirm-DirectoryExists function"
 }
@@ -1058,9 +1058,9 @@ function New-NuspecFile {
     }
 
     # One per line, print the content of elementMapping
-    Write-Verbose "Element Mapping:" -ForegroundColor Yellow
+    Write-Host "Element Mapping:" -ForegroundColor Yellow
     $elementMapping.GetEnumerator() | ForEach-Object {
-        Write-Verbose "    $($_.Key) -> $($_.Value)"
+        Write-Host "    $($_.Key) -> $($_.Value)"
     }
 
     $elementOrder = @('id', 'title', 'version', 'packageSourceUrl', 'releaseNotes', 'licenseUrl')
@@ -1072,46 +1072,46 @@ function New-NuspecFile {
     $nsManager.AddNamespace('ns', 'http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd')
     $metadataElem = ($xmlDoc.SelectSingleNode('/ns:package/ns:metadata', $nsManager))
 
-    Write-Verbose "Appending required elements to metadata: " -ForegroundColor Yellow
+    Write-Host "Appending required elements to metadata: " -ForegroundColor Yellow
 
     $namespaceUri = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
 
     # Add elements in the order specified by elementOrder
     foreach ($elementName in $elementOrder) {
 
-        #Write-Verbose "Processing element: $elementName" -ForegroundColor Yellow
+        #Write-Host "Processing element: $elementName" -ForegroundColor Yellow
         
         # Assuming $elementMapping is now an object with properties instead of a hashtable
         if (-not $elementMapping.PSObject.Properties.Name -contains $elementName) {
-            Write-Verbose "Warning: $elementName not found in elementMapping" -ForegroundColor Yellow
+            Write-Host "Warning: $elementName not found in elementMapping" -ForegroundColor Yellow
         }
     
         $key = $elementMapping.$elementName
     
         # Assuming $Metadata is now an object with properties instead of a hashtable
         if (-not $Metadata.PSObject.Properties.Name -contains $key) {
-            Write-Verbose "Warning: $key not found in Metadata" -ForegroundColor Yellow
+            Write-Host "Warning: $key not found in Metadata" -ForegroundColor Yellow
         }
     
         $value = $Metadata.$key
     
         if ($null -eq $value) {
-            Write-Verbose "Warning: Value for $key is null" -ForegroundColor Yellow
+            Write-Host "Warning: Value for $key is null" -ForegroundColor Yellow
         }
     
-        Write-Verbose "Creating element with " -NoNewline -ForegroundColor Green
-        Write-Verbose "name: " -NoNewline -ForegroundColor Cyan
-        Write-Verbose "$elementName" -NoNewline -ForegroundColor White
-        Write-Verbose " value: " -NoNewline -ForegroundColor Cyan
-        Write-Verbose "$value" -ForegroundColor White -NoNewline
+        Write-Host "Creating element with " -NoNewline -ForegroundColor Green
+        Write-Host "name: " -NoNewline -ForegroundColor Cyan
+        Write-Host "$elementName" -NoNewline -ForegroundColor White
+        Write-Host " value: " -NoNewline -ForegroundColor Cyan
+        Write-Host "$value" -ForegroundColor White -NoNewline
     
         try {
-            Write-Verbose "    Creating element..." -NoNewline
+            Write-Host "    Creating element..." -NoNewline
             $elem = ($xmlDoc.CreateElement($elementName, $namespaceUri))
-            Write-Verbose "    Element created successfully" -ForegroundColor Green
+            Write-Host "    Element created successfully" -ForegroundColor Green
 
         } catch {
-            Write-Verbose "Error creating element $($elementName): $_" -ForegroundColor Red
+            Write-Host "Error creating element $($elementName): $_" -ForegroundColor Red
         }
         $elem.InnerText = $value
         $metadataElem.AppendChild($elem)
@@ -1120,59 +1120,59 @@ function New-NuspecFile {
 
     # If there are remaining elemetns in elementMapping, add them to the file
     $remainingElements = $elementMapping.Keys | Where-Object { $elementOrder -notcontains $_ }
-    Write-Verbose "Appending optional elements to metadata... " -ForegroundColor Yellow
+    Write-Host "Appending optional elements to metadata... " -ForegroundColor Yellow
     try {
         foreach ($elementName in $remainingElements) {
-            Write-Verbose "Creating element with " -NoNewline -ForegroundColor Green
-            Write-Verbose "name: " -NoNewline -ForegroundColor Cyan
-            Write-Verbose "$elementName" -NoNewline -ForegroundColor White
-            Write-Verbose " value: " -NoNewline -ForegroundColor Cyan
-            Write-Verbose "$value" -ForegroundColor White -NoNewline
+            Write-Host "Creating element with " -NoNewline -ForegroundColor Green
+            Write-Host "name: " -NoNewline -ForegroundColor Cyan
+            Write-Host "$elementName" -NoNewline -ForegroundColor White
+            Write-Host " value: " -NoNewline -ForegroundColor Cyan
+            Write-Host "$value" -ForegroundColor White -NoNewline
 
             $key = $elementMapping[$elementName]
             $value = $Metadata.$key
 
             if ($null -eq $value) {
-                Write-Verbose "Warning: Value for $key is null" -ForegroundColor Yellow
+                Write-Host "Warning: Value for $key is null" -ForegroundColor Yellow
             }
 
-            Write-Verbose "    Creating element..." -NoNewline
+            Write-Host "    Creating element..." -NoNewline
             $elem = ($xmlDoc.CreateElement($elementName, $namespaceUri))
             $elem.InnerText = $value
             $metadataElem.AppendChild($elem)
-            Write-Verbose "    Element created successfully" -ForegroundColor Green
+            Write-Host "    Element created successfully" -ForegroundColor Green
         }
     } catch {
-        Write-Verbose "Error creating element $($elementName): $_" -ForegroundColor Red
+        Write-Host "Error creating element $($elementName): $_" -ForegroundColor Red
     }
 
     # Check if f_nuspecPath is null or empty
     if ([string]::IsNullOrWhiteSpace($f_nuspecPath)) {
-        Write-Verbose "Nuspec file variable is empty (this is a good thing)" -ForegroundColor Green
+        Write-Host "Nuspec file variable is empty (this is a good thing)" -ForegroundColor Green
     }
     else {
-        Write-Verbose "Nuspec file variable is not empty (this is a bad thing): " -NoNewline
-        Write-Verbose $f_nuspecPath
+        Write-Host "Nuspec file variable is not empty (this is a bad thing): " -NoNewline
+        Write-Host $f_nuspecPath
     }
 
-    Write-Verbose "Creating nuspec path using package directory and package name" -ForegroundColor Yellow
-    Write-Verbose "    Package Directory Type: " -NoNewline -ForegroundColor Cyan
-    Write-Verbose $PackageDir.GetType().Name
-    Write-Verbose "    Package Directory: " -NoNewline -ForegroundColor Cyan
-    Write-Verbose "$PackageDir"
-    Write-Verbose "    Package Name Type: " -NoNewline -ForegroundColor Cyan
-    Write-Verbose $Metadata.PackageName.GetType().Name
-    Write-Verbose "    Package Name: " -NoNewline -ForegroundColor Cyan
-    Write-Verbose "$($Metadata.PackageName)"
+    Write-Host "Creating nuspec path using package directory and package name" -ForegroundColor Yellow
+    Write-Host "    Package Directory Type: " -NoNewline -ForegroundColor Cyan
+    Write-Host $PackageDir.GetType().Name
+    Write-Host "    Package Directory: " -NoNewline -ForegroundColor Cyan
+    Write-Host "$PackageDir"
+    Write-Host "    Package Name Type: " -NoNewline -ForegroundColor Cyan
+    Write-Host $Metadata.PackageName.GetType().Name
+    Write-Host "    Package Name: " -NoNewline -ForegroundColor Cyan
+    Write-Host "$($Metadata.PackageName)"
 
     $f_nuspecPath = Join-Path $PackageDir "$($Metadata.PackageName).nuspec"
     $result = ($xmlDoc.Save($f_nuspecPath))
 
-    Write-Verbose "Nuspec file created at: $f_nuspecPath" -ForegroundColor Green
-    Write-Verbose "    Type of f_nuspecPath: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $f_nuspecPath.GetType().Name
-    Write-Verbose "    Returning f_nuspecPath: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $f_nuspecPath
+    Write-Host "Nuspec file created at: $f_nuspecPath" -ForegroundColor Green
+    Write-Host "    Type of f_nuspecPath: " -NoNewline -ForegroundColor Yellow
+    Write-Host $f_nuspecPath.GetType().Name
+    Write-Host "    Returning f_nuspecPath: " -NoNewline -ForegroundColor Yellow
+    Write-Host $f_nuspecPath
 
     Write-LogFooter "New-NuspecFile function"
 }
@@ -1265,8 +1265,8 @@ if (Test-Path `$toolsDir) {
 "@
     $f_uninstallScriptPath = Join-Path $p_toolsDir "chocolateyUninstall.ps1"
     Out-File -InputObject $f_uninstallScriptContent -FilePath $f_uninstallScriptPath -Encoding utf8
-    Write-Verbose "    Uninstall script created at: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $f_uninstallScriptPath    
+    Write-Host "    Uninstall script created at: " -NoNewline -ForegroundColor Yellow
+    Write-Host $f_uninstallScriptPath    
     } else {
         $f_installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
@@ -1286,8 +1286,8 @@ Install-ChocolateyPackage @packageArgs
 
     $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
-    Write-Verbose "    Install script created at: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $f_installScriptPath
+    Write-Host "    Install script created at: " -NoNewline -ForegroundColor Yellow
+    Write-Host $f_installScriptPath
 
 
 
@@ -1303,23 +1303,23 @@ function New-ChocolateyPackage {
     )
     Write-LogHeader "New-ChocolateyPackage function"
     # Check the type of the nuspecPath
-    Write-Verbose "    The type of NuspecPath is: " -NoNewline -ForegroundColor Yellow
-    Write-Verbose $NuspecPath.GetType().Name -ForegroundColor Blue
+    Write-Host "    The type of NuspecPath is: " -NoNewline -ForegroundColor Yellow
+    Write-Host $NuspecPath.GetType().Name -ForegroundColor Blue
     # Write the content of the nuspecPath
 
     # Check for Nuspec File
-    Write-Verbose "    Checking for nuspec file..."
+    Write-Host "    Checking for nuspec file..."
     if (-not (Test-Path $NuspecPath)) {
         Write-Error "Nuspec file not found at: $NuspecPath"
         exit 1
     }
     else {
-        Write-Verbose "    Nuspec file found at: $NuspecPath" -ForegroundColor Yellow
+        Write-Host "    Nuspec file found at: $NuspecPath" -ForegroundColor Yellow
     }
 
     # Create Chocolatey package
     try {
-        Write-Verbose "    Creating Chocolatey package..."
+        Write-Host "    Creating Chocolatey package..."
         choco pack $NuspecPath -Force -Verbose --out $PackageDir
     } catch {
         Write-Error "Failed to create Chocolatey package."
@@ -1339,7 +1339,7 @@ function Get-Updates {
         Write-Error "Path is not valid: $PackagesDir"
         exit 1
     }
-    Write-Verbose "Path is valid: $PackagesDir" -ForegroundColor Green
+    Write-Host "Path is valid: $PackagesDir" -ForegroundColor Green
 
     $packageDirNames = Get-ChildItem -Path $PackagesDir -Directory
 
@@ -1349,7 +1349,7 @@ function Get-Updates {
             exit 1
         }
 
-        Write-Verbose "Checking for updates for: $($dirInfo.Name)" -ForegroundColor Magenta
+        Write-Host "Checking for updates for: $($dirInfo.Name)" -ForegroundColor Magenta
         $package = $dirInfo.Name
 
         $latestReleaseObj_UP = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
@@ -1374,9 +1374,9 @@ function Get-Updates {
 
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
         $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseObj_UP.tag_name
-        Write-Verbose "    Latest Release URL: $latestReleaseUrl_Update"
+        Write-Host "    Latest Release URL: $latestReleaseUrl_Update"
         # Compate the version numbers
-        Write-Verbose "    Package Source URL: $packageSourceUrl"
+        Write-Host "    Package Source URL: $packageSourceUrl"
 
         Write-Host "    Checking for updates for: $package"
 
@@ -1398,11 +1398,11 @@ function Get-Updates {
         }
         # Compare the two URLs
         if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
-            Write-Verbose "    The URLs are identical. No new version seems to be available."
+            Write-Host "    The URLs are identical. No new version seems to be available."
         } else {
-            Write-Verbose "    The URLs are different. A new version appears to be available."
-            Write-Verbose "    Old URL: $packageSourceUrl"
-            Write-Verbose "    New URL: $latestReleaseUrl_Update"
+            Write-Host "    The URLs are different. A new version appears to be available."
+            Write-Host "    Old URL: $packageSourceUrl"
+            Write-Host "    New URL: $latestReleaseUrl_Update"
         }
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl_Update -ne $packageSourceUrl) {
@@ -1410,16 +1410,16 @@ function Get-Updates {
             # Remove the old nuspec file
             Remove-Item -Path $nuspecFile -Force
 
-            Write-Verbose "    Updating metadata for $package"
-            Write-Verbose "    The latest release URL is: " -NoNewline -ForegroundColor Yellow
-            Write-Verbose $latestReleaseUrl_Update
+            Write-Host "    Updating metadata for $package"
+            Write-Host "    The latest release URL is: " -NoNewline -ForegroundColor Yellow
+            Write-Host $latestReleaseUrl_Update
             # Get the new metadata
             Initialize-GithubPackage InputUrl $latestReleaseUrl_Update
             # Remove the old nuspec file
-            Write-Verbose "    Removing old nuspec file"
+            Write-Host "    Removing old nuspec file"
             
         } else {
-            Write-Verbose "    No updates found for $package"
+            Write-Host "    No updates found for $package"
         }
     }
     Write-LogFooter "Get-Updates function"
@@ -1444,12 +1444,12 @@ function Initialize-PackageTable {
         $latestReleaseApiUrl = ($baseRepoApiUrl + '/releases/latest')
 
         #region Display URL information for debugging
-        Write-Verbose "    GitHub User: " -NoNewline -ForegroundColor Magenta
-        Write-Verbose $githubUser
-        Write-Verbose "    GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
-        Write-Verbose $githubRepoName
-        Write-Verbose "    Base Repo URL: " -NoNewline -ForegroundColor Magenta
-        Write-Verbose $baseRepoApiUrl
+        Write-Host "    GitHub User: " -NoNewline -ForegroundColor Magenta
+        Write-Host $githubUser
+        Write-Host "    GitHub Repo Name: " -NoNewline -ForegroundColor Magenta
+        Write-Host $githubRepoName
+        Write-Host "    Base Repo URL: " -NoNewline -ForegroundColor Magenta
+        Write-Host $baseRepoApiUrl
         #endregion
         
         # Check if asset was specified
@@ -1460,10 +1460,10 @@ function Initialize-PackageTable {
             $specifiedAssetName = $urlParts[-1]
 
             #region Display tag and asset name for debugging
-            Write-Verbose "    Release tag detected: " -NoNewline -ForegroundColor Magenta
-            Write-Verbose $tag
-            Write-Verbose "    Asset name detected: " -NoNewline -ForegroundColor Magenta
-            Write-Verbose $specifiedAssetName
+            Write-Host "    Release tag detected: " -NoNewline -ForegroundColor Magenta
+            Write-Host $tag
+            Write-Host "    Asset name detected: " -NoNewline -ForegroundColor Magenta
+            Write-Host $specifiedAssetName
             #endregion
         }
     }
@@ -1602,8 +1602,8 @@ function Initialize-GithubPackage{
         [string]$InputUrl
     )
     Write-LogHeader -Color Blue "Initialize-GithubPackage function"
-    Write-Verbose "    Input Received: " -NoNewline -ForegroundColor Magenta
-    Write-Verbose $InputUrl
+    Write-Host "    Input Received: " -NoNewline -ForegroundColor Magenta
+    Write-Host $InputUrl
 
     # Create a hashtable to store the PackageTable
     $retrievedPackageTable = Initialize-PackageTable -InputGithubUrl $InputUrl
@@ -1627,29 +1627,29 @@ function Initialize-GithubPackage{
     #region Create Nuspec File and Install Script
 
     # Write the type of the metadata object
-    Write-Verbose "Type of myMetadata before NUSPEC: " -NoNewline -ForegroundColor Magenta
-    Write-Verbose $($myMetadata.GetType().Name)
+    Write-Host "Type of myMetadata before NUSPEC: " -NoNewline -ForegroundColor Magenta
+    Write-Host $($myMetadata.GetType().Name)
 
     # Create the nuspec file and install script
     New-NuspecFile -Metadata $myMetadata -PackageDir $packageDir
-    Write-Verbose "    Nuspec File Created Successfully" -ForegroundColor Green
+    Write-Host "    Nuspec File Created Successfully" -ForegroundColor Green
     
-    Write-Verbose "    Creating Instal Script..." -NoNewline -ForegroundColor Yellow
+    Write-Host "    Creating Instal Script..." -NoNewline -ForegroundColor Yellow
     New-InstallScript -Metadata $myMetadata -p_toolsDir $toolsDir
-    Write-Verbose "    Install Script Created Successfully" -ForegroundColor Green
+    Write-Host "    Install Script Created Successfully" -ForegroundColor Green
 
     #endregion
 
     #region Create Chocolatey Package
 
-        Write-Verbose "Type of packageDir before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
-        Write-Verbose $($packageDir.GetType().Name)
+        Write-Host "Type of packageDir before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
+        Write-Host $($packageDir.GetType().Name)
 
         $nuspecPath = Join-Path $packageDir "$($myMetadata.PackageName).nuspec"
 
         # Check the nuspecPath System Object or string before passing it to New-ChocolateyPackage
-        Write-Verbose "nuspecPath before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
-        Write-Verbose $nuspecPath
+        Write-Host "nuspecPath before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
+        Write-Host $nuspecPath
 
         #endregion
 
