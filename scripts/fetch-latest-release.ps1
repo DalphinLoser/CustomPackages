@@ -717,12 +717,16 @@ function Get-AssetInfo {
     Write-Host "Tags is of type: " -NoNewline -ForegroundColor Yellow
     Write-Host $tags.GetType().Name
 
-    # Print the tags, one per line 
-    Write-Host "    Tags: " -ForegroundColor Yellow
-    $tags | ForEach-Object {
-        Write-Host "    $_"
+    # if the tags array is not null or empty, print the tags
+    if ($null -ne $tags -and $tags.Count -gt 0) {
+        Write-Host "    Tags: " -ForegroundColor Yellow
+        $tags | ForEach-Object {
+            Write-Host "    $_"
+        }
+    } else {
+        Write-Host "    No tags found."
     }
-
+    
     # Initial variable declaration
     $iconUrl = $null
     $iconInfo = $null
