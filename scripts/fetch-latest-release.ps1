@@ -1363,6 +1363,12 @@ function Get-Updates {
     
         # Find the nuspec file in the package directory
         $nuspecFile = Get-ChildItem -Path "$PackagesDir" -Filter "*.nuspec"
+
+        # List the content of PackagesDir
+        Write-Host "    Listing content of PackagesDir: " -ForegroundColor Yellow
+        Get-ChildItem -Path "$PackagesDir" -Filter "*.nuspec" | ForEach-Object {
+            Write-Host "        $_"
+        }
     
         Write-Host "    Checking for updates for: $package" -ForegroundColor Magenta
     
