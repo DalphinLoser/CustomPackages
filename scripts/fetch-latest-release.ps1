@@ -139,7 +139,7 @@ function Find-IcoInRepo {
     Write-Host "Default branch recieved: $defaultBranch"
 
     if (-not $token) {
-        Write-Host "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding." -ForegroundColor Red
+        Write-Error "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding." -ForegroundColor Red
         exit 1
     }
 
@@ -159,7 +159,7 @@ function Find-IcoInRepo {
         # Write-Host "Response Content:" -ForegroundColor Yellow
         # Write-Host $webResponse.Content
     } catch {
-        Write-Host "ERROR: Failed to query GitHub API."
+        Write-Error "ERROR: Failed to query GitHub API."
         exit 1
     }
 
@@ -652,23 +652,10 @@ function Get-AssetInfo {
     
     $retreivedLatestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $PackageData.latestReleaseApiUrl
 
-    Write-Host "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
-    Write-Host $retreivedLatestReleaseObj.name
-    Get-ObjectProperties -Object $retreivedLatestReleaseObj
-
     # Select the best asset based on supported types
     $selectedAsset = Select-Asset -LatestReleaseObj $retreivedLatestReleaseObj -PackageData $PackageData
     Write-Host "Selected asset name: " -NoNewline -ForegroundColor Yellow
     Write-Host $selectedAsset.name
-    
-
-    # Print the content of selectedAsset
-    Write-Host "Selected asset type: " -NoNewline -ForegroundColor Yellow
-    Write-Host $selectedAsset.GetType()
-    Write-Host "Selected Asset: " -ForegroundColor Yellow
-    Write-Host $selectedAsset
-    Write-Host "Selected Asset Object: " -ForegroundColor Yellow
-    Get-ObjectProperties -Object $selectedAsset     
 
     # Determine file type from asset name
     $fileType = Get-Filetype -p_fileName $selectedAsset.name
@@ -726,7 +713,7 @@ function Get-AssetInfo {
     } else {
         Write-Host "    No tags found."
     }
-    
+
     # Initial variable declaration
     $iconUrl = $null
     $iconInfo = $null
@@ -855,6 +842,13 @@ function Get-AssetInfo {
         $licenseUrl = "$($rootRepoInfo.html_url)/blob/$myDefaultBranch/LICENSE"
         Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
         Write-Host $licenseUrl
+    } elseif (-not [string]::IsNullOrWhiteSpace($baseRepoInfo.license.url)) {
+        # Set the license url equal to (repo url)/blob/(default branch)/LICENSE
+        $licenseUrl = "$($baseRepoInfo.html_url)/blob/$myDefaultBranch/LICENSE"
+        Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
+        Write-Host $licenseUrl
+    } else {
+        Write-Host "    No license URL found."
     }
 
     $packageSize = $selectedAsset.size
@@ -878,6 +872,10 @@ function Get-AssetInfo {
     # repository variable in format : <repository type="git" url="https://github.com/NuGet/NuGet.Client.git" branch="dev" commit="e1c65e4524cd70ee6e22abe33e6cb6ec73938cb3" />
     $nu_repoUrl = " type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" "
 
+    # Shoule probably (maybe) use root instead
+    $licenseUrl = "$($PackageData.baseRepoUrl)/blob/$myDefaultBranch/LICENSE"
+    Write-Host "    License URL: " -NoNewline -ForegroundColor Yellow
+
     Write-Host "    Repository: " -NoNewline -ForegroundColor Yellow
     Write-Host $nu_repoUrl
 
@@ -899,8 +897,8 @@ function Get-AssetInfo {
         LicenseUrl          = $licenseUrl
         PackageSize         = $packageSize
         Tags                = $tagsStr
-        Repository          = $nu_repoUrl
-        ProjectSiteUrl      = $homepage
+        # Repository          = $nu_repoUrl
+        # ProjectSiteUrl      = $homepage
     }
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
@@ -1043,7 +1041,8 @@ function New-NuspecFile {
         version = 'Version'
         authors = 'Author'
         description = 'Description'
-        projectUrl = 'ProjectSiteUrl'
+        projectUrl = 'ProjectUrl'
+        # projectUrl = 'ProjectSiteUrl' # The actual project site - does not always exist
         packageSourceUrl = 'Url'
         releaseNotes = 'VersionDescription'
         licenseUrl = 'LicenseUrl'
@@ -1059,7 +1058,7 @@ function New-NuspecFile {
         Write-Host "    $($_.Key) -> $($_.Value)"
     }
 
-    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'projectUrl', 'packageSourceUrl', 'releaseNotes', 'licenseUrl', 'iconUrl', 'tags')
+    $elementOrder = @('id', 'title', 'version', 'packageSourceUrl', 'releaseNotes', 'licenseUrl')
 
     $xmlDoc = (New-Object System.Xml.XmlDocument)
 
