@@ -1336,20 +1336,30 @@ function Get-Updates {
     )
     Write-LogHeader "Get-Updates function"
 
-    # List the directories in the packages directory
-    Write-Host "    The packages directory is: " -NoNewline -ForegroundColor Yellow
-    Write-Host $PackagesDir
-    
+    # Validate that path is valid
+    if (-not (Test-Path $PackagesDir)) {
+        Write-Error "Path is not valid: $PackagesDir"
+        exit 1
+    }
+    else {
+        Write-Host "    Path is valid: $PackagesDir" -ForegroundColor Green
+    }
+
     # For each item in the packages directory, get the latest release info.
     foreach ($dirInfo in $PackagesDir) {
-        # Extract just the directory name from the DirectoryInfo object
-        $package = $dirInfo.Name
-    
-        # Validate that path is valid
-        if (-not (Test-Path $PackagesDir)) {
-            Write-Error "Path is not valid: $PackagesDir"
+        
+
+        # Validate that dirinfo is not null or empty
+        if ([string]::IsNullOrWhiteSpace($dirInfo)) {
+            Write-Error "dirInfo is null or empty"
             exit 1
         }
+        else {
+            Write-Host "    dirInfo is not null or empty" -ForegroundColor Green
+        }
+
+        # Extract just the directory name from the DirectoryInfo object
+        $package = $dirInfo.Name
     
         # Find the nuspec file in the package directory
         $nuspecFile = Get-ChildItem -Path "$PackagesDir" -Filter "*.nuspec"
