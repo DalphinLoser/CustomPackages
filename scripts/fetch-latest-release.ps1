@@ -1346,13 +1346,13 @@ function Get-Updates {
         $package = $dirInfo.Name
     
         # Validate that path is valid
-        if (-not (Test-Path $f_packageDir)) {
-            Write-Error "Path is not valid: $f_packageDir"
+        if (-not (Test-Path $PackagesDir)) {
+            Write-Error "Path is not valid: $PackagesDir"
             exit 1
         }
     
         # Find the nuspec file in the package directory
-        $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
+        $nuspecFile = Get-ChildItem -Path "$PackagesDir\$package" -Filter "*.nuspec"
     
         Write-Host "    Checking for updates for: $package" -ForegroundColor Magenta
     
@@ -1366,7 +1366,7 @@ function Get-Updates {
         $latestReleaseObj_UP = Get-LatestReleaseObject -p_baseRepoApiUrl"https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
-        $nuspecFile = Get-ChildItem -Path "$f_packageDir\$package" -Filter "*.nuspec"
+        $nuspecFile = Get-ChildItem -Path "$PackagesDir\$package" -Filter "*.nuspec"
         $nuspecFileContent = Get-Content -Path $nuspecFile -Raw
         # Find the value of the packageSourceUrl field in the nuspec file
         if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
