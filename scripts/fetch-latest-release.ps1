@@ -1407,7 +1407,7 @@ function Get-Updates {
             Write-Host "    The latest release URL is: " -NoNewline -ForegroundColor Yellow
             Write-Host $latestReleaseUrl_Update
             # Get the new metadata
-            Initialize-GithubPackage InputUrl "$latestReleaseUrl_Update"
+            Initialize-GithubPackage -InputUrl "$latestReleaseUrl_Update"
             # Remove the old nuspec file
             Write-Host "    Removing old nuspec file"
             
