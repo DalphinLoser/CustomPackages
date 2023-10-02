@@ -1376,7 +1376,7 @@ function Get-Updates {
         $latestReleaseObj_UP = Get-LatestReleaseObject -p_baseRepoApiUrl"https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
-        $nuspecFile = Get-ChildItem -Path "$PackagesDir\$package" -Filter "*.nuspec"
+        $nuspecFile = Get-ChildItem -Path "$PackagesDir" -Filter "*.nuspec"
         $nuspecFileContent = Get-Content -Path $nuspecFile -Raw
         # Find the value of the packageSourceUrl field in the nuspec file
         if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
