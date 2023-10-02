@@ -1345,10 +1345,17 @@ function Get-Updates {
         Write-Host "    Path is valid: $PackagesDir" -ForegroundColor Green
     }
 
+
+    # List all of the content of PackagesDir
+    Write-Host "    Listing all files in PackagesDir: " -ForegroundColor Yellow
+    Get-ChildItem -Path $PackagesDir | ForEach-Object {
+        Write-Host "        $_"
+    }
+
+
     # For each item in the packages directory, get the latest release info.
     foreach ($dirInfo in $PackagesDir) {
         
-
         # Validate that dirinfo is not null or empty
         if ([string]::IsNullOrWhiteSpace($dirInfo)) {
             Write-Error "dirInfo is null or empty"
@@ -1356,6 +1363,8 @@ function Get-Updates {
         }
         else {
             Write-Host "    dirInfo is not null or empty" -ForegroundColor Green
+            Write-Host "    dirInfo: " -NoNewline -ForegroundColor Yellow
+            Write-Host $dirInfo
         }
 
         # Extract just the directory name from the DirectoryInfo object
