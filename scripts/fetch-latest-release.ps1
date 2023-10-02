@@ -1336,71 +1336,37 @@ function Get-Updates {
     )
     Write-LogHeader "Get-Updates function"
 
-    # Validate that path is valid
     if (-not (Test-Path $PackagesDir)) {
         Write-Error "Path is not valid: $PackagesDir"
         exit 1
     }
-    else {
-        Write-Host "    Path is valid: $PackagesDir" -ForegroundColor Green
-    }
+    Write-Host "Path is valid: $PackagesDir" -ForegroundColor Green
 
-
-    # List all of the content of PackagesDir
-    Write-Host "    Listing all files in PackagesDir: " -ForegroundColor Yellow
-    Get-ChildItem -Path $PackagesDir | ForEach-Object {
-        Write-Host "        $_"
-    }
-
-    # For each directory in PackagesDir...
     $packageDirNames = Get-ChildItem -Path $PackagesDir -Directory
 
-    # List all of the content of PackagesDir
-    Write-Host "    Listing all files in packageDirNames: " -ForegroundColor Yellow
-    Get-ChildItem -Path $packageDirNames | ForEach-Object {
-        Write-Host "        $_"
-    }
-
-    # For each item in the packages directory, get the latest release info.
     foreach ($dirInfo in $packageDirNames) {
-        
-
-
-
-        # Validate that dirinfo is not null or empty
         if ([string]::IsNullOrWhiteSpace($dirInfo)) {
             Write-Error "dirInfo is null or empty"
             exit 1
         }
-        else {
-            Write-Host "    dirInfo is not null or empty" -ForegroundColor Green
-            Write-Host "    dirInfo: " -NoNewline -ForegroundColor Yellow
-            Write-Host $dirInfo
-        }
 
-        # Extract just the directory name from the DirectoryInfo object
+        Write-Host "Checking for updates for: $($dirInfo.Name)" -ForegroundColor Magenta
         $package = $dirInfo.Name
-    
-        Write-Host "    Checking for updates for: $package" -ForegroundColor Magenta
-    
-        # First part of name
-        Write-Host "    First part of name: $($($package -split '\.')[0])"
-        # Second part of name
-        Write-Host "    Second part of name: $($($package -split '\.')[1])"
 
-        # Get the latest release info for the package
-        # The repo owner is the first part of the package name and the repo name is the second part of the package name
         $latestReleaseObj_UP = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
+        $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
 
-        Write-Host "    Listing content of PackagesDir: " -ForegroundColor Yellow
-        Get-ChildItem -Path "$packageDirNames" -Filter "*.nuspec" | ForEach-Object {
-            Write-Host "        $_"
+        if ($null -eq $nuspecFile) {
+            Write-Error "No .nuspec file found in directory $($dirInfo.FullName)"
+            continue
         }
-        # Check the packageSourceUrl from the file ending in .nuspec to see if it matches the latest release url
-        $nuspecFile = Get-ChildItem -Path "$packageDirNames" -Filter "*.nuspec"
 
-        $nuspecFileContent = Get-Content -Path $nuspecFile -Raw
+        $nuspecFileContent = Get-Content -Path $nuspecFile.FullName -Raw
+        # [Rest of the code remains the same...]
+        
+    
+    Write-LogFooter "Get-Updates function"
         # Find the value of the packageSourceUrl field in the nuspec file
         if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
             $packageSourceUrl = $matches[1]
