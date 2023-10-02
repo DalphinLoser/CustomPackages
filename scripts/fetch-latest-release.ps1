@@ -1355,6 +1355,10 @@ function Get-Updates {
 
         $latestReleaseObj_UP = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
+        Write-Host "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
+        Write-Host $latestReleaseObj_UP
+        Get-ObjectProperties -Object $latestReleaseObj_UP
+
         $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
 
         if ($null -eq $nuspecFile) {
@@ -1371,7 +1375,7 @@ function Get-Updates {
             exit 1
         }
         
-        Write-Host "    Package Source URL: $packageSourceUrl"
+        Write-Host "    Current URL: $packageSourceUrl"
         # Extract the old version number using regex. This assumes the version follows right after '/download/'
         if ($packageSourceUrl -match '/download/([^/]+)/') {
             $oldVersion = $matches[1]
@@ -1379,20 +1383,21 @@ function Get-Updates {
             Write-Error "Could not find the version number in the URL."
             exit 1
         }
-        Write-Host "    Current Version URL: $oldVersion"
-        Write-Host "    Latest Version: $($latestReleaseObj_UP.tag_name)"
+
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
         $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseObj_UP.tag_name
-        Write-Host "    Latest Release URL: $latestReleaseUrl_Update"
+        Write-Host "    Latest  URL: $latestReleaseUrl_Update"
         # Compate the two urls
         # Compare the two URLs
         if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
-            Write-Host "    The URLs are identical. No new version seems to be available."
+            Write-Host "    The URLs are identical. No new version seems to be available." -ForegroundColor Green
         } else {
-            Write-Host "    The URLs are different. A new version appears to be available."
+            Write-Host "    The URLs are different. A new version appears to be available." -ForegroundColor Green
             Write-Host "    Old URL: $packageSourceUrl"
             Write-Host "    New URL: $latestReleaseUrl_Update"
         }
+        Write-Host "    Current Version: $oldVersion"
+        Write-Host "    Latest Version: $($latestReleaseObj_UP.tag_name)"
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl_Update -ne $packageSourceUrl) {
             
