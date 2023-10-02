@@ -139,7 +139,7 @@ function Find-IcoInRepo {
     Write-Host "Default branch recieved: $defaultBranch"
 
     if (-not $token) {
-        Write-Error "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding." -ForegroundColor Red
+        Write-Error "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding."
         exit 1
     }
 
@@ -881,6 +881,8 @@ function Get-AssetInfo {
 
     $tagsStr = $tags -join ' '
 
+    $packageTitle = Get-MostSimilarString -key $selectedAsset.name -strings @($PackageData.user, $PackageData.repoName, $rootRepoInfo.name)
+
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
         PackageName         = $chocoPackageName
@@ -893,7 +895,7 @@ function Get-AssetInfo {
         FileType            = $fileType
         SilentArgs          = $silentArgs
         IconUrl             = $iconUrl
-        GithubRepoName      = $PackageData.repoName
+        GithubRepoName      = $packageTitle
         LicenseUrl          = $licenseUrl
         PackageSize         = $packageSize
         Tags                = $tagsStr
@@ -1511,6 +1513,76 @@ function Initialize-PackageTable {
     # Return the hash table
     return $packageTable
 }
+
+function Get-MostSimilarString {
+    param (
+        [string]$key,
+        [string[]]$strings
+    )
+
+    # Helper function to calculate Jaccard similarity
+    function Get-JaccardSimilarity {
+        param (
+            [string]$str1,
+            [string]$str2
+        )
+        $set1 = $str1.ToCharArray() | Sort-Object | Get-Unique
+        $set2 = $str2.ToCharArray() | Sort-Object | Get-Unique
+        $intersection = $set1 | Where-Object { $set2 -contains $_ }
+        $union = $set1 + $set2 | Sort-Object | Get-Unique
+        return ($intersection.Count / $union.Count)
+    }
+
+    # Helper function to find longest common substring
+    function Get-LongestCommonSubstring {
+        param (
+            [string]$str1,
+            [string]$str2
+        )
+        $result = ""
+        $str1Length = $str1.Length
+        $str2Length = $str2.Length
+        $len = 0
+        $prev = 0
+        $table = @(,@(0 * $str2Length))
+
+        0..$str1Length | ForEach-Object { $table[$_] = @(0 * $str2Length) }
+
+        for ($i = 0; $i -lt $str1Length; $i++) {
+            for ($j = 0; $j -lt $str2Length; $j++) {
+                if ($i -eq 0 -or $j -eq 0) {
+                    $table[$i][$j] = 0
+                } elseif ($str1[$i - 1] -eq $str2[$j - 1]) {
+                    $table[$i][$j] = $table[$i - 1][$j - 1] + 1
+                    if ($table[$i][$j] -gt $len) {
+                        $len = $table[$i][$j]
+                        $x = $i - 1
+                        $result = $str1.Substring($x - $len + 1, $len)
+                    }
+                } else {
+                    $table[$i][$j] = 0
+                }
+            }
+        }
+        return $result
+    }
+
+    # Main logic of Get-MostSimilarString
+    $maxSimilarity = 0
+    $mostSimilarString = ""
+
+    foreach ($string in $strings) {
+        $similarity = Get-JaccardSimilarity -str1 $key -str2 $string
+        if ($similarity -gt $maxSimilarity) {
+            $maxSimilarity = $similarity
+            $mostSimilarString = $string
+        }
+    }
+
+    $lcs = Get-LongestCommonSubstring -str1 $key.ToLower() -str2 $mostSimilarString.ToLower()
+    return $mostSimilarString.Substring($mostSimilarString.ToLower().IndexOf($lcs), $lcs.Length)
+}
+
 
 #endregion
 ###################################################################################################
