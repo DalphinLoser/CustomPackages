@@ -1064,7 +1064,7 @@ function New-NuspecFile {
         Write-Host "    $($_.Key) -> $($_.Value)"
     }
 
-    $elementOrder = @('id', 'title', 'version', 'packageSourceUrl', 'releaseNotes', 'licenseUrl')
+    $elementOrder = @('id', 'version', 'title',  'authors', 'packageSourceUrl', 'releaseNotes', 'licenseUrl')
 
     $xmlDoc = (New-Object System.Xml.XmlDocument)
 
@@ -1227,13 +1227,13 @@ foreach (`$exe in `$exes) {
     `$desktopShortcutPath = Join-Path `$desktopDir "`$exeName.lnk"
     `$WshShell = New-Object -comObject WScript.Shell
     `$DesktopShortcut = `$WshShell.CreateShortcut(`$desktopShortcutPath)
-    `$DesktopShortcut.TargetPath = `$exe.Name
+    `$DesktopShortcut.TargetPath = `$exe.FullName
     `$DesktopShortcut.Save()
     
     # Create Start Menu Shortcut
     `$startMenuShortcutPath = Join-Path `$startMenuDir "`$exeName.lnk"
     `$StartMenuShortcut = `$WshShell.CreateShortcut(`$startMenuShortcutPath)
-    `$StartMenuShortcut.TargetPath = `$exe.Name
+    `$DesktopShortcut.TargetPath = `$exe.FullName
     `$StartMenuShortcut.Save()
 }
 "@
