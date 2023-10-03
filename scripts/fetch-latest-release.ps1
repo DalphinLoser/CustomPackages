@@ -755,27 +755,6 @@ function Get-AssetInfo {
     $iconUrl = $null
     $iconInfo = $null
 
-    $repoIconInfo = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
-    if ($null -ne $repoIconInfo) {
-        $iconInfo = $repoIconInfo
-        $iconUrl = $repoIconInfo.url
-    }
-
-            
-    if ($null -ne $icoPath) {
-        $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/$myDefaultBranch/$icoPath"
-        Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
-    }
-        # If the iscon dimentions are too small, look for alternatives
-        if ($null -ne $iconInfo -and $iconInfo.width -lt 128 -and $iconInfo.height -lt 128) {
-            $icoPath = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
-            
-            if ($null -ne $icoPath) {
-                $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/$myDefaultBranch/$icoPath"
-                Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
-            }
-        }
-
     # Check if the root repository has a homepage
     if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
         $homepage = $rootRepoInfo.homepage
@@ -796,7 +775,29 @@ function Get-AssetInfo {
             } 
         }
     }
-    
+    # TODO Check if broken. Its late an I might have messed up fixing other things
+    # If the icon does not end in .svg, check if the repo has an svg icon
+    if ($null -ne $iconInfo -and $iconInfo.width -lt 900 -and $iconInfo.height -lt 900) {
+        $repoIconInfo = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
+        if ($null -ne $repoIconInfo) {
+            # If the icon is larger than the current icon, use it instead
+            if($null -ne $repoIconInfo.url -and $repoIconInfo.width -gt $iconInfo.width -and $repoIconInfo.height -gt $iconInfo.height){
+                $iconInfo = $repoIconInfo
+                Write-Host "    Found Icon file in Repo: " -ForegroundColor Yellow -NoNewline
+                Write-Host $repoIconInfo.url
+                $iconUrl = $repoIconInfo.url
+            }else {
+                Write-Host "    No Icon file found in Repo. Looking for alternatives..." -ForegroundColor Yellow
+            }
+
+        }
+        if ($null -ne $icoPath) {
+            $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/$myDefaultBranch/$icoPath"
+            Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
+        }
+    }
+
+
     # If still no suitable icon is found, use the owner's avatar
     if ($null -eq $iconUrl) {
         $iconUrl = $rootRepoInfo.owner.avatar_url
