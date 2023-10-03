@@ -759,9 +759,9 @@ function Get-AssetInfo {
     if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
         $homepage = $rootRepoInfo.homepage
         # If image is found but not svg... (Should do better check for svg instead of dummy info)
-        if($null -ne $iconInfo -and $iconInfo.width -lt 900 -and $iconInfo.height -lt 900){{
+        
             # Attempt to get the favicon from the homepage
-            $homePageiconInfo = Get-Favicon -Homepage $homepage
+        $homePageiconInfo = Get-Favicon -Homepage $homepage
 
             # If the icon is larger than the current icon, use it instead
             if($null -ne $homePageiconInfo.url -and $homePageiconInfo.width -gt $iconInfo.width -and $homePageiconInfo.height -gt $iconInfo.height){
@@ -771,8 +771,6 @@ function Get-AssetInfo {
                 $iconUrl = $homePageiconInfo.url
             }else {
                 Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
-                }
-            } 
         }
     }
     # TODO Check if broken. Its late an I might have messed up fixing other things
