@@ -201,8 +201,9 @@ function Get-Favicon {
     Write-Host "    Homepage TLD: " -ForegroundColor Yellow -NoNewline
     Write-Host "$HomepageTld"
 
-    # Regex for matching all icon links
-    $regex = "<link[^>]*rel=`"(icon|shortcut icon)`"[^>]*href=`"([^`"]+)`""
+    # Regex for matching all icon links including png and svg
+    $regex = '<link[^>]*rel="(icon|shortcut icon|mask-icon|apple-touch-icon)"[^>]*href="([^"]+)"'
+    $regex += "|<div[^>]*class=[`"`'](?:.*navbar.*|.*logo.*)[`"`'][^>]*>.*?<img [^>]*src=[`"`']([^`"']+)[`"`']"
     $iconMatches = $webRequest.Content | Select-String -Pattern $regex -AllMatches
 
     if ($null -ne $iconMatches) {
@@ -718,12 +719,12 @@ function Get-AssetInfo {
         }
     }
 
-    # If no suitable favicon is found, look for an ICO file in the repo
-    if ($null -eq $iconUrl) {
+    # If the iscon dimentions are too small, look for alternatives
+    if ($null -ne $iconInfo -and $iconInfo.width -lt 128 -and $iconInfo.height -lt 128) {
         $icoPath = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
         
         if ($null -ne $icoPath) {
-            $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/main/$icoPath"
+            $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/$myDefaultBranch/$icoPath"
             Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
         }
     }
