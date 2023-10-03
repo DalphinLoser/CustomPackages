@@ -163,12 +163,59 @@ function Find-IcoInRepo {
         exit 1
     }
 
-    # Filter for files with .ico extension
-    $icoFiles = $response.tree | Where-Object { $_.type -eq 'blob' -and $_.path -like '*.ico' }
+    # Filter for files with .ico and .svg extensions
+    $icoFiles = $response.tree | Where-Object { $_.type -eq 'blob' -and $_.path -like '*.ico' -or $_.path -like '*.svg' }
 
-    if ($icoFiles.Count -gt 0) {
-        Write-LogFooter "Find-IcoInRepo function (Found)"
-        return $icoFiles[0].path
+    # Check the sizes of the icons
+    foreach ($icoFile in $icoFiles) {
+        $icoFileUrl = "https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/$($icoFile.path)"
+        Write-Host "    Checking icon: " -NoNewline -ForegroundColor Yellow
+        Write-Host $icoFileUrl
+        $tempFile = Get-TempIcon -iconUrl $icoFileUrl
+        if ($null -ne $tempFile) {
+            $dimensions = Get-IconDimensions -filePath $tempFile
+            Remove-Item -Path $tempFile  # Delete the temporary file
+            if ($null -ne $dimensions) {
+                $currentDimensions = $dimensions.Width * $dimensions.Height
+                # Write the current item and its dimensions
+                Write-Host "    Current Dimensions: " -NoNewline -ForegroundColor Yellow
+                Write-Host "$currentDimensions pixels"
+                # Write the highest quality item and its dimensions
+                Write-Host "    Highest Quality Dimensions: " -NoNewline -ForegroundColor Yellow
+                Write-Host "$highestQualityDimensions pixels"
+                if ($currentDimensions -gt $highestQualityDimensions) {
+                    $highestQualityIcon = $icoFileUrl
+                    $highestQualityDimensions = $currentDimensions
+                }
+                # If they are the same size, use the one with the shorter name
+                elseif ($currentDimensions -eq $highestQualityDimensions) {
+                    Write-Host "    Same dimensions, using the one with the shorter name" -ForegroundColor Cyan
+                    Write-Host "    Current: " -NoNewline -ForegroundColor Yellow
+                    Write-Host $icoFile.path
+                    Write-Host "    Highest Quality: " -NoNewline -ForegroundColor Yellow
+                    Write-Host $highestQualityIcon.path
+                    # Compare the lengths of the file names and use the shorter one
+                    if ($icoFile.Length -lt $highestQualityIcon.Length) {
+                        $highestQualityIcon = $icoFileUrl
+                        $highestQualityDimensions = $currentDimensions
+                        Write-Host "    Current is shorter, using current" -ForegroundColor Cyan
+                    } else {
+                        Write-Host "    Highest Quality is shorter, using highest quality" -ForegroundColor Cyan
+                    }
+
+                }
+            }
+        }
+    }
+
+    if ($null -ne $highestQualityIcon) {
+        Write-Host "    Highest Quality Icon in Repo: $highestQualityIcon ($highestQualityDimensions pixels)" -ForegroundColor Green
+        Write-Host "----------- Script End -----------" -ForegroundColor Cyan
+        return @{
+            url = $highestQualityIcon
+            width = [Math]::Sqrt($highestQualityDimensions)
+            height = [Math]::Sqrt($highestQualityDimensions)
+        }
     } else {
         Write-LogFooter "Find-IcoInRepo function (Not Found)"
         return
@@ -286,7 +333,7 @@ function Get-IconDimensions {
 
     switch ($extension) {
         '.svg' {
-            Write-Host "SVG Identified, returning dummy dimensions" -ForegroundColor Yellow
+            Write-Host "SVG Identified, returning dummy dimensions" -ForegroundColor Cyan
             # SVG dimension retrieval logic
             # As SVG is a vector format, it doesn't have a fixed dimension in pixels.
             return @{
@@ -708,32 +755,48 @@ function Get-AssetInfo {
     $iconUrl = $null
     $iconInfo = $null
 
+    $repoIconInfo = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
+    if ($null -ne $repoIconInfo) {
+        $iconInfo = $repoIconInfo
+        $iconUrl = $repoIconInfo.url
+    }
+
+            
+    if ($null -ne $icoPath) {
+        $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/$myDefaultBranch/$icoPath"
+        Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
+    }
+        # If the iscon dimentions are too small, look for alternatives
+        if ($null -ne $iconInfo -and $iconInfo.width -lt 128 -and $iconInfo.height -lt 128) {
+            $icoPath = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
+            
+            if ($null -ne $icoPath) {
+                $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/$myDefaultBranch/$icoPath"
+                Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
+            }
+        }
+
     # Check if the root repository has a homepage
     if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
         $homepage = $rootRepoInfo.homepage
+        # If image is found but not svg... (Should do better check for svg instead of dummy info)
+        if($null -ne $iconInfo -and $iconInfo.width -lt 900 -and $iconInfo.height -lt 900){{
+            # Attempt to get the favicon from the homepage
+            $homePageiconInfo = Get-Favicon -Homepage $homepage
 
-        # Attempt to get the favicon from the homepage
-        $iconInfo = Get-Favicon -Homepage $homepage
-
-        if ($null -ne $iconInfo.url) {
-            Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
-            Write-Host $iconInfo.url
-            $iconUrl = $iconInfo.url
-        } else {
-            Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
+            # If the icon is larger than the current icon, use it instead
+            if($null -ne $homePageiconInfo.url -and $homePageiconInfo.width -gt $iconInfo.width -and $homePageiconInfo.height -gt $iconInfo.height){
+                $iconInfo = $homePageiconInfo
+                Write-Host "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
+                Write-Host $homePageiconInfo.url
+                $iconUrl = $homePageiconInfo.url
+            }else {
+                Write-Host "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
+                }
+            } 
         }
     }
-
-    # If the iscon dimentions are too small, look for alternatives
-    if ($null -ne $iconInfo -and $iconInfo.width -lt 128 -and $iconInfo.height -lt 128) {
-        $icoPath = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
-        
-        if ($null -ne $icoPath) {
-            $iconUrl = "https://raw.githubusercontent.com/$($PackageData.user)/$($PackageData.repoName)/$myDefaultBranch/$icoPath"
-            Write-Host "    Found ICO file in Repo: $iconUrl" -ForegroundColor Green
-        }
-    }
-
+    
     # If still no suitable icon is found, use the owner's avatar
     if ($null -eq $iconUrl) {
         $iconUrl = $rootRepoInfo.owner.avatar_url
