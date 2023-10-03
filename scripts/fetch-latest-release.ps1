@@ -750,7 +750,7 @@ function Get-AssetInfo {
     # Write-Host "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor Yellow
     # Write-Host $rootRepoInfo
     # If the description is null or empty, get the description from the root repository
-    if ([string]::IsNullOrWhiteSpace($rootRepoInfo.description)) {
+    if ([string]::IsNullOrWhiteSpace($baseRepoInfo.description)) {
         $description = $rootRepoInfo.description
         # If the description is still null, get content of the readme
         if ([string]::IsNullOrWhiteSpace($rootRepoInfo.description)){
@@ -764,7 +764,7 @@ function Get-AssetInfo {
         }
     }
     else {
-        $description = $rootRepoInfo.description
+        $description = $baseRepoInfo.description
     }
 
     Write-Host "    Description: " -NoNewline -ForegroundColor Yellow
