@@ -264,22 +264,6 @@ function Get-IconDimensions {
         [string]$filePath
     )
 
-    Write-Host "    Analyzing file: " -ForegroundColor Yellow -NoNewline
-    Write-Host "$filePath"
-    
-
-    # Ensure the file exists before proceeding
-    if (-not (Test-Path -Path $filePath)) {
-        Write-Host "File not found: $filePath" -ForegroundColor Red
-        return $null
-    }
-}
-function Get-IconDimensions {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$filePath
-    )
-
     Write-Host "Analyzing file: $filePath" -ForegroundColor Yellow
 
     # Ensure the file exists before proceeding
