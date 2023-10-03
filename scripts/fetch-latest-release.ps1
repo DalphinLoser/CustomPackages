@@ -191,9 +191,14 @@ function Get-Favicon {
         return $null
     }
     #endregion
-    
-    # Strip everything after the domain name
-    $HomepageTld = $Homepage -replace '^(https?://[^/]+).*', '$1'
+    #if the url is a github.io page, strip everything after the repo name
+    if ($Homepage -match "github.io") {
+        $HomepageTld = $Homepage -replace '^(https?://[^/]+/[^/]+/[^/]+).*', '$1'
+    }
+    else {
+        # Strip everything after the domain name
+        $HomepageTld = $Homepage -replace '^(https?://[^/]+).*', '$1'
+    }
 
     # Output Information
     Write-Host "    Homepage: " -ForegroundColor Yellow -NoNewline
