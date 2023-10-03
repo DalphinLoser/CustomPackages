@@ -5,7 +5,7 @@
     <version>3.2.1</version>
     <title>ProtonVPN</title>
     <authors>maah</authors>
-    <packageSourceUrl>https://github.com/maah/ProtonVPN-win-app/releases/download/3.2.1/ProtonVPN_v3.2.1.exe</packageSourceUrl>
+    <packageSourceUrl>https://github.com/DalphinLoser/CustomPackages/tree/main/packages/maah.ProtonVPN-win-app</packageSourceUrl>
     <releaseNotes>### Upstream - Minor UI and stability improvements.</releaseNotes>
     <licenseUrl>https://github.com/maah/ProtonVPN-win-app/blob/master/LICENSE</licenseUrl>
     <tags>vpn windows</tags>
