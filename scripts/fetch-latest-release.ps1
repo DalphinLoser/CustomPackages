@@ -865,7 +865,8 @@ function Get-AssetInfo {
             $cleanedSpecifiedAssetName = $specifiedAssetName
         }
         # Clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
-        $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9.]', ''
+        $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9._-]', ''
+        Write-Host "    Specified Asset Name: " -NoNewline -ForegroundColor Yellow
         # Remove remaining leading and trailing special characters
         $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Trim('.-_')
         Write-Host "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor Yellow
