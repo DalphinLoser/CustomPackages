@@ -854,7 +854,9 @@ function Get-AssetInfo {
     Write-Host $sanitizedVersion
 
     # If specifiedasset is not null or empty print it
-    if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
+    if (-not [string]::IsNullOrWhiteSpace($PackageData.specifiedAssetName)) {
+        Write-Host "    Specified Asset Name Found, Cleaning Before Appending to Package Name: " -NoNewline -ForegroundColor Yellow
+        Write-Host $PackageData.specifiedAssetName
         # If the asset name contains the version number, remove it.
         if ($specifiedAssetName -match $tag) {
             $cleanedSpecifiedAssetName = $specifiedAssetName -replace $tag, ''
@@ -865,7 +867,7 @@ function Get-AssetInfo {
             $cleanedSpecifiedAssetName = $specifiedAssetName
         }
         # Clean package name to avoid errors such as this:The package ID 'Ryujinx.release-channel-master.ryujinx--win_x64.zip' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.
-        $cleanedSpecifiedAssetName = ".$cleanedSpecifiedAssetName" -replace '[^a-zA-Z0-9._-]', ''
+        $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName -replace '[^a-zA-Z0-9._-]', ''
         Write-Host "    Specified Asset Name: " -NoNewline -ForegroundColor Yellow
         # Remove remaining leading and trailing special characters
         $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Trim('.-_')
@@ -874,7 +876,7 @@ function Get-AssetInfo {
     }
 
     # Set the package name
-    $chocoPackageName = "$($PackageData.user).$($PackageData.repoName).$($PackageData.cleanedSpecifiedAssetName)"
+    $chocoPackageName = "$($PackageData.user).$($PackageData.repoName)"
     # If there is a specified asset, add it to the end of the package name
     if (-not [string]::IsNullOrWhiteSpace($cleanedSpecifiedAssetName)) {
         $chocoPackageName += ".$($cleanedSpecifiedAssetName)"
