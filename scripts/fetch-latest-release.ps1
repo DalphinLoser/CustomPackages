@@ -461,6 +461,12 @@ function Select-Asset {
             $cleanedSpecifiedAssetName = $specifiedAssetName -replace $PackageData.tag, $LatestReleaseObj.tag_name
             Write-Host "    Specified Asset Name contains version number. Replacing with version number from latest release: " -ForegroundColor Yellow
             Write-Host "    `"$specifiedAssetName`""
+            # Remove all special characters from the specified asset name except fot ._-
+            $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName -replace '[^a-zA-Z0-9._-]', ''
+            Write-Host "    Specified Asset Name after removing special characters: " -ForegroundColor Yellow
+            Write-Host "    `"$cleanedSpecifiedAssetName`""
+            $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
+            Write-Host "    Specified Asset Name after removing leading and trailing hyphens, underscores, and dots: " -ForegroundColor Yellow
             Write-Host "    `"$cleanedSpecifiedAssetName`""
             $specifiedAssetName = $cleanedSpecifiedAssetName
         }
@@ -868,6 +874,10 @@ function Get-AssetInfo {
 
     # Set the package name
     $chocoPackageName = "$($PackageData.user).$($PackageData.repoName).$($PackageData.cleanedSpecifiedAssetName)"
+    # If there is a specified asset, add it to the end of the package name
+    if (-not [string]::IsNullOrWhiteSpace($cleanedSpecifiedAssetName)) {
+        $chocoPackageName += ".$($cleanedSpecifiedAssetName)"
+    }
     # If the name contains the version number exactly, remove the version number from the package name
     if ($chocoPackageName -match $sanitizedVersion) {
         Write-Host "Package name: " -NoNewline -ForegroundColor Yellow
@@ -1407,8 +1417,8 @@ function Get-Updates {
 
         $latestReleaseObj_UP = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
-        Write-Host "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
-        Write-Host $latestReleaseObj_UP
+        #Write-Host "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
+        #Write-Host $latestReleaseObj_UP
 
         $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
 
@@ -1672,8 +1682,8 @@ function Initialize-GithubPackage{
     #region Create Nuspec File and Install Script
 
     # Write the type of the metadata object
-    Write-Host "Type of myMetadata before NUSPEC: " -NoNewline -ForegroundColor Magenta
-    Write-Host $($myMetadata.GetType().Name)
+    # Write-Host "Type of myMetadata before NUSPEC: " -NoNewline -ForegroundColor Magenta
+    # Write-Host $($myMetadata.GetType().Name)
 
     # Create the nuspec file and install script
     New-NuspecFile -Metadata $myMetadata -PackageDir $packageDir
