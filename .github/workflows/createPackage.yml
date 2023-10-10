@@ -2,12 +2,21 @@ name: CreatePackage
 
 on:
   workflow_dispatch:
-
+    inputs:
+      repoUrl:
+        description: 'GitHub Repository URL or Direct Asset Download URL'
+        required: true
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
+
+    - name: Set Repo URL as Environment Variable
+      run: |
+        echo "repoUrl=${{ github.event.inputs.repoUrl }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+      shell: pwsh
+
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -60,11 +69,14 @@ jobs:
       shell: pwsh
 
     - name: Navigate to the Temp Directory Then Execute The PowerShell Script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         cd $env:tempDir
-        & $env:scriptPath
+        . $env:scriptPath
+        Initialize-GithubPackage -InputUrl "${{ github.event.inputs.repoUrl }}"
       shell: pwsh
-
+    
     - name: Copy Everything Fron The Temp Directory to The Packages Directory
       run: |
         Copy-Item -Path "$env:tempDir/*" -Destination "$env:packagesDir" -Recurse -Force
