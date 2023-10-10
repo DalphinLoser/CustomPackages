@@ -3,7 +3,7 @@
 . "$PSScriptRoot\package-functions.ps1"
 . "$PSScriptRoot\process-and-validate.ps1"
 . "$PSScriptRoot\get-icons.ps1"
-. "$PSScriptRoot\new-get-package-data.ps1"
+. "$PSScriptRoot\new-data-method.ps1"
 
 # Global Variables
 $Global:acceptedExtensions = @('exe', 'msi', 'zip')

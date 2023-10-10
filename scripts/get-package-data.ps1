@@ -1,4 +1,5 @@
 . "$PSScriptRoot\logging-functions.ps1"
+. "$PSScriptRoot\new-data-method.ps1"
 
 function Select-Asset {
     param (
@@ -307,17 +308,8 @@ function Set-AssetInfo {
     # Find the root repository
     # get the url from the latest release info and replace everything after the repo name with nothing
     $PackageData.baseRepoApiUrl = $retreivedLatestReleaseObj.url -replace '/releases/.*', ''
-    Write-DebugLog "    Base Repo URL: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $PackageData.baseRepoApiUrl
-    $rootRepoObj= Get-RootRepositoryObject -baseRepoApiUrl $PackageData.baseRepoApiUrl
-    Write-DebugLog "    Root Repo URL: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $rootRepoInfo.url
 
-    # Get the default branch of the root repository
-    # TODO: I am sure this is redundant. It is late and this is a quick fix.
-    $baseRepoObj= (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)").Content | ConvertFrom-Json
-
-    $myDefaultBranch = "$($baseRepoInfo.default_branch)"
+    $myDefaultBranch = "$($PackageData.baseRepoObj.default_branch)"
     Write-DebugLog "Default Branch (Root): " -ForegroundColor Yellow
     Write-DebugLog "`"$myDefaultBranch`""
     
@@ -325,14 +317,14 @@ function Set-AssetInfo {
     # Array table to store the tags. Uses the topics json result from the GitHub API
     $tags = @()
     # If the result is not null or empty or whitespace, add the tags to the hash table from the base repo info. Otherwise, add the tags from the root repo info.
-    if (-not [string]::IsNullOrWhiteSpace($baseRepoInfo.topics)) {
-        $tags += $baseRepoInfo.topics
+    if (-not [string]::IsNullOrWhiteSpace($PackageData.baseRepoObj.topics)) {
+        $tags += $PackageData.baseRepoObj.topics
         Write-DebugLog "    Tags from base repo info: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog "$($baseRepoInfo.topics)"
-    } elseif (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.topics)) {
-        $tags += $rootRepoInfo.topics
+        Write-DebugLog "$($PackageData.baseRepoObj.topics)"
+    } elseif (-not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.topics)) {
+        $tags += $PackageData.latestReleaseObj.topics
         Write-DebugLog "    Tags from root repo info: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog "$($rootRepoInfo.topics)"
+        Write-DebugLog "$($PackageData.latestReleaseObj.topics)"
     }
     else {
         Write-DebugLog "No tags found."
@@ -357,8 +349,8 @@ function Set-AssetInfo {
     $iconInfo = $null
 
     # Check if the root repository has a homepage
-    if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.homepage)) {
-        $homepage = $rootRepoInfo.homepage
+    if (-not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.homepage)) {
+        $homepage = $PackageData.latestReleaseObj.homepage
         # If image is found but not svg... (Should do better check for svg instead of dummy info)
         
             # Attempt to get the favicon from the homepage
@@ -398,31 +390,31 @@ function Set-AssetInfo {
 
     # If still no suitable icon is found, use the owner's avatar
     if ($null -eq $iconUrl) {
-        $iconUrl = $rootRepoInfo.owner.avatar_url
+        $iconUrl = $PackageData.rootRepoObj.owner.avatar_url
         Write-DebugLog "    Using owner's avatar as icon: $iconUrl" -ForegroundColor Green
     }
 
     # If the owner of the root repository is an organization, use the organization name as package name
-    if ($rootRepoInfo.owner.type -eq 'Organization') {
-        $orgName = $rootRepoInfo.owner.login
+    if ($PackageData.latestReleaseObj.owner.type -eq 'Organization') {
+        $orgName = $PackageData.latestReleaseObj.owner.login
         Write-DebugLog "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $orgName
     }
 
 
     # Get the content of the readme file of the base and root repositories
-    $baseRepoReadme = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)/readme").Content | ConvertFrom-Json
-    $rootRepoReadme = (Invoke-WebRequest -Uri "$($rootRepoInfo.url)/readme").Content | ConvertFrom-Json
+    #$baseRepoReadme = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)/readme").Content | ConvertFrom-Json
+    #$rootRepoReadme = (Invoke-WebRequest -Uri "$($PackageData.latestReleaseObj.url)/readme").Content | ConvertFrom-Json
 
     # Get the description from the root repository if it is not null or whitespace
     $description = $null
     switch ($true) {
-        { -not [string]::IsNullOrWhiteSpace($baseRepoInfo.description) } {
-            $description = $baseRepoInfo.description
+        { -not [string]::IsNullOrWhiteSpace($PackageData.baseRepoObj.description) } {
+            $description = $PackageData.baseRepoObj.description
             break
         }
-        { -not [string]::IsNullOrWhiteSpace($rootRepoInfo.description) } {
-            $description = $rootRepoInfo.description
+        { -not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.description) } {
+            $description = $PackageData.latestReleaseObj.description
             break
         }
 
@@ -481,14 +473,14 @@ function Set-AssetInfo {
     #Initialize licenseUrl
     $licenseUrl = $null
     # Set thhe license URL to the license URL of the root repository if it is not null or whitespace
-    if (-not [string]::IsNullOrWhiteSpace($rootRepoInfo.license.url)) {
+    if (-not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.license.url)) {
         # Set the license url equal to (repo url)/blob/(default branch)/LICENSE
-        $licenseUrl = "$($rootRepoInfo.html_url)/blob/$myDefaultBranch/LICENSE"
+        $licenseUrl = "$($PackageData.latestReleaseObj.html_url)/blob/$myDefaultBranch/LICENSE"
         Write-DebugLog "    License URL: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $licenseUrl
-    } elseif (-not [string]::IsNullOrWhiteSpace($baseRepoInfo.license.url)) {
+    } elseif (-not [string]::IsNullOrWhiteSpace($PackageData.baseRepoObj.license.url)) {
         # Set the license url equal to (repo url)/blob/(default branch)/LICENSE
-        $licenseUrl = "$($baseRepoInfo.html_url)/blob/$myDefaultBranch/LICENSE"
+        $licenseUrl = "$($PackageData.baseRepoObj.html_url)/blob/$myDefaultBranch/LICENSE"
         Write-DebugLog "    License URL: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $licenseUrl
     } else {
@@ -514,7 +506,7 @@ function Set-AssetInfo {
     Write-DebugLog $commitHash
 
     # repository variable in format : <repository type="git" url="https://github.com/NuGet/NuGet.Client.git" branch="dev" commit="e1c65e4524cd70ee6e22abe33e6cb6ec73938cb3" />
-    # $nu_repoUrl = " type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" "
+    # $nu_repoUrl = " type=`"git`" url=`"$($PackageData.latestReleaseObj.html_url)`" branch=`"$($PackageData.latestReleaseObj.default_branch)`" commit=`"$($commitHash)`" "
 
     # Shoule probably (maybe) use root instead
     $licenseUrl = "$($PackageData.baseRepoUrl)/blob/$myDefaultBranch/LICENSE"
@@ -526,7 +518,7 @@ function Set-AssetInfo {
     $tagString = $tags -join ' '
 
     # $packageTitle = Get-MostSimilarString -key "ProtonVPN_v3.2.1.exe" -strings @("maah", "ProtonVPN-win-app", "ProtonVPN")
-    $packageTitle = Get-MostSimilarString -key $selectedAsset.name -strings @($PackageData.user, $PackageData.repoName, $rootRepoInfo.name)
+    $packageTitle = Get-MostSimilarString -key $selectedAsset.name -strings @($PackageData.user, $PackageData.repoName, $PackageData.latestReleaseObj.name)
 
     Write-DebugLog "    Package Title: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $packageTitle
@@ -549,6 +541,14 @@ function Set-AssetInfo {
         Tags                = $tagString
         # Repository          = $nu_repoUrl
         # ProjectSiteUrl      = $homepage
+    }
+
+    if ($fileType -eq '.exe') {
+        $dataFromExe = Get-DataFromExe -DownloadUrl $selectedAsset.browser_download_url
+        $packageMetadata.PackageName = $dataFromExe.ProductName
+        $packageMetadata.Version = $dataFromExe.ProductVersion
+        $packageMetadata.Author = $dataFromExe.CompanyName
+        $packageMetadata.IconUrl = $dataFromExe.IconUrl
     }
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
@@ -583,10 +583,10 @@ function Initialize-PackageData {
         $baseRepoApiUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
         $latestReleaseApiUrl = ($baseRepoApiUrl + '/releases/latest')
 
-        # TODO: This still needs to be added to the package table
+        # Get the base repository object and the latest release object
         $baseRepoObj = Get-BaseRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
-        $latestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $latestReleaseApiUrl
-        
+        $rootRepoObj = Get-RootRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
+        $latestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $latestReleaseApiUrl        
 
         #region Display URL information for debugging
         Write-DebugLog "    GitHub User: " -NoNewline -ForegroundColor Magenta
@@ -624,6 +624,9 @@ function Initialize-PackageData {
         user                    = $githubUser
         repoName                = $githubRepoName
         latestReleaseApiUrl     = $latestReleaseApiUrl
+        baseRepoObj             = $baseRepoObj
+        latestReleaseObj        = $latestReleaseObj
+        rootRepoObj             = $rootRepoObj
     }
 
     # Add optional keys if they are not null or empty
@@ -634,7 +637,7 @@ function Initialize-PackageData {
     }
 
     # List of expected keys. This is important as other functions will expect these keys to exist
-    $requiredKeys = @('baseRepoApiUrl', 'user', 'repoName', 'latestReleaseApiUrl', 'baseRepoUrl')
+    $requiredKeys = @('baseRepoApiUrl', 'user', 'repoName', 'latestReleaseApiUrl', 'baseRepoUrl', 'baseRepoObj', 'latestReleaseObj', 'rootRepoObj')
 
     # Verify each expected key
     foreach ($key in $requiredKeys) {
