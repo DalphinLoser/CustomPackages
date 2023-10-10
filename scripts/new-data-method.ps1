@@ -1,8 +1,5 @@
 . "$PSScriptRoot\logging-functions.ps1"
 
-# Variable for the path to the root directory, parent of PSScriptRoot
-$Global:rootDir = Split-Path $PSScriptRoot -Parent
-
 # Function that takes in the url of the download link for the package
 function Get-DataFromExe {
     param (
