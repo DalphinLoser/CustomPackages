@@ -470,6 +470,10 @@ function Select-Asset {
             Write-Host "    `"$cleanedSpecifiedAssetName`""
             $specifiedAssetName = $cleanedSpecifiedAssetName
         }
+        Write-Host "    Specified Asset Name: " -ForegroundColor Yellow -NoNewline
+        Write-Host "`"$specifiedAssetName`"" -NoNewline
+        Write-Host " does not contain the version number: " -ForegroundColor Yellow -NoNewline
+        Write-Host "`"$LatestReleaseObj.tag_name`""
         Write-Host "    Selecting asset with name: " -ForegroundColor Yellow -NoNewline
         Write-Host "`"$specifiedAssetName`""
         # if there is an asset that matches the specified asset name exactly, select it
