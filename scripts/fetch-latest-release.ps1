@@ -472,14 +472,22 @@ function Select-Asset {
         }
         Write-Host "    Selecting asset with name: " -ForegroundColor Yellow -NoNewline
         Write-Host "`"$specifiedAssetName`""
+        # if there is an asset that matches the specified asset name exactly, select it
         $f_selectedAsset = $LatestReleaseObj.assets | Where-Object { $_.name -eq $specifiedAssetName }
-        # If there is no match for the asset name, throw an error
+        # if there is no asset that matches the specified asset name exactly, select the asset that contains the specified asset name
         if ($null -eq $f_selectedAsset) {
-            # If there is still no match, throw an error
+            Write-Host "    No asset found with name: `"$specifiedAssetName`"" -ForegroundColor Yellow
+            Write-Host "    Selecting asset that contains the specified asset name: " -ForegroundColor Yellow -NoNewline
+            Write-Host "`"$specifiedAssetName`""
+            $f_selectedAsset = $LatestReleaseObj.assets | Where-Object { $_.name -like "*$specifiedAssetName*" }
+        }
+        # If there is still no match for the asset name, throw an error
+        if ($null -eq $f_selectedAsset) {
             Write-Error "No asset found with name: `"$specifiedAssetName`""
             exit 1
         }
     } else {
+        # Select the first asset with a supported type
         $f_selectedAsset = $LatestReleaseObj.assets | 
         Where-Object { 
             if ($_.name -match '\.([^.]+)$') {
