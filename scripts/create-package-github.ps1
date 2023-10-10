@@ -3,6 +3,7 @@
 . "$PSScriptRoot\package-functions.ps1"
 . "$PSScriptRoot\process-and-validate.ps1"
 . "$PSScriptRoot\get-icons.ps1"
+. "$PSScriptRoot\new-get-package-data.ps1"
 
 # Global Variables
 $Global:acceptedExtensions = @('exe', 'msi', 'zip')
@@ -21,8 +22,6 @@ Write-DebugLog "scriptsDir: " -NoNewline -ForegroundColor Magenta
 Write-DebugLog $scriptsDir
 Write-DebugLog "resourcesDir: " -NoNewline -ForegroundColor Magenta
 Write-DebugLog $resourcesDir
-
-exit 1
 
 function Initialize-GithubPackage{
     param (
