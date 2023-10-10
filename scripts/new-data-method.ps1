@@ -9,6 +9,8 @@ function Get-DataFromExe {
         [string]$DownloadUrl
     )
 
+    Write-LogHeader "Get-DataFromExe function"
+
     try {
         # Create temporary directory for downloaded file
         $tempDir = New-Item -Path $rootDir -Name "temp" -ItemType Directory -Force -ErrorAction Stop
@@ -25,8 +27,8 @@ function Get-DataFromExe {
         $metadataPath = Join-Path $rootDir "resources\RH-Get\metadata"
         $iconPath = Join-Path $rootDir "resources\RH-Get\icon"
 
-        # Write to InfoAndIcon.txt for Resource Hacker script
-        Set-Content -Path $infoAndIconPath -Value @"
+# Write to InfoAndIcon.txt for Resource Hacker script
+Set-Content -Path $infoAndIconPath -Value @"
 [FILENAMES]
 Exe=    $($downloadedFilePath)
 Log=    $($logPath)
@@ -35,16 +37,36 @@ Log=    $($logPath)
 -extract $($metadataPath)\MANIFEST.rc, MANIFEST,
 -extract $($iconPath)\ICON.rc, ICONGROUP,
 "@
-        # Execute Resource Hacker to extract resources
-        Start-Process -FilePath $resourceHackerPath -ArgumentList "-script `"$infoAndIconPath`"" -Wait -NoNewWindow
-        Write-DebugLog "Resources extracted successfully" -ForegroundColor Green
-        
+
+        try {
+            # Execute Resource Hacker to extract resources
+            Start-Process -FilePath $resourceHackerPath -ArgumentList "-script `"$infoAndIconPath`"" -Wait -NoNewWindow
+            Write-DebugLog "Resources extracted successfully" -ForegroundColor Green
+        }
+        catch {
+            Write-DebugLog "Failed to extract resources with Resource Hacker: $_"
+            return
+        }
+
         # Clean up temporary directory
         Remove-Item -Path $tempDir.FullName -Recurse -Force -ErrorAction Continue
         
         # Extract version information and upload icon
         $versionInfo = Get-VersionInfo -FilePath "$($metadataPath)\VERSIONINFO.rc"
+
+        if ($null -eq $versionInfo) {
+            Write-DebugLog "Version information not found"
+            Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+            return
+        }
+
         Move-IconToDirectory -IconPath $iconPath -VersionInfo $versionInfo -Destination "$rootDir\icons"
+
+        if ($null -eq $versionInfo.IconUrl) {
+            Write-DebugLog "Icon url not found"
+            Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+            return
+        }
 
         # Variable for icon name that will work in url
         $iconName = $versionInfo.ProductName -replace " ", "%20"
@@ -106,7 +128,8 @@ function Get-VersionInfo {
     try {
         # Check if the file exists
         if (-not (Test-Path -Path $FilePath -PathType Leaf)) {
-            throw "File not found at path: $FilePath"
+            Write-DebugLog "File not found at path: $FilePath"
+            return
         }
 
         # Read the content of the file
@@ -124,7 +147,7 @@ function Get-VersionInfo {
                 }
             }
         }        
-
+        Write-LogFooter "Get-VersionInfo function"
         # Return the extracted values
         return $versionInfo
 

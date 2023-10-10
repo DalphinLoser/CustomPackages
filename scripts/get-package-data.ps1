@@ -149,6 +149,7 @@ function Get-Filetype {
     foreach ($ext in $p_acceptedExtensions) {
         if ($p_fileName.EndsWith($ext, [System.StringComparison]::OrdinalIgnoreCase)) {
             $found = $true
+            $extToReturn = $ext
             break
         }
     }
@@ -158,7 +159,7 @@ function Get-Filetype {
         Write-DebugLog "    File name ends with an accepted extension" -ForegroundColor Yellow
         # return the extension that was found
         Write-LogFooter "File Type"
-        return $ext
+        return $extToReturn
     } else {
         Write-Error "   Unsupported file type: $p_fileName"
         exit 1
@@ -349,8 +350,8 @@ function Set-AssetInfo {
     $iconInfo = $null
 
     # Check if the root repository has a homepage
-    if (-not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.homepage)) {
-        $homepage = $PackageData.latestReleaseObj.homepage
+    if (-not [string]::IsNullOrWhiteSpace($PackageData.baseRepoObj.homepage)) {
+        $homepage = $PackageData.baseRepoObj.homepage
         # If image is found but not svg... (Should do better check for svg instead of dummy info)
         
             # Attempt to get the favicon from the homepage
@@ -526,7 +527,7 @@ function Set-AssetInfo {
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
         PackageName         = $chocoPackageName
-        Version             = $latestTagName
+        Version             = $latestTagName -replace '[^0-9.]', ''
         Author              = $PackageData.user
         Description         = $description
         VersionDescription  = $retreivedLatestReleaseObj.body -replace "\r\n", " "
@@ -543,12 +544,22 @@ function Set-AssetInfo {
         # ProjectSiteUrl      = $homepage
     }
 
-    if ($fileType -eq '.exe') {
+    # If the file type is an exe, get the product version and company name from the exe
+    if ($fileType -eq 'exe') {
+        Write-DebugLog "File type is: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $fileType
+        Write-DebugLog "    Getting product version and company name from exe: " -ForegroundColor Yellow
         $dataFromExe = Get-DataFromExe -DownloadUrl $selectedAsset.browser_download_url
-        $packageMetadata.PackageName = $dataFromExe.ProductName
-        $packageMetadata.Version = $dataFromExe.ProductVersion
-        $packageMetadata.Author = $dataFromExe.CompanyName
-        $packageMetadata.IconUrl = $dataFromExe.IconUrl
+        # If the product version, company name, or icon url is null or empty, do nothing
+        if ([string]::IsNullOrWhiteSpace($dataFromExe.ProductVersion) -or [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName) -or [string]::IsNullOrWhiteSpace($dataFromExe.IconUrl)) {
+            Write-DebugLog "    Product version, company name, or icon url is null or empty. Exiting..."
+        }
+        else {
+            $packageMetadata.Version = $dataFromExe.ProductVersion
+            $packageMetadata.Author = $dataFromExe.CompanyName
+            $packageMetadata.IconUrl = $dataFromExe.IconUrl
+            $packageMetadata.GithubRepoName = $dataFromExe.ProductName
+        }
     }
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {
