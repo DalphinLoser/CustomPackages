@@ -3,7 +3,6 @@
 function Select-Asset {
     param (
         [Parameter(Mandatory=$true)]
-        # PSCustomCbject
         [System.Object[]]$LatestReleaseObj,
 
         [Parameter(Mandatory=$true)]
@@ -11,10 +10,6 @@ function Select-Asset {
     )
 
     Write-LogHeader "Select-Asset function"
-
-    $baseRepoApiUrl= $PackageData.baseRepoApiUrl
-    # Validation check for the assets
-    $f_supportedTypes = $acceptedExtensions
 
     # Validate that assets is not null or empty
     if ($null -eq $LatestReleaseObj.assets -or $LatestReleaseObj.assets.Count -eq 0) {
@@ -40,18 +35,19 @@ function Select-Asset {
         }
         Write-DebugLog "    Selecting asset with name: " -ForegroundColor Yellow -NoNewline
         Write-DebugLog "`"$PackageData.specifiedAssetName`""
-        $f_selectedAsset = $LatestReleaseObj.assets | Where-Object { $_.name -eq $PackageData.specifiedAssetName }
+        $latestSelectedAsset = $LatestReleaseObj.assets | Where-Object { $_.name -eq $PackageData.specifiedAssetName }
         # If there is no match for the asset name, throw an error
-        if ($null -eq $f_selectedAsset) {
+        if ($null -eq $latestSelectedAsset) {
             # If there is still no match, throw an error
             Write-Error "No asset found with name: `"$PackageData.specifiedAssetName`""
             exit 1
         }
     } else {
-        $f_selectedAsset = $LatestReleaseObj.assets | 
+        # Select the first asset with a supported type
+        $latestSelectedAsset = $LatestReleaseObj.assets | 
         Where-Object { 
             if ($_.name -match '\.([^.]+)$') {
-                return $f_supportedTypes -contains $matches[1]
+                return $acceptedExtensions -contains $matches[1]
             }
             return $false
         } |
@@ -64,32 +60,31 @@ function Select-Asset {
             }
         } |
         Select-Object -First 1
-        Write-DebugLog "    Selected asset after sorting: $($f_selectedAsset.name)"
+        Write-DebugLog "    Selected asset after sorting: $($latestSelectedAsset.name)"
     }
     # Validation check for the selected asset
-    if ($null -eq $f_selectedAsset) {
+    if ($null -eq $latestSelectedAsset) {
         Write-Error "No suitable asset found for the latest release. Selected Asset is Null"
         exit 1
     }
 
     Write-LogFooter "Selected Asset"
-    return $f_selectedAsset
+    return $latestSelectedAsset
 }
-function Get-RootRepository {
+function Get-BaseRepositoryObject {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_repoUrl
-        # expects to be in this format: https://api.github.com/repos/USER/REPONAME
+        [string]$baseRepoApiUrl
     )
-    Write-LogHeader "Get-RootRepository function"
-    Write-DebugLog "    Getting root repository for: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $p_repoUrl
+    Write-LogHeader "Get-BaseRepoObject function"
+    Write-DebugLog "    Getting base repository for: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $baseRepoApiUrl
 
     # Fetch the repository information
     try {
         Write-DebugLog "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
-        $repoInfo = (Invoke-WebRequest -Uri $p_repoUrl) | ConvertFrom-Json
-        Write-DebugLog $repoInfo.full_name
+        $repoObj= (Invoke-WebRequest -Uri $baseRepoApiUrl) | ConvertFrom-Json
+        Write-DebugLog $repoObj.full_name
     }
     catch {
         Write-Error "Failed to fetch repository information."
@@ -97,14 +92,46 @@ function Get-RootRepository {
     }
 
     # Check if the repository is a fork
-    if ($repoInfo.fork -eq $true) {
+    if ($repoObj.fork -eq $true) {
         # If it's a fork, recurse into its parent
-        $rootRepo = Get-RootRepository -p_repoUrl $repoInfo.parent.url
+        $rootRepo = Get-BaseRepoObject -baseRepoApiUrl $repoObj.parent.url
+        return $rootRepo
+    } else {
+        # If it's not a fork, return the current repository info
+        Write-LogFooter "base repository info"
+        return $repoObj
+    }
+}
+function Get-RootRepositoryObject {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$baseRepoApiUrl
+        # expects to be in this format: https://api.github.com/repos/USER/REPONAME
+    )
+    Write-LogHeader "Get-RootRepositoryObject function"
+    Write-DebugLog "    Getting root repository for: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $baseRepoApiUrl
+
+    # Fetch the repository information
+    try {
+        Write-DebugLog "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
+        $repoObj= (Invoke-WebRequest -Uri $baseRepoApiUrl) | ConvertFrom-Json
+        Write-DebugLog $repoObj.full_name
+    }
+    catch {
+        Write-Error "Failed to fetch repository information."
+        return $null
+    }
+
+    # Check if the repository is a fork
+    if ($repoObj.fork -eq $true) {
+        # If it's a fork, recurse into its parent
+        $rootRepo = Get-RootRepositoryObject -baseRepoApiUrl $repoObj.parent.url
         return $rootRepo
     } else {
         # If it's not a fork, return the current repository info
         Write-LogFooter "root repository info"
-        return $repoInfo
+        return $repoObj
     }
 }
 function Get-Filetype {
@@ -181,29 +208,33 @@ function Get-SilentArgs {
 function Get-MostRecentValidRelease {
     param ( # Parameter declarations
         [Parameter(Mandatory=$true)]
-        [string]$p_repoUrl,
+        [string]$baseRepoApiUrl,
         [string[]]$validFileTypes = @('.exe', '.msi')
     )
 
-    try { # Fetch the release information
-        $rateLimitInfo = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
-        Write-DebugLog "Rate Limit Remaining: " -NoNewline -ForegroundColor DarkRed
-        Write-DebugLog $rateLimitInfo
-        
-        $f_releasesInfo = (Invoke-WebRequest -Uri "$p_repoUrl/releases").Content | ConvertFrom-Json
+    try { # Fetch the release information 
+
+        # Print response of rate limit info as an error if the API call fails (rate limit url: 'https://api.github.com/rate_limit') otherwise do not display it
+        $rateLimitResponse = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
+        if ($rateLimitResponse.StatusCode -ne 200) {
+            Write-Error "Rate limit status code: $($rateLimitResponse.StatusCode)"
+            Write-Error "$($rateLimitResponse.Content)"
+        }
+        # PSObject containing the release information
+        $releasesObj = (Invoke-WebRequest -Uri "$baseRepoApiUrl/releases").Content | ConvertFrom-Json
     }
     catch { # Write an error if the API call fails
         Write-Error "Failed to fetch release information."
         return $null
     }
 
-    if ($null -eq $f_releasesInfo -or $f_releasesInfo.Count -eq 0) {
+    if ($null -eq $releasesObj -or $releasesObj.Count -eq 0) {
         Write-DebugLog "No releases found."
         return $null
     }
 
     # Iterate through the releases and return the URL of the first release that contains a valid asset
-    foreach ($release in $f_releasesInfo) {
+    foreach ($release in $releasesObj) {
         if ($null -eq $release.assets -or $release.assets.Count -eq 0) {
             continue
         }
@@ -228,12 +259,9 @@ function Get-LatestReleaseObject {
     Write-LogHeader "Get-LatestReleaseObject"
     Write-DebugLog "    Target GitHub API URL: $LatestReleaseApiUrl"
 
-    Write-DebugLog "    Initiating web request to GitHub API..."
-    $response = Invoke-WebRequest -Uri $LatestReleaseApiUrl
-    Write-DebugLog "    HTTP Status Code: $($response.StatusCode)"
-
+    Write-DebugLog "    Fetching latest release information..."
+    $latestReleaseObj = (Invoke-WebRequest -Uri "$LatestReleaseApiUrl").Content | ConvertFrom-Json
     
-    $latestReleaseObj = $response | ConvertFrom-Json
     # Content of latestReleaseObj
     Write-DebugLog "Type of latestReleaseObj: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $latestReleaseObj.GetType().Name
@@ -253,12 +281,12 @@ function Get-LatestReleaseObject {
     Write-LogFooter "Get-LatestReleaseObject"
     return $latestReleaseObj
 }
-function Get-AssetInfo {
+function Set-AssetInfo {
     param (
         [Parameter(Mandatory=$true)]
         [hashtable]$PackageData
     )
-    Write-LogHeader "Get-AssetInfo function"
+    Write-LogHeader "Set-AssetInfo function"
     
     $retreivedLatestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $PackageData.latestReleaseApiUrl
 
@@ -281,13 +309,13 @@ function Get-AssetInfo {
     $PackageData.baseRepoApiUrl = $retreivedLatestReleaseObj.url -replace '/releases/.*', ''
     Write-DebugLog "    Base Repo URL: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $PackageData.baseRepoApiUrl
-    $rootRepoInfo = Get-RootRepository -p_repoUrl $PackageData.baseRepoApiUrl
+    $rootRepoObj= Get-RootRepositoryObject -baseRepoApiUrl $PackageData.baseRepoApiUrl
     Write-DebugLog "    Root Repo URL: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $rootRepoInfo.url
 
     # Get the default branch of the root repository
     # TODO: I am sure this is redundant. It is late and this is a quick fix.
-    $baseRepoInfo = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)").Content | ConvertFrom-Json
+    $baseRepoObj= (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)").Content | ConvertFrom-Json
 
     $myDefaultBranch = "$($baseRepoInfo.default_branch)"
     Write-DebugLog "Default Branch (Root): " -ForegroundColor Yellow
@@ -368,16 +396,11 @@ function Get-AssetInfo {
         }
     }
 
-
     # If still no suitable icon is found, use the owner's avatar
     if ($null -eq $iconUrl) {
         $iconUrl = $rootRepoInfo.owner.avatar_url
         Write-DebugLog "    Using owner's avatar as icon: $iconUrl" -ForegroundColor Green
     }
-
-
-    # TODO: Check if the org name or repo name most closely match the name of the file, use the one that most closely matches
-
 
     # If the owner of the root repository is an organization, use the organization name as package name
     if ($rootRepoInfo.owner.type -eq 'Organization') {
@@ -386,39 +409,36 @@ function Get-AssetInfo {
     Write-DebugLog $orgName
     }
 
-    # Get the description
-    # Write-DebugLog "    Passing rootRepoInfo to Get-Description: " -NoNewline -ForegroundColor Yellow
-    # Write-DebugLog $rootRepoInfo
-    # If the description is null or empty, get the description from the root repository
-    if ([string]::IsNullOrWhiteSpace($baseRepoInfo.description)) {
-        $description = $rootRepoInfo.description
-        # If the description is still null, get content of the readme
-        if ([string]::IsNullOrWhiteSpace($rootRepoInfo.description)){
-            $readmeInfo = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl.url/"readme")").Content | ConvertFrom-Json
-            $description = $readmeInfo.content
-            Write-DebugLog "    Description not found. Using readme content" -ForegroundColor Yellow
+
+    # Get the content of the readme file of the base and root repositories
+    $baseRepoReadme = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)/readme").Content | ConvertFrom-Json
+    $rootRepoReadme = (Invoke-WebRequest -Uri "$($rootRepoInfo.url)/readme").Content | ConvertFrom-Json
+
+    # Get the description from the root repository if it is not null or whitespace
+    $description = $null
+    switch ($true) {
+        { -not [string]::IsNullOrWhiteSpace($baseRepoInfo.description) } {
+            $description = $baseRepoInfo.description
+            break
         }
-        else {
-            Write-DebugLog "    Description could not be found."
+        { -not [string]::IsNullOrWhiteSpace($rootRepoInfo.description) } {
+            $description = $rootRepoInfo.description
+            break
+        }
+
+        default {
+            Write-DebugLog "Description could not be found in any source."
             $description = "Description could not be found."
         }
-    }
-    else {
-        $description = $baseRepoInfo.description
     }
 
     Write-DebugLog "    Description: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $description
 
-
     # Get the latest release version number
-    $rawVersion = $retreivedLatestReleaseObj.tag_name
-    Write-DebugLog "    Raw Version: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $rawVersion
-    # Sanitize the version number
-    $sanitizedVersion = ConvertTo-SanitizedNugetVersion -p_rawVersion $rawVersion
-    Write-DebugLog "    Sanitized Version: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $sanitizedVersion
+    $latestTagName = $retreivedLatestReleaseObj.tag_name
+    Write-DebugLog "    Latest Tag Name: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $latestTagName
 
     # If specifiedasset is not null or empty print it
     if (-not [string]::IsNullOrWhiteSpace($PackageData.specifiedAssetName)) {
@@ -442,12 +462,12 @@ function Get-AssetInfo {
         $chocoPackageName += ".$($cleanedSpecifiedAssetName)"
     }
     # If the name contains the version number exactly, remove the version number from the package name
-    if ($chocoPackageName -match $sanitizedVersion) {
+    if ($chocoPackageName -match $latestTagName) {
         Write-DebugLog "Package name: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $chocoPackageName -NoNewline
         Write-DebugLog " contains version number: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $sanitizedVersion
-        $chocoPackageName = $chocoPackageName -replace $sanitizedVersion, ''
+        Write-DebugLog $latestTagName
+        $chocoPackageName = $chocoPackageName -replace $latestTagName, ''
     }
     Write-DebugLog "    Package Name: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $chocoPackageName
@@ -475,10 +495,10 @@ function Get-AssetInfo {
         Write-DebugLog "    No license URL found."
     }
 
-    $packageSize = $selectedAsset.size
+    #$packageSize = $selectedAsset.size
 
-    Write-DebugLog "    Package Size: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $packageSize
+    #Write-DebugLog "    Package Size: " -NoNewline -ForegroundColor Yellow
+    #Write-DebugLog $packageSize
 
     # Build the URL for the API request
     $hashUrl = "https://api.github.com/repos/$($PackageData.user)/$($PackageData.repoName)/git/refs/tags/$($retreivedLatestReleaseObj.tag_name)"
@@ -494,7 +514,7 @@ function Get-AssetInfo {
     Write-DebugLog $commitHash
 
     # repository variable in format : <repository type="git" url="https://github.com/NuGet/NuGet.Client.git" branch="dev" commit="e1c65e4524cd70ee6e22abe33e6cb6ec73938cb3" />
-    $nu_repoUrl = " type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" "
+    # $nu_repoUrl = " type=`"git`" url=`"$($rootRepoInfo.html_url)`" branch=`"$($rootRepoInfo.default_branch)`" commit=`"$($commitHash)`" "
 
     # Shoule probably (maybe) use root instead
     $licenseUrl = "$($PackageData.baseRepoUrl)/blob/$myDefaultBranch/LICENSE"
@@ -503,7 +523,7 @@ function Get-AssetInfo {
     Write-DebugLog "    Repository: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $nu_repoUrl
 
-    $tagsStr = $tags -join ' '
+    $tagString = $tags -join ' '
 
     # $packageTitle = Get-MostSimilarString -key "ProtonVPN_v3.2.1.exe" -strings @("maah", "ProtonVPN-win-app", "ProtonVPN")
     $packageTitle = Get-MostSimilarString -key $selectedAsset.name -strings @($PackageData.user, $PackageData.repoName, $rootRepoInfo.name)
@@ -514,7 +534,7 @@ function Get-AssetInfo {
     # Create package metadata object as a hashtable
     $packageMetadata        = @{
         PackageName         = $chocoPackageName
-        Version             = $sanitizedVersion
+        Version             = $latestTagName
         Author              = $PackageData.user
         Description         = $description
         VersionDescription  = $retreivedLatestReleaseObj.body -replace "\r\n", " "
@@ -525,8 +545,8 @@ function Get-AssetInfo {
         IconUrl             = $iconUrl
         GithubRepoName      = $packageTitle
         LicenseUrl          = $licenseUrl
-        PackageSize         = $packageSize
-        Tags                = $tagsStr
+        #PackageSize         = $packageSize
+        Tags                = $tagString
         # Repository          = $nu_repoUrl
         # ProjectSiteUrl      = $homepage
     }
@@ -540,16 +560,16 @@ function Get-AssetInfo {
     
     Write-DebugLog "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $($packageMetadata.GetType().Name)
-    Write-LogFooter "Get-AssetInfo function"
+    Write-LogFooter "Set-AssetInfo function"
     # Ensure that the package metadata is returned as a hashtable
     return $packageMetadata
 }
-function Initialize-PackageTable {
+function Initialize-PackageData {
     param (
         [Parameter(Mandatory = $true)]
         [string]$InputGithubUrl
     )
-    Write-LogHeader "Initialize-PackageTable function"
+    Write-LogHeader "Initialize-PackageData function"
     # Check if the URL is a GitHub repository URL
     if ($InputGithubUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
 
@@ -562,6 +582,11 @@ function Initialize-PackageTable {
         $baseRepoUrl = ($InputGithubUrl -split '/')[0..4] -join '/'
         $baseRepoApiUrl = "https://api.github.com/repos/${githubUser}/${githubRepoName}"
         $latestReleaseApiUrl = ($baseRepoApiUrl + '/releases/latest')
+
+        # TODO: This still needs to be added to the package table
+        $baseRepoObj = Get-BaseRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
+        $latestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $latestReleaseApiUrl
+        
 
         #region Display URL information for debugging
         Write-DebugLog "    GitHub User: " -NoNewline -ForegroundColor Magenta
@@ -626,7 +651,7 @@ function Initialize-PackageTable {
         }
     }
 
-    Write-LogFooter "Initialize-PackageTable function"
+    Write-LogFooter "Initialize-PackageData function"
 
     # Return the hash table
     return $packageTable

@@ -6,7 +6,23 @@
 
 # Global Variables
 $Global:acceptedExtensions = @('exe', 'msi', 'zip')
-$Global:EnableDebugMode = $false
+$Global:EnableDebugMode = $true
+# Variable that stores the location of the scripts directory regardless of where the script is run from
+$Global:scriptsDir = $PSScriptRoot
+# Parent of PSScriptRoot
+$Global:rootDir = Split-Path $scriptsDir -Parent
+# Variable that stores the location of the resources dir, within root
+$Global:resourcesDir = Join-Path $rootDir "resources"
+
+# Write the locations of each directory to the console
+Write-DebugLog "rootDir: " -NoNewline -ForegroundColor Magenta
+Write-DebugLog $rootDir
+Write-DebugLog "scriptsDir: " -NoNewline -ForegroundColor Magenta
+Write-DebugLog $scriptsDir
+Write-DebugLog "resourcesDir: " -NoNewline -ForegroundColor Magenta
+Write-DebugLog $resourcesDir
+
+exit 1
 
 function Initialize-GithubPackage{
     param (
@@ -18,12 +34,12 @@ function Initialize-GithubPackage{
     Write-DebugLog $InputUrl
 
     # Create a hashtable to store the PackageTable
-    $retrievedPackageTable = Initialize-PackageTable -InputGithubUrl $InputUrl
+    $retrievedPackageTable = Initialize-PackageData -InputGithubUrl $InputUrl
     
     #region Get Asset Info
     # retrievedAssetTable
 
-    $myMetadata = Get-AssetInfo -PackageData $retrievedPackageTable
+    $myMetadata = Set-AssetInfo -PackageData $retrievedPackageTable
 
     # Set the path to the package directory and create it if it doesn't exist
     $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
