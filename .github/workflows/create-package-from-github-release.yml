@@ -37,14 +37,14 @@ jobs:
 
     - name: Initialize Package Data
       run: |
-        . "$env:SCRIPTS_DIR\get-package-data.ps1"
+        . "${{ env.SCRIPTS_DIR}}\get-package-data.ps1"
         $retrievedPackageTable = Initialize-PackageData -InputGithubUrl "$env:REPO_URL"
         echo "RETRIEVED_PACKAGE_TABLE=$(ConvertTo-Json -InputObject $retrievedPackageTable -Compress)" >> $GITHUB_ENV
       shell: pwsh
 
     - name: Get Asset Data
       run: |
-        . "$env:SCRIPTS_DIR\package-functions.ps1"
+        . "${{ env.SCRIPTS_DIR}}\package-functions.ps1"
         $retrievedPackageTable = ConvertFrom-Json "${{ env.RETRIEVED_PACKAGE_TABLE }}"
         $myMetadata = Set-AssetInfo -PackageData $retrievedPackageTable
         echo "MY_METADATA=$(ConvertTo-Json -InputObject $myMetadata -Compress)" >> $GITHUB_ENV
@@ -52,21 +52,21 @@ jobs:
 
     - name: Create Nuspec File
       run: |
-        . "$env:SCRIPTS_DIR\create-package-github.ps1"
+        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
         $myMetadata = ConvertFrom-Json "${{ env.MY_METADATA }}"
         New-NuspecFile -Metadata $myMetadata -PackageDir "$env:ROOT_DIR\package"
       shell: pwsh
 
     - name: Create Install Script
       run: |
-        . "$env:SCRIPTS_DIR\create-package-github.ps1"
+        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
         $myMetadata = ConvertFrom-Json "${{ env.MY_METADATA }}"
         New-InstallScript -Metadata $myMetadata -p_toolsDir "$env:ROOT_DIR\tools"
       shell: pwsh
 
     - name: Create Chocolatey Package
       run: |
-        . "$env:SCRIPTS_DIR\create-package-github.ps1"
+        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
         $myMetadata = ConvertFrom-Json "${{ env.MY_METADATA }}"
         $nuspecPath = Join-Path "$env:ROOT_DIR\package" "$($myMetadata.PackageName).nuspec"
         New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir "$env:ROOT_DIR\package"
