@@ -548,16 +548,31 @@ function Set-AssetInfo {
         Write-DebugLog $fileType
         Write-DebugLog "    Getting product version and company name from exe: " -ForegroundColor Yellow
         $dataFromExe = Get-DataFromExe -DownloadUrl $selectedAsset.browser_download_url
-        # If the product version, company name, or icon url is null or empty, do nothing
-        if ([string]::IsNullOrWhiteSpace($dataFromExe.ProductVersion) -or [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName) -or [string]::IsNullOrWhiteSpace($dataFromExe.IconUrl)) {
-            Write-DebugLog "    Product version, company name, or icon url is null or empty. Exiting..."
+        Function Set-Metadata {
+            Param (
+                [Parameter(Mandatory=$true)][string]$property,
+                [Parameter(Mandatory=$true)][string]$value,
+                [Parameter(Mandatory=$true)][object]$metadataObject,
+                [Parameter(Mandatory=$true)][string]$logLabel
+            )
+            if (-not [string]::IsNullOrWhiteSpace($value)) {
+                $metadataObject.$property = $value
+                Write-DebugLog "    $($logLabel): " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog $value
+            }
         }
-        else {
-            $packageMetadata.Version = $dataFromExe.ProductVersion
-            $packageMetadata.Author = $dataFromExe.CompanyName
-            $packageMetadata.IconUrl = $dataFromExe.IconUrl
-            $packageMetadata.GithubRepoName = $dataFromExe.ProductName
+        
+        $dataProperties = @{
+            Version = 'FileVersion';
+            Author = 'CompanyName';
+            GithubRepoName = 'ProductName';
+            IconUrl = 'IconUrl'
         }
+        Write-DebugLog "Version Info: " -ForegroundColor Magenta
+        foreach ($property in $dataProperties.GetEnumerator()) {
+            Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
+        }
+        
     }
 
     if ($packageMetadata -is [System.Collections.Hashtable]) {

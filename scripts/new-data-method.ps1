@@ -62,11 +62,7 @@ Log=    $($logPath)
 
         Move-IconToDirectory -IconPath $iconPath -VersionInfo $versionInfo -Destination "$rootDir\icons"
 
-        if ($null -eq $versionInfo.IconUrl) {
-            Write-DebugLog "Icon url not found"
-            Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
-            return
-        }
+
 
         # Variable for icon name that will work in url
         $iconName = $versionInfo.ProductName -replace " ", "%20"
@@ -76,8 +72,17 @@ Log=    $($logPath)
         # Add icon url to version info
         $versionInfo.IconUrl = $icoFileUrl
 
+        if ($null -eq $versionInfo.IconUrl) {
+            Write-DebugLog "Icon url not found"
+            Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+            return $versionInfo
+        }
+
         # Clean up RH-Get directory
         Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+        # Write the contents of the version info hashtable to the console
+        Write-DebugLog "Version Info: " -NoNewline -ForegroundColor Magenta
+        Write-DebugLog $versionInfo
         
         return $versionInfo
             
