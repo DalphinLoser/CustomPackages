@@ -544,7 +544,7 @@ function Set-AssetInfo {
 
     # If the file type is an exe, get the product version and company name from the exe
     if ($fileType -eq 'exe') {
-        Write-DebugLog "File type is: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog "    File type is: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $fileType
         Write-DebugLog "    Getting product version and company name from exe: " -ForegroundColor Yellow
         $dataFromExe = Get-DataFromExe -DownloadUrl $selectedAsset.browser_download_url
