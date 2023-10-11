@@ -31,6 +31,8 @@ jobs:
       shell: pwsh
 
     - name: Create Package
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
         Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}"
