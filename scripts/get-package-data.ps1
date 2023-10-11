@@ -313,7 +313,6 @@ function Set-AssetInfo {
     $myDefaultBranch = "$($PackageData.baseRepoObj.default_branch)"
     Write-DebugLog "Default Branch (Root): " -ForegroundColor Yellow
     Write-DebugLog "`"$myDefaultBranch`""
-    
 
     # Array table to store the tags. Uses the topics json result from the GitHub API
     $tags = @()
@@ -330,7 +329,6 @@ function Set-AssetInfo {
     else {
         Write-DebugLog "No tags found."
     }
-    
 
     Write-DebugLog "Tags is of type: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $tags.GetType().Name
