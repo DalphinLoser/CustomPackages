@@ -474,7 +474,7 @@ function Select-Asset {
             Write-Host "    Specified Asset Name: " -ForegroundColor Yellow -NoNewline
             Write-Host "`"$specifiedAssetName`"" -NoNewline
             Write-Host " does not contain the version number: " -ForegroundColor Yellow -NoNewline
-            Write-Host "`"$($PackageData.tag)`"" -NoNewline
+            Write-Host "`"$($PackageData.tag)`""
             Write-Host "    Selecting asset with name: " -ForegroundColor Yellow -NoNewline
             Write-Host "`"$specifiedAssetName`""
         }
