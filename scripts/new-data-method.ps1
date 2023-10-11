@@ -80,9 +80,6 @@ Log=    $($logPath)
 
         # Clean up RH-Get directory
         Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
-        # Write the contents of the version info hashtable to the console
-        Write-DebugLog "Version Info: " -NoNewline -ForegroundColor Magenta
-        Write-DebugLog $versionInfo
         
         return $versionInfo
             
