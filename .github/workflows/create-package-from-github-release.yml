@@ -36,19 +36,20 @@ jobs:
       run: |
         . "${{ env.SCRIPTS_DIR}}\get-package-data.ps1"
         $retrievedPackageTable = Initialize-PackageData -InputGithubUrl "${{ env.REPO_URL}}"
-        echo "RETRIEVED_PACKAGE_TABLE - before = $retrievedPackageTable"
+        Write-Output "RETRIEVED_PACKAGE_TABLE - before = $retrievedPackageTable"
         echo "RETRIEVED_PACKAGE_TABLE=$(ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50 -Compress)" >> $GITHUB_ENV
-        echo "RETRIEVED_PACKAGE_TABLE=$(ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50 -Compress)"
-        echo "PACKAGE_NAME=$retrievedPackageTable.PackageName)"
+        Write-Output (ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50)
       shell: pwsh
-
-    - name: Get Asset Data
+    
+    - name: Set Asset Data
       run: |
         . "${{ env.SCRIPTS_DIR}}\get-package-data.ps1"
         $retrievedPackageTable = ConvertFrom-Json "${{ env.RETRIEVED_PACKAGE_TABLE }}"
+        Write-Output "Retrieved Package Table: $(ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50)"
         $myMetadata = Set-AssetInfo -PackageData $retrievedPackageTable
         echo "MY_METADATA=$(ConvertTo-Json -InputObject $myMetadata -Compress)" >> $GITHUB_ENV
       shell: pwsh
+    
 
     - name: Create Nuspec File
       run: |
