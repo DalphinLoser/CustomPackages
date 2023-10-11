@@ -37,8 +37,8 @@ jobs:
         . "${{ env.SCRIPTS_DIR}}\get-package-data.ps1"
         $retrievedPackageTable = Initialize-PackageData -InputGithubUrl "${{ env.REPO_URL}}"
         echo "RETRIEVED_PACKAGE_TABLE - before = $retrievedPackageTable"
-        echo "RETRIEVED_PACKAGE_TABLE=$(ConvertTo-Json -InputObject $retrievedPackageTable -Compress)" >> $GITHUB_ENV
-        echo "RETRIEVED_PACKAGE_TABLE=$(ConvertTo-Json -InputObject $retrievedPackageTable -Compress)"
+        echo "RETRIEVED_PACKAGE_TABLE=$(ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50 -Compress)" >> $GITHUB_ENV
+        echo "RETRIEVED_PACKAGE_TABLE=$(ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50 -Compress)"
         echo "PACKAGE_NAME=$retrievedPackageTable.PackageName)"
       shell: pwsh
 
