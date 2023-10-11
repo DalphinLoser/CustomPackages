@@ -77,7 +77,7 @@ function Get-BaseRepositoryObject {
         [Parameter(Mandatory=$true)]
         [string]$baseRepoApiUrl
     )
-    Write-LogHeader "Get-BaseRepoObject function"
+    Write-LogHeader "Get-BaseRepositoryObject function"
     Write-DebugLog "    Getting base repository for: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $baseRepoApiUrl
 
@@ -95,7 +95,7 @@ function Get-BaseRepositoryObject {
     # Check if the repository is a fork
     if ($repoObj.fork -eq $true) {
         # If it's a fork, recurse into its parent
-        $rootRepo = Get-BaseRepoObject -baseRepoApiUrl $repoObj.parent.url
+        $rootRepo = Get-BaseRepositoryObject -baseRepoApiUrl $repoObj.parent.url
         return $rootRepo
     } else {
         # If it's not a fork, return the current repository info

@@ -15,6 +15,8 @@ $Global:rootDir = Split-Path $scriptsDir -Parent
 # Variable that stores the location of the resources dir, within root
 $Global:resourcesDir = Join-Path $rootDir "resources"
 
+$packageDir = Join-Path $rootDir "packages"
+
 # Write the locations of each directory to the console
 Write-DebugLog "rootDir: " -NoNewline -ForegroundColor Magenta
 Write-DebugLog $rootDir
@@ -41,18 +43,22 @@ function Initialize-GithubPackage{
     $myMetadata = Set-AssetInfo -PackageData $retrievedPackageTable
 
     # Set the path to the package directory and create it if it doesn't exist
-    $packageDir = Join-Path (Get-Location).Path $myMetadata.PackageName
-    Confirm-DirectoryExists -p_path $packageDir -p_name 'package'
+    $thisPackageDir = Join-Path $packageDir "$($myMetadata.PackageName)"
+    Write-DebugLog "    Package Directory: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $packageDir
+    Confirm-DirectoryExists -p_path $thisPackageDir -p_name "$($myMetadata.PackageName)"
+    Write-DebugLog "    This Package Directory: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $thisPackageDir
 
     # Explicitly set the path to the tools directory and create it if it doesn't exist
-    $toolsDir = Join-Path $packageDir "tools"
+    $toolsDir = Join-Path $thisPackageDir "tools"
     Confirm-DirectoryExists -p_path $toolsDir -p_name 'tools'
 
     #endregion
     #region Create Nuspec File and Install Script
 
     # Create the nuspec file and install script
-    New-NuspecFile -Metadata $myMetadata -PackageDir $packageDir
+    New-NuspecFile -Metadata $myMetadata -PackageDir $thisPackageDir
     Write-DebugLog "    Nuspec File Created Successfully" -ForegroundColor Green
     
     Write-DebugLog "    Creating Instal Script..." -NoNewline -ForegroundColor Yellow
@@ -65,7 +71,7 @@ function Initialize-GithubPackage{
     Write-DebugLog "Type of packageDir before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $($packageDir.GetType().Name)
 
-    $nuspecPath = Join-Path $packageDir "$($myMetadata.PackageName).nuspec"
+    $nuspecPath = Join-Path $thisPackageDir "$($myMetadata.PackageName).nuspec"
 
     # Check the nuspecPath System Object or string before passing it to New-ChocolateyPackage
     Write-DebugLog "nuspecPath before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
@@ -75,7 +81,7 @@ function Initialize-GithubPackage{
 
     
     # Create the Chocolatey package
-    New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir $packageDir
+    New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir $thisPackageDir
 
     #endregion
     Write-LogFooter "Initialize-GithubPackage function"
