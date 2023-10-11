@@ -3,7 +3,7 @@ $toolsDir   = "C:\AutoPackages\ryujinx.release-channel-master"
 
 $packageArgs = @{
     packageName     = "ryujinx.release-channel-master"
-    url             = "https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1049/test-ava-ryujinx-1.1.1049-win_x64.zip"
+    url             = "https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1050/test-ava-ryujinx-1.1.1050-win_x64.zip"
     unzipLocation   = $toolsDir
 }
 
