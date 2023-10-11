@@ -15,8 +15,6 @@ jobs:
     - name: Set Global Variables
       run: |
         echo "REPO_URL=${{ github.event.inputs.repoUrl }}" >> $GITHUB_ENV
-        echo "ACCEPTED_EXTENSIONS='exe','msi','zip'" >> $GITHUB_ENV
-        echo "ENABLE_DEBUG_MODE=true" >> $GITHUB_ENV
         echo "ROOT_DIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
         echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
       shell: bash
@@ -32,54 +30,17 @@ jobs:
         }
       shell: pwsh
 
-    - name: Initialize Package Data
+    - name: Create Package
       run: |
-        . "${{ env.SCRIPTS_DIR}}\get-package-data.ps1"
-        $retrievedPackageTable = Initialize-PackageData -InputGithubUrl "${{ env.REPO_URL}}"
-        Write-Output "RETRIEVED_PACKAGE_TABLE - before = $retrievedPackageTable"
-        echo "RETRIEVED_PACKAGE_TABLE=$(ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50 -Compress)" >> $GITHUB_ENV
-        Write-Output (ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50)
-      shell: pwsh
-    
-    - name: Set Asset Data
-      run: |
-        . "${{ env.SCRIPTS_DIR}}\get-package-data.ps1"
-        $retrievedPackageTable = ConvertFrom-Json "${{ env.RETRIEVED_PACKAGE_TABLE }}"
-        Write-Output "Retrieved Package Table: $(ConvertTo-Json -InputObject $retrievedPackageTable -Depth 50)"
-        $myMetadata = Set-AssetInfo -PackageData $retrievedPackageTable
-        echo "MY_METADATA=$(ConvertTo-Json -InputObject $myMetadata -Compress)" >> $GITHUB_ENV
-      shell: pwsh
-    
-
-    - name: Create Nuspec File
-      run: |
-        . "${{ env.SCRIPTS_DIR}}\package-functions.ps1"
-        $myMetadata = ConvertFrom-Json "${{ env.MY_METADATA }}"
-        New-NuspecFile -Metadata $myMetadata -PackageDir "${{ env.ROOT_DIR}}\package"
-      shell: pwsh
-
-    - name: Create Install Script
-      run: |
-        . "${{ env.SCRIPTS_DIR}}\package-functions.ps1"
-        $myMetadata = ConvertFrom-Json "${{ env.MY_METADATA }}"
-        New-InstallScript -Metadata $myMetadata -p_toolsDir "${{ env.ROOT_DIR}}\tools"
-      shell: pwsh
-
-    - name: Create Chocolatey Package
-      run: |
-        . "${{ env.SCRIPTS_DIR}}\package-functions.ps1"
-        $myMetadata = ConvertFrom-Json "${{ env.MY_METADATA }}"
-        $nuspecPath = Join-Path "${{ env.ROOT_DIR}}\package" "$($myMetadata.PackageName).nuspec"
-        New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir "${{ env.ROOT_DIR}}\package"
+        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
+        Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}"
       shell: pwsh
 
     - name: Commit and Push to GitHub
       run: |
-        $myMetadata = ConvertFrom-Json "${{ env.MY_METADATA }}"
-        $packageName = $myMetadata.PackageName
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add -A
-        git commit -m "Automated Package Creation: $packageName" || echo "No changes to commit"
+        git commit -m "Automated Package Creation: ${{ env.REPO_URL}}" || echo "No changes to commit"
         git push origin ${{ github.ref }}
       shell: pwsh
