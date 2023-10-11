@@ -1,4 +1,4 @@
-name: CreatePackage
+name: CreatePackage - Modular
 
 on:
   workflow_dispatch:
