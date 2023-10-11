@@ -562,13 +562,14 @@ function Set-AssetInfo {
             }
         }
         
-        $dataProperties = @{
-            Version = 'FileVersion';
-            GithubRepoName = 'ProductName';
-            IconUrl = 'IconUrl'
-        }
+
         # if datafromexe is not null or empty, set the metadata
         if($null -ne $dataFromExe -and $dataFromExe.Count -gt 0){
+            $dataProperties = @{
+                Version = 'FileVersion';
+                GithubRepoName = 'ProductName';
+                IconUrl = 'IconUrl'
+            }
             Write-DebugLog "Version Info: " -ForegroundColor Magenta
             foreach ($property in $dataProperties.GetEnumerator()) {
                 Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
@@ -579,16 +580,6 @@ function Set-AssetInfo {
                 Write-DebugLog "    Author: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog $packageMetadata.Author
             }
-        }
-        Write-DebugLog "Version Info: " -ForegroundColor Magenta
-        foreach ($property in $dataProperties.GetEnumerator()) {
-            Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
-        }
-        # Prepend the company name to the beginning of the author string without overwriting the author if it is already set
-        if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName)) {
-            $packageMetadata.Author = "$($dataFromExe.CompanyName), $($packageMetadata.Author)"
-            Write-DebugLog "    Author: " -NoNewline -ForegroundColor Yellow
-            Write-DebugLog $packageMetadata.Author
         }
     }
 
