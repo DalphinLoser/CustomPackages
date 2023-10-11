@@ -17,8 +17,8 @@ jobs:
         echo "REPO_URL=${{ github.event.inputs.repoUrl }}" >> $GITHUB_ENV
         echo "ACCEPTED_EXTENSIONS='exe','msi','zip'" >> $GITHUB_ENV
         echo "ENABLE_DEBUG_MODE=true" >> $GITHUB_ENV
-        echo "SCRIPTS_DIR=$GITHUB_WORKSPACE/CustomPackages/scripts" >> $GITHUB_ENV
-        echo "ROOT_DIR=$GITHUB_WORKSPACE/CustomPackages" >> $GITHUB_ENV
+        echo "ROOT_DIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        echo "SCRIPTS_DIR=$env:ROOT_DIR\scripts" >> $GITHUB_ENV
       shell: bash
 
     - name: Checkout Code
