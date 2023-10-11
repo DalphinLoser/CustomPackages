@@ -71,9 +71,11 @@ jobs:
 
     - name: Commit and Push to GitHub
       run: |
+        $myMetadata = ConvertFrom-Json "${{ env.MY_METADATA }}"
+        $packageName = $myMetadata.PackageName
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add -A
-        git commit -m "Automated Package Creation: Updated packages using provided scripts" || echo "No changes to commit"
+        git commit -m "Automated Package Creation: $packageName" || echo "No changes to commit"
         git push origin ${{ github.ref }}
-      shell: bash
+      shell: pwsh
