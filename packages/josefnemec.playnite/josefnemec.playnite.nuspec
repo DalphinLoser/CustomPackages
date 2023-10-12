@@ -4,13 +4,13 @@
     <id>josefnemec.playnite</id>
     <version>10.19</version>
     <title>Playnite</title>
-    <authors>JosefNemec</authors>
+    <authors>Josef Nemec, JosefNemec</authors>
     <packageSourceUrl>https://github.com/JosefNemec/Playnite/releases/download/10.19/Playnite1019.exe</packageSourceUrl>
     <releaseNotes>New:    * Option to control SafeSearch settings when using web image search    * Long running global searches no longer prevent from typing new requests    * Double click on global search results invokes primary action    * Added profile for QT6 based RPCS3 versions   Fixed:    * UI freezes for a long time when downloading unavailable image via web search    * Cancelling metadata download stuck on long timeout doesn't work properly    * Games imported via .lnk files are sometimes wrongly named    * Crash when tracking games with invalid installation data    * Fullscreen crash with invalid view settings    * Crash when launching Fullscreen exe first after fresh installation  </releaseNotes>
     <licenseUrl>https://github.com/JosefNemec/Playnite/blob/master/LICENSE</licenseUrl>
-    <tags>csharp gaming launcher wpf</tags>
     <projectUrl>https://github.com/JosefNemec/Playnite</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/JosefNemec/Playnite/master/source/Playnite.DesktopApp/Themes/Desktop/Default/Images/applogo.ico</iconUrl>
+    <tags>csharp gaming launcher wpf</tags>
     <description>Video game library manager with support for wide range of 3rd party libraries and game emulation support, providing one unified interface for your games.</description>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/Modular/icons/Playnite.ico</iconUrl>
   </metadata>
 </package>
