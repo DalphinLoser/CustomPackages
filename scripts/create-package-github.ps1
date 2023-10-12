@@ -17,20 +17,21 @@ $Global:resourcesDir = Join-Path $rootDir "resources"
 
 $packageDir = Join-Path $rootDir "packages"
 
-# Write the locations of each directory to the console
-Write-DebugLog "rootDir: " -NoNewline -ForegroundColor Magenta
-Write-DebugLog $rootDir
-Write-DebugLog "scriptsDir: " -NoNewline -ForegroundColor Magenta
-Write-DebugLog $scriptsDir
-Write-DebugLog "resourcesDir: " -NoNewline -ForegroundColor Magenta
-Write-DebugLog $resourcesDir
-
 function Initialize-GithubPackage{
     param (
         [Parameter(Mandatory=$true)]
         [string]$InputUrl
     )
     Write-LogHeader "Initialize-GithubPackage function"
+
+    # Write the locations of each directory to the console
+    Write-DebugLog "rootDir: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $rootDir
+    Write-DebugLog "scriptsDir: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $scriptsDir
+    Write-DebugLog "resourcesDir: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $resourcesDir
+
     Write-DebugLog "    Input Received: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $InputUrl
 

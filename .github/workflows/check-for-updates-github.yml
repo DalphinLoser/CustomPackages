@@ -35,7 +35,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        . "${{ env.SCRIPTS_DIR}}\package-functions.ps1"
+        . "${{ env.SCRIPTS_DIR}}\auto-package-updates.ps1"
         $updatedPackages = Get-Updates -PackagesDir "${{ env.PACKAGES_DIR}}"
         echo "UPDATED_PACKAGES=$updatedPackages" >> $GITHUB_ENV
       shell: pwsh
