@@ -1,4 +1,5 @@
 . "$PSScriptRoot\logging-functions.ps1"
+. "$PSScriptRoot\create-package-github.ps1"
 
 function New-NuspecFile {
     param (
@@ -272,10 +273,7 @@ function Get-Updates {
         Write-DebugLog "Checking for updates for: $($dirInfo.Name)" -ForegroundColor Magenta
         $package = $dirInfo.Name
 
-        $latestReleaseObj_UP = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
-
-        #Write-DebugLog "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
-        #Write-DebugLog $latestReleaseObj_UP
+        $latestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
 
@@ -303,9 +301,8 @@ function Get-Updates {
         }
 
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseObj_UP.tag_name
+        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseObj.tag_name
         Write-DebugLog "    Latest  URL: $latestReleaseUrl_Update"
-        # Compate the two urls
         # Compare the two URLs
         if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
             Write-DebugLog "    The URLs are identical. No new version seems to be available." -ForegroundColor Green
@@ -315,7 +312,7 @@ function Get-Updates {
             Write-DebugLog "    New URL: $latestReleaseUrl_Update"
         }
         Write-DebugLog "    Current Version: $oldVersion"
-        Write-DebugLog "    Latest Version: $($latestReleaseObj_UP.tag_name)"
+        Write-DebugLog "    Latest Version: $($latestReleaseObj.tag_name)"
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl_Update -ne $packageSourceUrl) {
             
@@ -326,6 +323,7 @@ function Get-Updates {
             Write-DebugLog "    The latest release URL is: " -NoNewline -ForegroundColor Yellow
             Write-DebugLog $latestReleaseUrl_Update
             # Get the new metadata
+            # TODO handle when asset iss specified (problem with version number)
             Initialize-GithubPackage -InputUrl "$latestReleaseUrl_Update"
             # Remove the old nuspec file
             Write-DebugLog "    Removing old nuspec file"
