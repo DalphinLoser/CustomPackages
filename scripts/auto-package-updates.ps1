@@ -100,6 +100,6 @@ function Get-Updates {
             Write-DebugLog "    $_"
         }
     }
-    return $updatedPackages
     Write-LogFooter "Get-Updates function"
+    return ($updatedPackages -join ',')
 }
