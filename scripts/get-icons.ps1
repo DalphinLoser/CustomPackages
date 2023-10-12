@@ -12,7 +12,7 @@ function Find-IcoInRepo {
         [string]$defaultBranch
     )
 
-    Write-LogHeader "Find-IcoInRepo function"
+    Write-LogHeader "Find-IcoInRepo"
     $token = $env:GITHUB_TOKEN
 
     Write-DebugLog "Default branch recieved: $defaultBranch"
@@ -96,7 +96,7 @@ function Find-IcoInRepo {
             height = [Math]::Sqrt($highestQualityDimensions)
         }
     } else {
-        Write-LogFooter "Find-IcoInRepo function (Not Found)"
+        Write-LogFooter "Find-IcoInRepo (Not Found)"
         return
     }
 }

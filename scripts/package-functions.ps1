@@ -8,7 +8,7 @@ function New-NuspecFile {
         [string]$PackageDir
     )
 
-    Write-LogHeader "New-NuspecFile function"
+    Write-LogHeader "New-NuspecFile"
 
     $elementMapping = @{
         id = 'PackageName'
@@ -91,11 +91,11 @@ function New-NuspecFile {
         $null = $metadataElem.AppendChild($elem)
     }
 
-    $f_nuspecPath = Join-Path $PackageDir "$($Metadata.PackageName).nuspec"
-    $null = $xmlDoc.Save($f_nuspecPath)
+    $nuspecPath = Join-Path $PackageDir "$($Metadata.PackageName).nuspec"
+    $null = $xmlDoc.Save($nuspecPath)
 
-    Write-DebugLog "Nuspec file created at: $f_nuspecPath" -ForegroundColor Green
-    Write-LogFooter "New-NuspecFile function"
+    Write-DebugLog "Nuspec file created at: $nuspecPath" -ForegroundColor Green
+    Write-LogFooter "New-NuspecFile"
 }
 function New-InstallScript {
     param (
@@ -103,10 +103,10 @@ function New-InstallScript {
         [System.Object]$Metadata,
         
         [Parameter(Mandatory=$true)]
-        [string]$p_toolsDir
+        [string]$ToolsDir
     )
 
-    Write-LogHeader "New-InstallScript function"
+    Write-LogHeader "New-InstallScript"
 
     # Validation
     if (-not $Metadata.PackageName -or -not $Metadata.ProjectUrl -or -not $Metadata.Url -or -not $Metadata.Version -or -not $Metadata.Author -or -not $Metadata.Description) {
@@ -118,7 +118,7 @@ function New-InstallScript {
     if ($Metadata.FileType -eq "zip") {
         $globalInstallDir = "C:\AutoPackages\$($Metadata.PackageName)"
 
-        $f_installScriptContent = @"
+        $installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 `$toolsDir   = "$globalInstallDir"
 
@@ -158,7 +158,7 @@ foreach (`$exe in `$exes) {
 }
 "@
     # Generate Uninstall Script
-    $f_uninstallScriptContent = @"
+    $uninstallScriptContent = @"
 `$toolsDir = "$globalInstallDir"
 `$shortcutPath = "`$env:USERPROFILE\Desktop"
 
@@ -184,12 +184,12 @@ if (Test-Path `$toolsDir) {
     Remove-Item -Path `$toolsDir -Recurse -Force
 }
 "@
-    $f_uninstallScriptPath = Join-Path $p_toolsDir "chocolateyUninstall.ps1"
-    Out-File -InputObject $f_uninstallScriptContent -FilePath $f_uninstallScriptPath -Encoding utf8
+    $uninstallScriptPath = Join-Path $ToolsDir "chocolateyUninstall.ps1"
+    Out-File -InputObject $uninstallScriptContent -FilePath $uninstallScriptPath -Encoding utf8
     Write-DebugLog "    Uninstall script created at: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $f_uninstallScriptPath    
+    Write-DebugLog $uninstallScriptPath    
     } else {
-        $f_installScriptContent = @"
+        $installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 
 `$packageArgs = @{
@@ -205,15 +205,15 @@ Install-ChocolateyPackage @packageArgs
 "@
     }
 
-    $f_installScriptPath = Join-Path $p_toolsDir "chocolateyInstall.ps1"
-    Out-File -InputObject $f_installScriptContent -FilePath $f_installScriptPath -Encoding utf8
+    $installScriptPath = Join-Path $ToolsDir "chocolateyInstall.ps1"
+    Out-File -InputObject $installScriptContent -FilePath $installScriptPath -Encoding utf8
     Write-DebugLog "    Install script created at: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $f_installScriptPath
+    Write-DebugLog $installScriptPath
 
 
 
-    Write-LogFooter "New-InstallScript function"
-    return $f_installScriptPath
+    Write-LogFooter "New-InstallScript"
+    return $installScriptPath
 }
 function New-ChocolateyPackage {
     param (
@@ -222,7 +222,7 @@ function New-ChocolateyPackage {
         [Parameter(Mandatory=$true)]
         [string]$PackageDir
     )
-    Write-LogHeader "New-ChocolateyPackage function"
+    Write-LogHeader "New-ChocolateyPackage"
     # Check the type of the nuspecPath
     Write-DebugLog "    The type of NuspecPath is: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $NuspecPath.GetType().Name -ForegroundColor Blue
@@ -246,5 +246,5 @@ function New-ChocolateyPackage {
         Write-Error "Failed to create Chocolatey package."
         exit 1
     }
-    Write-LogFooter "New-ChocolateyPackage function"
+    Write-LogFooter "New-ChocolateyPackage"
 }

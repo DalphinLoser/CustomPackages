@@ -22,7 +22,7 @@ function Initialize-GithubPackage{
         [Parameter(Mandatory=$true)]
         [string]$InputUrl
     )
-    Write-LogHeader "Initialize-GithubPackage function"
+    Write-LogHeader "Initialize-GithubPackage"
 
     # Write the locations of each directory to the console
     Write-DebugLog "rootDir: " -NoNewline -ForegroundColor Magenta
@@ -47,13 +47,13 @@ function Initialize-GithubPackage{
     $thisPackageDir = Join-Path $packageDir "$($myMetadata.PackageName)"
     Write-DebugLog "    Package Directory: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $packageDir
-    Confirm-DirectoryExists -p_path $thisPackageDir -p_name "$($myMetadata.PackageName)"
+    Confirm-DirectoryExists -DirectoryPath $thisPackageDir -DirectoryName "$($myMetadata.PackageName)"
     Write-DebugLog "    This Package Directory: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $thisPackageDir
 
     # Explicitly set the path to the tools directory and create it if it doesn't exist
     $toolsDir = Join-Path $thisPackageDir "tools"
-    Confirm-DirectoryExists -p_path $toolsDir -p_name 'tools'
+    Confirm-DirectoryExists -DirectoryPath $toolsDir -DirectoryName 'tools'
 
     #endregion
     #region Create Nuspec File and Install Script
@@ -63,7 +63,7 @@ function Initialize-GithubPackage{
     Write-DebugLog "    Nuspec File Created Successfully" -ForegroundColor Green
     
     Write-DebugLog "    Creating Instal Script..." -NoNewline -ForegroundColor Yellow
-    New-InstallScript -Metadata $myMetadata -p_toolsDir $toolsDir
+    New-InstallScript -Metadata $myMetadata -ToolsDir $toolsDir
     Write-DebugLog "    Install Script Created Successfully" -ForegroundColor Green
 
     #endregion
@@ -85,5 +85,5 @@ function Initialize-GithubPackage{
     New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir $thisPackageDir
 
     #endregion
-    Write-LogFooter "Initialize-GithubPackage function"
+    Write-LogFooter "Initialize-GithubPackage"
 }

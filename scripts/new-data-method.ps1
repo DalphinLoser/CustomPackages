@@ -1,15 +1,12 @@
 . "$PSScriptRoot\logging-functions.ps1"
 
-# Function that takes in the url of the download link for the package
-. "$PSScriptRoot\logging-functions.ps1"
-
 function Get-DataFromExe {
     param (
         [Parameter(Mandatory=$true)]
         [string]$DownloadUrl
     )
 
-    Write-LogHeader "Get-DataFromExe function"
+    Write-LogHeader "Get-DataFromExe"
 
     try {
         # Create temporary directory for downloaded file
@@ -56,7 +53,7 @@ Log=    $($logPath)
 
         if ($null -eq $versionInfo) {
             Write-DebugLog "Version information not found"
-            Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+            Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
             return
         }
 
@@ -74,12 +71,12 @@ Log=    $($logPath)
 
         if ($null -eq $versionInfo.IconUrl) {
             Write-DebugLog "Icon url not found"
-            Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+            Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
             return $versionInfo
         }
 
         # Clean up RH-Get directory
-        Clear-RHGetDirectory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+        Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
         
         return $versionInfo
             
@@ -87,8 +84,7 @@ Log=    $($logPath)
         Write-Error "An error occurred: $_"
     }
 }
-
-function Clear-RHGetDirectory {
+function Clear-Directory {
     param (
         [string]$DirectoryPath,
         [string]$Exclude
@@ -98,7 +94,6 @@ function Clear-RHGetDirectory {
         Remove-Item -Path $_.FullName -Recurse -Force -ErrorAction Continue
     }
 }
-
 function Move-IconToDirectory {
     param (
         [string]$IconPath,
@@ -120,7 +115,6 @@ function Move-IconToDirectory {
     # Move the icon to the destination directory and rename it to the product name
     Move-Item -Path $iconFile.FullName -Destination "$Destination\$($VersionInfo.ProductName).ico" -Force -ErrorAction Stop
 }
-
 function Get-VersionInfo {
     param (
         [Parameter(Mandatory=$true)]
@@ -149,7 +143,7 @@ function Get-VersionInfo {
                 }
             }
         }        
-        Write-LogFooter "Get-VersionInfo function"
+        Write-LogFooter "Get-VersionInfo"
         # Return the extracted values
         return $versionInfo
 

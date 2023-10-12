@@ -10,7 +10,7 @@ function Get-Updates {
         [Parameter(Mandatory=$true)]
         [string]$PackagesDir
     )
-    Write-LogHeader "Get-Updates function"
+    Write-LogHeader "Get-Updates"
 
     # Initialize variable to hold messages displaying if a package was updated or not
     $updatedPackages = @()
@@ -106,6 +106,6 @@ function Get-Updates {
     Write-DebugLog "Updated packages: " -NoNewline -ForegroundColor Green
     Write-DebugLog $output
 
-    Write-LogFooter "Get-Updates function"
+    Write-LogFooter "Get-Updates"
     return ($output)
 }

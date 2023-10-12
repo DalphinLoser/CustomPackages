@@ -54,100 +54,26 @@ function ConvertTo-ValidPackageName {
 
     return $PackageName 
 }
-function Test-ConvertToValidPackageName {
-    param (
-        [string]$Name,
-        [string]$Expected
-    )
-
-    $actual = ConvertTo-ValidPackageName -PackageName $Name
-    $result = if ($actual -eq $Expected) { "PASSED" } else { "FAILED" }
-    $resultColor = if ($result -eq "PASSED") { "Green" } else { "Red" }
-
-    Write-DebugLog "`nTest Case:"
-    Write-DebugLog "  Name:    `"$Name`""
-    Write-DebugLog "  Expected: `"$Expected`""
-    Write-DebugLog "  Actual:   `"$actual`""
-    Write-DebugLog "  Result:  " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $result -ForegroundColor $resultColor
-}
-function Test-Begin {
-    # Define test cases as an array of hashtables
-    $testCases = @(
-        @{ Name = "This.is.a..-test"; Expected = "this.is.a.test" },
-        @{ Name = "Another--Test_Case.."; Expected = "another-test_case" },
-        @{ Name = "..Leading.Special--Characters"; Expected = "leading.special-characters" },
-        @{ Name = "Trailing..Special--Characters.."; Expected = "trailing.special-characters" },
-        @{ Name = ".Mixed_.Special-_Characters.-Everywhere-"; Expected = "mixed.special-characters.everywhere" },
-        @{ Name = "No.SpecialCharacters"; Expected = "no.specialcharacters" },
-        @{ Name = "   Extra   Spaces   "; Expected = "extra-spaces" },
-        @{ Name = "CAPITAL.Letters-"; Expected = "capital.letters" },
-        @{ Name = "this-.__,-.._.--..-.__.is---.--a..--....-test.-.-.-...----;.-...-.-...-.-......--.--.-.-.-.-.-.-"; Expected = "this.is.a.test" },
-        @{ Name = "__--this-____----_-_is___-__--_-_-_--_a---_---_--__--__---___-_-_test--__"; Expected = "this-is_a-test" }
-    )
-    # Run test cases
-    foreach ($testCase in $testCases) {
-        Test-ConvertToValidPackageName -Name $testCase.Name -Expected $testCase.Expected
-    }
-}
-function ConvertTo-EscapedXmlContent {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$Content
-    )
-    Write-LogHeader "ConvertTo-EscapedXmlContent function"
-    Write-DebugLog "    Escaping XML Content: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $Content
-    $escapedContent = $Content -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;' -replace "'", '&apos;'
-    Write-LogFooter "ConvertTo-EscapedXmlContent function"
-    return $escapedContent
-}
-function ConvertTo-SanitizedNugetVersion {
-    param (
-        [string]$p_rawVersion
-    )
-    Write-LogHeader "ConvertTo-SanitizedNugetVersion function"
-    # Step 1: Trim leading and trailing whitespaces and remove non-numeric leading characters
-    $f_cleanVersion = $p_rawVersion.Trim()
-    $f_cleanVersion = $f_cleanVersion -replace '^[^0-9]*', ''
-    
-    # Step 2: Split into numeric and label parts
-    $f_numeric = if ($f_cleanVersion -match '^[0-9.]+') { $matches[0] } else { '' }
-    $f_label = if ($f_cleanVersion -match '[^-+0-9.]+([-.+].*)$') { $matches[1] } else { '' }
-    
-    # Step 3: Sanitize numeric part to only include numerals and periods
-    $f_numeric = $f_numeric -replace '[^0-9.]', ''
-    
-    # Step 4: Sanitize labels to only include alphanumerics and hyphens
-    $f_label = $f_label -replace '[^-a-zA-Z0-9.+]', ''
-    
-    # Step 5: Reassemble the version string
-    $f_sanitizedVersion = "$f_numeric$f_label"
-    
-    # Return the sanitized version string
-    Write-LogFooter "Sanitized Version"
-    return $f_sanitizedVersion
-}
 function Confirm-DirectoryExists {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_path,
+        [string]$DirectoryPath,
         [Parameter(Mandatory=$true)]
-        [string]$p_name
+        [string]$DirectoryName
     )
-    Write-LogHeader "Confirm-DirectoryExists function"
-    Write-DebugLog "    Checking for $p_name directory..."
-    if (-not (Test-Path $p_path)) {
-        Write-DebugLog "    No $p_name directory found, creating $p_name directory..."
-        New-Item -Path $p_path -ItemType Directory | Out-Null
-        Write-DebugLog "    $p_name directory created at: $" -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $p_path
+    Write-LogHeader "Confirm-DirectoryExists"
+    Write-DebugLog "    Checking for $DirectoryName directory..."
+    if (-not (Test-Path $DirectoryPath)) {
+        Write-DebugLog "    No $DirectoryName directory found, creating $DirectoryName directory..."
+        New-Item -Path $DirectoryPath -ItemType Directory | Out-Null
+        Write-DebugLog "    $DirectoryName directory created at: $" -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $DirectoryPath
     }
     else {
-        Write-DebugLog "    $p_name directory found at: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $p_path
+        Write-DebugLog "    $DirectoryName directory found at: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $DirectoryPath
     }
-    Write-LogFooter "Confirm-DirectoryExists function"
+    Write-LogFooter "Confirm-DirectoryExists"
 }
 function Get-MostSimilarString {
     param (

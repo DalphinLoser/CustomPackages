@@ -1,7 +1,7 @@
 . "$PSScriptRoot\logging-functions.ps1"
 . "$PSScriptRoot\new-data-method.ps1"
 
-function Select-Asset {
+function Select-AssetFromRelease {
     param (
         [Parameter(Mandatory=$true)]
         [System.Object[]]$LatestReleaseObj,
@@ -10,7 +10,7 @@ function Select-Asset {
         [hashtable]$PackageData
     )
 
-    Write-LogHeader "Select-Asset function"
+    Write-LogHeader "Select-AssetFromRelease"
 
     # Validate that assets is not null or empty
     if ($null -eq $LatestReleaseObj.assets -or $LatestReleaseObj.assets.Count -eq 0) {
@@ -77,7 +77,7 @@ function Get-BaseRepositoryObject {
         [Parameter(Mandatory=$true)]
         [string]$baseRepoApiUrl
     )
-    Write-LogHeader "Get-BaseRepositoryObject function"
+    Write-LogHeader "Get-BaseRepositoryObject"
     Write-DebugLog "    Getting base repository for: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $baseRepoApiUrl
 
@@ -109,7 +109,7 @@ function Get-RootRepositoryObject {
         [string]$baseRepoApiUrl
         # expects to be in this format: https://api.github.com/repos/USER/REPONAME
     )
-    Write-LogHeader "Get-RootRepositoryObject function"
+    Write-LogHeader "Get-RootRepositoryObject"
     Write-DebugLog "    Getting root repository for: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $baseRepoApiUrl
 
@@ -140,7 +140,7 @@ function Get-Filetype {
         [Parameter(Mandatory=$true)]
         [string]$FileName
     )
-    Write-LogHeader "Get-Filetype function"
+    Write-LogHeader "Get-Filetype"
 
     $found = $false
 
@@ -166,35 +166,35 @@ function Get-Filetype {
 }
 function Get-SilentArgs {
     # This is admittedly not a great way to handle this.
-    # Maybe run /help or /? on the installer and parse the output?
+    # TODO: Get from the installer when possible
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [string]$FileType
     )
-    Write-LogHeader "Get-SilentArgs function"
+    Write-LogHeader "Get-SilentArgs"
     
-    $f_silentArgs = ''
+    $silentArgs = ''
     
     switch ($FileType) {
         'exe' { 
-            $f_silentArgs = '/S /s /Q /q /SP- /VERYSILENT /NORESTART /quiet /silent'  # Silent installation
+            $silentArgs = '/S /s /Q /q /SP- /VERYSILENT /NORESTART /quiet /silent'  # Silent installation
         }
         'msi' { 
-            $f_silentArgs = '/quiet /qn /norestart'  # Quiet mode, no user input, no restart
+            $silentArgs = '/quiet /qn /norestart'  # Quiet mode, no user input, no restart
         }
         'zip' { 
-            $f_silentArgs = '-y'  # Assume yes on all queries (Note: Not standard for ZIP)
+            $silentArgs = '-y'  # Assume yes on all queries (Note: Not standard for ZIP)
         }
         <# These Types Are Not Currently Supported
         '7z'  { 
-            $f_silentArgs = '-y'  # Assume yes on all queries
+            $silentArgs = '-y'  # Assume yes on all queries
         }        
         'msu' { 
-            $f_silentArgs = '/quiet /norestart'  # Quiet mode, no restart
+            $silentArgs = '/quiet /norestart'  # Quiet mode, no restart
         }
         'msp' { 
-            $f_silentArgs = '/qn /norestart'  # Quiet mode, no restart
+            $silentArgs = '/qn /norestart'  # Quiet mode, no restart
         }
         #>
         default { 
@@ -204,7 +204,7 @@ function Get-SilentArgs {
     }
 
     Write-LogFooter "Silent Args"
-    return $f_silentArgs
+    return $silentArgs
 }
 function Get-MostRecentValidRelease {
     param ( # Parameter declarations
@@ -283,12 +283,12 @@ function Set-AssetInfo {
         [Parameter(Mandatory=$true)]
         [hashtable]$PackageData
     )
-    Write-LogHeader "Set-AssetInfo function"
+    Write-LogHeader "Set-AssetInfo"
     
     $retreivedLatestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $PackageData.latestReleaseApiUrl
 
     # Select the best asset based on supported types
-    $selectedAsset = Select-Asset -LatestReleaseObj $retreivedLatestReleaseObj -PackageData $PackageData
+    $selectedAsset = Select-AssetFromRelease -LatestReleaseObj $retreivedLatestReleaseObj -PackageData $PackageData
     Write-DebugLog "Selected asset name: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $selectedAsset.name
 
@@ -587,7 +587,7 @@ function Set-AssetInfo {
     
     Write-DebugLog "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $($packageMetadata.GetType().Name)
-    Write-LogFooter "Set-AssetInfo function"
+    Write-LogFooter "Set-AssetInfo"
     # Ensure that the package metadata is returned as a hashtable
     return $packageMetadata
 }
@@ -596,7 +596,7 @@ function Initialize-PackageData {
         [Parameter(Mandatory = $true)]
         [string]$InputGithubUrl
     )
-    Write-LogHeader "Initialize-PackageData function"
+    Write-LogHeader "Initialize-PackageData"
     # Check if the URL is a GitHub repository URL
     if ($InputGithubUrl -match '^https?://github.com/[\w-]+/[\w-]+') {
 
@@ -681,7 +681,7 @@ function Initialize-PackageData {
         }
     }
 
-    Write-LogFooter "Initialize-PackageData function"
+    Write-LogFooter "Initialize-PackageData"
 
     # Return the hash table
     return $packageTable
