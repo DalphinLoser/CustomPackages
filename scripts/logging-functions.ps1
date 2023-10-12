@@ -1,10 +1,10 @@
 function Write-DebugLog {
     param (
-        [Parameter(Mandatory=$false)]  # Set Mandatory to $false
-        [psobject]$Message = "",  # Set default value to empty string
+        [Parameter(Mandatory = $false)]  # Set Mandatory to $false
+        [psobject]$Message = "", # Set default value to empty string
         [ConsoleColor]$ForegroundColor = [ConsoleColor]::White,
-        [ConsoleColor]$BackgroundColor = [ConsoleColor]::Black,  # New parameter with default value
-        [switch]$EnableDebug  = $Global:EnableDebugMode,
+        [ConsoleColor]$BackgroundColor = [ConsoleColor]::Black, # New parameter with default value
+        [switch]$EnableDebug = $Global:EnableDebugMode,
         [switch]$NoNewline
     )
 
@@ -17,14 +17,15 @@ function Write-DebugLog {
         $MessageString = if ($null -eq $Message) { "" } else { $Message }  # Convert message to string or use empty string if $Message is $null
         if ($NoNewline) {
             Write-Host -NoNewline $MessageString -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor  # Include BackgroundColor
-        } else {
+        }
+        else {
             Write-Host $MessageString -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor  # Include BackgroundColor
         }
     }
 }
 function Write-LogHeader {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Message,
         [ConsoleColor]$ForegroundColor = 'DarkGray'
     )
@@ -32,7 +33,7 @@ function Write-LogHeader {
 }
 function Write-LogFooter {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Message,
         [ConsoleColor]$ForegroundColor = 'DarkGray'
     )
@@ -42,7 +43,7 @@ function Write-LogFooter {
 function Write-ObjectProperties {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [Object]$Object,
 
         [Parameter()]
@@ -65,17 +66,19 @@ function Write-ObjectProperties {
     
         $props = if ($Obj -is [PSCustomObject]) {
             $Obj.PSObject.Properties
-        } elseif ($Obj -is [Hashtable]) {
+        }
+        elseif ($Obj -is [Hashtable]) {
             $Obj.GetEnumerator() | ForEach-Object { 
                 New-Object PSObject -Property @{
-                    Name = $_.Key
+                    Name  = $_.Key
                     Value = $_.Value
                 }
             }
-        } elseif ($Obj -is [Array]) {
+        }
+        elseif ($Obj -is [Array]) {
             $Obj | ForEach-Object -Begin { $i = 0 } -Process {
                 New-Object PSObject -Property @{
-                    Name = "Index $i"
+                    Name  = "Index $i"
                     Value = $_
                 }
                 $i++
@@ -84,13 +87,13 @@ function Write-ObjectProperties {
         elseif ($Obj -is [String]) {
             $Obj | ForEach-Object -Begin { $i = 0 } -Process {
                 New-Object PSObject -Property @{
-                    Name = "Index $i"
+                    Name  = "Index $i"
                     Value = $_
                 }
                 $i++
             }
         }
-         else {
+        else {
             Write-DebugLog "${Indent}Unsupported type: $($Obj.GetType().Name)" -ForegroundColor Red
             return
         }
@@ -99,7 +102,8 @@ function Write-ObjectProperties {
             $propType = if ($null -ne $prop.Value) { $prop.Value.GetType().Name } else { '<null>' }
             $propValue = if (-not [string]::IsNullOrWhiteSpace($prop.Value)) {
                 $prop.Value.ToString() -replace "`r`n|`r|`n", " "
-            } else {
+            }
+            else {
                 '<empty or whitespace>'
             }
     
@@ -114,7 +118,8 @@ function Write-ObjectProperties {
             if ($prop.Value -is [PSCustomObject] -or $prop.Value -is [Hashtable]) {
                 # Handling complex objects
                 Get-InternalProperties -Obj $prop.Value -Indent "$Indent    " -Depth ($Depth + 1)
-            } elseif ($prop.Value -is [Array]) {
+            }
+            elseif ($prop.Value -is [Array]) {
                 # Handling arrays
                 if ($prop.Value -is [String[]]) {
                     # Handling arrays of strings or other simple types
@@ -122,7 +127,8 @@ function Write-ObjectProperties {
                     Write-DebugLog "$Indent| Type: $propType" -ForegroundColor $currentColor
                     Write-DebugLog "$Depth" -NoNewline
                     Write-DebugLog "$Indent| Value: $propValue" -ForegroundColor $currentColor
-                } else {
+                }
+                else {
                     # Handling arrays of complex objects
                     $index = 0
                     foreach ($item in $prop.Value) {
@@ -131,7 +137,8 @@ function Write-ObjectProperties {
                         $index++
                     }
                 }
-            } else {
+            }
+            else {
                 # Handling simple types
                 Write-DebugLog "$Indent| Type: $propType" -ForegroundColor $currentColor
                 Write-DebugLog "$Depth" -NoNewline

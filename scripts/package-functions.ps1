@@ -2,26 +2,26 @@
 
 function New-NuspecFile {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [System.Object]$Metadata,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$PackageDir
     )
 
     Write-LogHeader "New-NuspecFile"
 
     $elementMapping = @{
-        id = 'PackageName'
-        title = 'GithubRepoName'
-        version = 'Version'
-        authors = 'Author'
-        description = 'Description'
-        projectUrl = 'ProjectUrl'
+        id               = 'PackageName'
+        title            = 'GithubRepoName'
+        version          = 'Version'
+        authors          = 'Author'
+        description      = 'Description'
+        projectUrl       = 'ProjectUrl'
         packageSourceUrl = 'Url'
-        releaseNotes = 'VersionDescription'
-        licenseUrl = 'LicenseUrl'
-        iconUrl = 'IconUrl'
-        tags = 'Tags'
+        releaseNotes     = 'VersionDescription'
+        licenseUrl       = 'LicenseUrl'
+        iconUrl          = 'IconUrl'
+        tags             = 'Tags'
     }
 
     Write-DebugLog "Element Mapping:" -ForegroundColor Yellow
@@ -29,7 +29,7 @@ function New-NuspecFile {
         Write-DebugLog "    $($_.Key) -> $($_.Value)"
     }
 
-    $elementOrder = @('id', 'version', 'title',  'authors', 'packageSourceUrl', 'releaseNotes', 'licenseUrl')
+    $elementOrder = @('id', 'version', 'title', 'authors', 'packageSourceUrl', 'releaseNotes', 'licenseUrl')
 
     $xmlDoc = New-Object System.Xml.XmlDocument
 
@@ -99,10 +99,10 @@ function New-NuspecFile {
 }
 function New-InstallScript {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [System.Object]$Metadata,
         
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$ToolsDir
     )
 
@@ -157,8 +157,8 @@ foreach (`$exe in `$exes) {
     `$StartMenuShortcut.Save()
 }
 "@
-    # Generate Uninstall Script
-    $uninstallScriptContent = @"
+        # Generate Uninstall Script
+        $uninstallScriptContent = @"
 `$toolsDir = "$globalInstallDir"
 `$shortcutPath = "`$env:USERPROFILE\Desktop"
 
@@ -184,11 +184,12 @@ if (Test-Path `$toolsDir) {
     Remove-Item -Path `$toolsDir -Recurse -Force
 }
 "@
-    $uninstallScriptPath = Join-Path $ToolsDir "chocolateyUninstall.ps1"
-    Out-File -InputObject $uninstallScriptContent -FilePath $uninstallScriptPath -Encoding utf8
-    Write-DebugLog "    Uninstall script created at: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $uninstallScriptPath    
-    } else {
+        $uninstallScriptPath = Join-Path $ToolsDir "chocolateyUninstall.ps1"
+        Out-File -InputObject $uninstallScriptContent -FilePath $uninstallScriptPath -Encoding utf8
+        Write-DebugLog "    Uninstall script created at: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $uninstallScriptPath    
+    }
+    else {
         $installScriptContent = @"
 `$ErrorActionPreference = 'Stop';
 
@@ -217,9 +218,9 @@ Install-ChocolateyPackage @packageArgs
 }
 function New-ChocolateyPackage {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$NuspecPath,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$PackageDir
     )
     Write-LogHeader "New-ChocolateyPackage"
@@ -242,7 +243,8 @@ function New-ChocolateyPackage {
     try {
         Write-DebugLog "    Creating Chocolatey package..."
         choco pack $NuspecPath -Force -Verbose --out $PackageDir
-    } catch {
+    }
+    catch {
         Write-Error "Failed to create Chocolatey package."
         exit 1
     }

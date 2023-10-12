@@ -2,7 +2,7 @@
 
 function Get-DataFromExe {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$DownloadUrl
     )
 
@@ -24,8 +24,8 @@ function Get-DataFromExe {
         $metadataPath = Join-Path $rootDir "resources\RH-Get\metadata"
         $iconPath = Join-Path $rootDir "resources\RH-Get\icon"
 
-# Write to InfoAndIcon.txt for Resource Hacker script
-Set-Content -Path $infoAndIconPath -Value @"
+        # Write to InfoAndIcon.txt for Resource Hacker script
+        Set-Content -Path $infoAndIconPath -Value @"
 [FILENAMES]
 Exe=    $($downloadedFilePath)
 Log=    $($logPath)
@@ -80,7 +80,8 @@ Log=    $($logPath)
         
         return $versionInfo
             
-    } catch {
+    }
+    catch {
         Write-Error "An error occurred: $_"
     }
 }
@@ -117,7 +118,7 @@ function Move-IconToDirectory {
 }
 function Get-VersionInfo {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$FilePath
     )
 
@@ -147,7 +148,8 @@ function Get-VersionInfo {
         # Return the extracted values
         return $versionInfo
 
-    } catch {
+    }
+    catch {
         # Handle errors and exceptions
         Write-Error "An error occurred: $_"
     }

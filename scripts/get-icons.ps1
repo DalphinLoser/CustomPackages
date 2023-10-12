@@ -2,13 +2,13 @@
 
 function Find-IcoInRepo {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$owner,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$repo,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$defaultBranch
     )
 
@@ -37,7 +37,8 @@ function Find-IcoInRepo {
         # Write-DebugLog "Response Status Code: $($webResponse.StatusCode)" -ForegroundColor Yellow
         # Write-DebugLog "Response Content:" -ForegroundColor Yellow
         # Write-DebugLog $webResponse.Content
-    } catch {
+    }
+    catch {
         Write-Error "ERROR: Failed to query GitHub API."
         exit 1
     }
@@ -78,7 +79,8 @@ function Find-IcoInRepo {
                         $highestQualityIcon = $icoFileUrl
                         $highestQualityDimensions = $currentDimensions
                         Write-DebugLog "    Current is shorter, using current" -ForegroundColor Cyan
-                    } else {
+                    }
+                    else {
                         Write-DebugLog "    Highest Quality is shorter, using highest quality" -ForegroundColor Cyan
                     }
 
@@ -91,18 +93,19 @@ function Find-IcoInRepo {
         Write-DebugLog "    Highest Quality Icon in Repo: $highestQualityIcon ($highestQualityDimensions pixels)" -ForegroundColor Green
         Write-DebugLog "----------- Script End -----------" -ForegroundColor Cyan
         return @{
-            url = $highestQualityIcon
-            width = [Math]::Sqrt($highestQualityDimensions)
+            url    = $highestQualityIcon
+            width  = [Math]::Sqrt($highestQualityDimensions)
             height = [Math]::Sqrt($highestQualityDimensions)
         }
-    } else {
+    }
+    else {
         Write-LogFooter "Find-IcoInRepo (Not Found)"
         return
     }
 }
 function Get-Favicon {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Homepage
     )
 
@@ -112,7 +115,8 @@ function Get-Favicon {
     Write-DebugLog "Fetching webpage content from $Homepage" -ForegroundColor Yellow
     try {
         $webRequest = Invoke-WebRequest -Uri $Homepage
-    } catch {
+    }
+    catch {
         Write-DebugLog "Failed to fetch webpage content. Please check your internet connection and the URL." -ForegroundColor Red
         return $null
     }
@@ -142,9 +146,11 @@ function Get-Favicon {
             $faviconRelativeLink = $_.Groups[2].Value
             if ($faviconRelativeLink -match "^(https?:\/\/)") {
                 $faviconRelativeLink  # It's already an absolute URL
-            } elseif ($faviconRelativeLink -match "^/") {
+            }
+            elseif ($faviconRelativeLink -match "^/") {
                 "$HomepageTld$faviconRelativeLink"
-            } else {
+            }
+            else {
                 "$HomepageTld/$faviconRelativeLink"
             }
         }  
@@ -174,17 +180,19 @@ function Get-Favicon {
             Write-DebugLog "    Highest Quality Icon: $highestQualityIcon ($highestQualityDimensions pixels)" -ForegroundColor Green
             Write-DebugLog "----------- Script End -----------" -ForegroundColor Cyan
             return @{
-                url = $highestQualityIcon
-                width = [Math]::Sqrt($highestQualityDimensions)
+                url    = $highestQualityIcon
+                width  = [Math]::Sqrt($highestQualityDimensions)
                 height = [Math]::Sqrt($highestQualityDimensions)
             }
-        } else {
+        }
+        else {
             Write-DebugLog "No suitable icon found." -ForegroundColor Red
             Write-DebugLog "----------- Script End -----------" -ForegroundColor Cyan
             return $null
         }
 
-    } else {
+    }
+    else {
         Write-DebugLog "No favicon link found in HTML" -ForegroundColor Red
         Write-DebugLog "----------- Script End -----------" -ForegroundColor Cyan
         return $null
@@ -192,7 +200,7 @@ function Get-Favicon {
 }
 function Get-IconDimensions {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$filePath
     )
 
@@ -216,7 +224,7 @@ function Get-IconDimensions {
             # SVG dimension retrieval logic
             # As SVG is a vector format, it doesn't have a fixed dimension in pixels.
             return @{
-                Width = 999 # As SVG is a vector format, it doesn't have a fixed dimension in pixels.
+                Width  = 999 # As SVG is a vector format, it doesn't have a fixed dimension in pixels.
                 Height = 999
             }
         }
@@ -252,10 +260,11 @@ function Get-IconDimensions {
                 Write-DebugLog "ICO Dimensions: " -ForegroundColor Green -NoNewline
                 Write-DebugLog "$maxWidth x $maxHeight"
                 return @{
-                    Width = $maxWidth
+                    Width  = $maxWidth
                     Height = $maxHeight
                 }
-            } finally {
+            }
+            finally {
                 $fileStream.Close()
             }
         }
@@ -273,10 +282,11 @@ function Get-IconDimensions {
                 Write-DebugLog "    PNG Dimensions: " -ForegroundColor Green -NoNewline
                 Write-DebugLog "$width x $height"
                 return @{
-                    Width = $width
+                    Width  = $width
                     Height = $height
                 }
-            } finally {
+            }
+            finally {
                 $fileStream.Close()
             }
         }
@@ -289,7 +299,7 @@ function Get-IconDimensions {
 }
 function Get-TempIcon {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$iconUrl
     )
 
@@ -302,7 +312,8 @@ function Get-TempIcon {
     try {
         Invoke-WebRequest -Uri $iconUrl -OutFile $tempFile
         return $tempFile
-    } catch {
+    }
+    catch {
         Write-DebugLog "Failed to download icon from $iconUrl" -ForegroundColor Red
         return $null
     }

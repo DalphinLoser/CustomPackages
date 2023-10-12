@@ -7,7 +7,7 @@ $Global:EnableDebugMode = $true
 
 function Get-Updates {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$PackagesDir
     )
     Write-LogHeader "Get-Updates"
@@ -45,7 +45,8 @@ function Get-Updates {
         # Find the value of the packageSourceUrl field in the nuspec file
         if ($nuspecFileContent -match '<packageSourceUrl>(.*?)<\/packageSourceUrl>') {
             $packageSourceUrl = $matches[1]
-        } else {
+        }
+        else {
             Write-Error "No <packageSourceUrl> tag found."
             exit 1
         }
@@ -54,7 +55,8 @@ function Get-Updates {
         # Extract the old version number using regex. This assumes the version follows right after '/download/'
         if ($packageSourceUrl -match '/download/([^/]+)/') {
             $oldTag = $matches[1]
-        } else {
+        }
+        else {
             Write-Error "Could not find the version number in the URL."
             exit 1
         }
@@ -65,7 +67,8 @@ function Get-Updates {
         # Compare the two URLs
         if ($latestReleaseUrl -eq $packageSourceUrl) {
             Write-DebugLog "    The URLs are identical. No new version seems to be available." -ForegroundColor Yellow
-        } else {
+        }
+        else {
             Write-DebugLog "    The URLs are different. A new version appears to be available." -ForegroundColor Yellow
             Write-DebugLog "    Old URL: $packageSourceUrl"
             Write-DebugLog "    New URL: $latestReleaseUrl"
@@ -88,13 +91,15 @@ function Get-Updates {
             # Remove the old nuspec file
             Write-DebugLog "    Removing old nuspec file"
             
-        } else {
+        }
+        else {
             Write-DebugLog "    No updates found for $package" -ForegroundColor Cyan
         }
     }
-    if($updatedPackages.Count -eq 0) {
+    if ($updatedPackages.Count -eq 0) {
         Write-DebugLog "No updates found for any packages." -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-DebugLog "Automatically Updated Packages: " -ForegroundColor Green
         $updatedPackages | ForEach-Object {
             Write-DebugLog "    $_"

@@ -34,7 +34,7 @@ function ConvertTo-ValidPackageName {
             $PackageName = $PackageName.Remove($i + 1, 1)
             # Decrease the index by 1 to account for the removed character
         }
-        else{
+        else {
             # Continue to the next character
             $i++
         }
@@ -56,9 +56,9 @@ function ConvertTo-ValidPackageName {
 }
 function Confirm-DirectoryExists {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$DirectoryPath,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$DirectoryName
     )
     Write-LogHeader "Confirm-DirectoryExists"
@@ -67,11 +67,11 @@ function Confirm-DirectoryExists {
         Write-DebugLog "    No $DirectoryName directory found, creating $DirectoryName directory..."
         New-Item -Path $DirectoryPath -ItemType Directory | Out-Null
         Write-DebugLog "    $DirectoryName directory created at: $" -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $DirectoryPath
+        Write-DebugLog $DirectoryPath
     }
     else {
         Write-DebugLog "    $DirectoryName directory found at: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $DirectoryPath
+        Write-DebugLog $DirectoryPath
     }
     Write-LogFooter "Confirm-DirectoryExists"
 }
@@ -136,7 +136,8 @@ function Get-MostSimilarString {
         if ($similarity -gt $maxSimilarity) {
             $maxSimilarity = $similarity
             $mostSimilarStrings = @($string)
-        } elseif ($similarity -eq $maxSimilarity) {
+        }
+        elseif ($similarity -eq $maxSimilarity) {
             $mostSimilarStrings += $string
         }
     }

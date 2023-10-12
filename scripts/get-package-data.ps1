@@ -3,10 +3,10 @@
 
 function Select-AssetFromRelease {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [System.Object[]]$LatestReleaseObj,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [hashtable]$PackageData
     )
 
@@ -43,7 +43,8 @@ function Select-AssetFromRelease {
             Write-Error "No asset found with name: `"$PackageData.specifiedAssetName`""
             exit 1
         }
-    } else {
+    }
+    else {
         # Select the first asset with a supported type
         $latestSelectedAsset = $LatestReleaseObj.assets | 
         Where-Object { 
@@ -57,7 +58,7 @@ function Select-AssetFromRelease {
                 '\.exe$' { return 0 }
                 '\.msi$' { return 1 }
                 '\.zip$' { return 2 }
-                default  { return 3 }
+                default { return 3 }
             }
         } |
         Select-Object -First 1
@@ -74,7 +75,7 @@ function Select-AssetFromRelease {
 }
 function Get-BaseRepositoryObject {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$baseRepoApiUrl
     )
     Write-LogHeader "Get-BaseRepositoryObject"
@@ -84,7 +85,7 @@ function Get-BaseRepositoryObject {
     # Fetch the repository information
     try {
         Write-DebugLog "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
-        $repoObj= (Invoke-WebRequest -Uri $baseRepoApiUrl) | ConvertFrom-Json
+        $repoObj = (Invoke-WebRequest -Uri $baseRepoApiUrl) | ConvertFrom-Json
         Write-DebugLog $repoObj.full_name
     }
     catch {
@@ -97,7 +98,8 @@ function Get-BaseRepositoryObject {
         # If it's a fork, recurse into its parent
         $rootRepo = Get-BaseRepositoryObject -baseRepoApiUrl $repoObj.parent.url
         return $rootRepo
-    } else {
+    }
+    else {
         # If it's not a fork, return the current repository info
         Write-LogFooter "base repository info"
         return $repoObj
@@ -105,7 +107,7 @@ function Get-BaseRepositoryObject {
 }
 function Get-RootRepositoryObject {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$baseRepoApiUrl
         # expects to be in this format: https://api.github.com/repos/USER/REPONAME
     )
@@ -116,7 +118,7 @@ function Get-RootRepositoryObject {
     # Fetch the repository information
     try {
         Write-DebugLog "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
-        $repoObj= (Invoke-WebRequest -Uri $baseRepoApiUrl) | ConvertFrom-Json
+        $repoObj = (Invoke-WebRequest -Uri $baseRepoApiUrl) | ConvertFrom-Json
         Write-DebugLog $repoObj.full_name
     }
     catch {
@@ -129,7 +131,8 @@ function Get-RootRepositoryObject {
         # If it's a fork, recurse into its parent
         $rootRepo = Get-RootRepositoryObject -baseRepoApiUrl $repoObj.parent.url
         return $rootRepo
-    } else {
+    }
+    else {
         # If it's not a fork, return the current repository info
         Write-LogFooter "root repository info"
         return $repoObj
@@ -137,7 +140,7 @@ function Get-RootRepositoryObject {
 }
 function Get-Filetype {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$FileName
     )
     Write-LogHeader "Get-Filetype"
@@ -159,7 +162,8 @@ function Get-Filetype {
         # return the extension that was found
         Write-LogFooter "File Type"
         return $extToReturn
-    } else {
+    }
+    else {
         Write-Error "   Unsupported file type: $FileName"
         exit 1
     }
@@ -169,7 +173,7 @@ function Get-SilentArgs {
     # TODO: Get from the installer when possible
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$FileType
     )
     Write-LogHeader "Get-SilentArgs"
@@ -208,12 +212,13 @@ function Get-SilentArgs {
 }
 function Get-MostRecentValidRelease {
     param ( # Parameter declarations
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$baseRepoApiUrl,
         [string[]]$validFileTypes = @('.exe', '.msi')
     )
 
-    try { # Fetch the release information 
+    try {
+        # Fetch the release information 
 
         # Print response of rate limit info as an error if the API call fails (rate limit url: 'https://api.github.com/rate_limit') otherwise do not display it
         $rateLimitResponse = Invoke-WebRequest -Uri 'https://api.github.com/rate_limit'
@@ -224,7 +229,8 @@ function Get-MostRecentValidRelease {
         # PSObject containing the release information
         $releasesObj = (Invoke-WebRequest -Uri "$baseRepoApiUrl/releases").Content | ConvertFrom-Json
     }
-    catch { # Write an error if the API call fails
+    catch {
+        # Write an error if the API call fails
         Write-Error "Failed to fetch release information."
         return $null
     }
@@ -253,7 +259,7 @@ function Get-MostRecentValidRelease {
 }
 function Get-LatestReleaseObject {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$LatestReleaseApiUrl
     )
 
@@ -280,7 +286,7 @@ function Get-LatestReleaseObject {
 }
 function Set-AssetInfo {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [hashtable]$PackageData
     )
     Write-LogHeader "Set-AssetInfo"
@@ -316,7 +322,8 @@ function Set-AssetInfo {
         $tags += $PackageData.baseRepoObj.topics
         Write-DebugLog "    Tags from base repo info: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog "$($PackageData.baseRepoObj.topics)"
-    } elseif (-not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.topics)) {
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.topics)) {
         $tags += $PackageData.latestReleaseObj.topics
         Write-DebugLog "    Tags from root repo info: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog "$($PackageData.latestReleaseObj.topics)"
@@ -334,7 +341,8 @@ function Set-AssetInfo {
         $tags | ForEach-Object {
             Write-DebugLog "    $_"
         }
-    } else {
+    }
+    else {
         Write-DebugLog "    No tags found."
     }
 
@@ -347,17 +355,18 @@ function Set-AssetInfo {
         $homepage = $PackageData.baseRepoObj.homepage
         # If image is found but not svg... (Should do better check for svg instead of dummy info)
         
-            # Attempt to get the favicon from the homepage
+        # Attempt to get the favicon from the homepage
         $homePageiconInfo = Get-Favicon -Homepage $homepage
 
-            # If the icon is larger than the current icon, use it instead
-            if($null -ne $homePageiconInfo.url -and $homePageiconInfo.width -gt $iconInfo.width -and $homePageiconInfo.height -gt $iconInfo.height){
-                $iconInfo = $homePageiconInfo
-                Write-DebugLog "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
-                Write-DebugLog $homePageiconInfo.url
-                $iconUrl = $homePageiconInfo.url
-            }else {
-                Write-DebugLog "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
+        # If the icon is larger than the current icon, use it instead
+        if ($null -ne $homePageiconInfo.url -and $homePageiconInfo.width -gt $iconInfo.width -and $homePageiconInfo.height -gt $iconInfo.height) {
+            $iconInfo = $homePageiconInfo
+            Write-DebugLog "    Found Favicon on Homepage: " -ForegroundColor Yellow -NoNewline
+            Write-DebugLog $homePageiconInfo.url
+            $iconUrl = $homePageiconInfo.url
+        }
+        else {
+            Write-DebugLog "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
         }
     }
     # TODO Check if broken. Its late an I might have messed up fixing other things
@@ -366,12 +375,13 @@ function Set-AssetInfo {
         $repoIconInfo = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
         if ($null -ne $repoIconInfo) {
             # If the icon is larger than the current icon, use it instead
-            if($null -ne $repoIconInfo.url -and $repoIconInfo.width -gt $iconInfo.width -and $repoIconInfo.height -gt $iconInfo.height){
+            if ($null -ne $repoIconInfo.url -and $repoIconInfo.width -gt $iconInfo.width -and $repoIconInfo.height -gt $iconInfo.height) {
                 $iconInfo = $repoIconInfo
                 Write-DebugLog "    Found Icon file in Repo: " -ForegroundColor Yellow -NoNewline
                 Write-DebugLog $repoIconInfo.url
                 $iconUrl = $repoIconInfo.url
-            }else {
+            }
+            else {
                 Write-DebugLog "    No Icon file found in Repo. Looking for alternatives..." -ForegroundColor Yellow
             }
 
@@ -392,7 +402,7 @@ function Set-AssetInfo {
     if ($PackageData.latestReleaseObj.owner.type -eq 'Organization') {
         $orgName = $PackageData.latestReleaseObj.owner.login
         Write-DebugLog "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $orgName
+        Write-DebugLog $orgName
     }
 
 
@@ -472,12 +482,14 @@ function Set-AssetInfo {
         $licenseUrl = "$($PackageData.latestReleaseObj.html_url)/blob/$myDefaultBranch/LICENSE"
         Write-DebugLog "    License URL: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $licenseUrl
-    } elseif (-not [string]::IsNullOrWhiteSpace($PackageData.baseRepoObj.license.url)) {
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($PackageData.baseRepoObj.license.url)) {
         # Set the license url equal to (repo url)/blob/(default branch)/LICENSE
         $licenseUrl = "$($PackageData.baseRepoObj.html_url)/blob/$myDefaultBranch/LICENSE"
         Write-DebugLog "    License URL: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $licenseUrl
-    } else {
+    }
+    else {
         Write-DebugLog "    No license URL found."
     }
 
@@ -518,21 +530,21 @@ function Set-AssetInfo {
     Write-DebugLog $packageTitle
 
     # Create package metadata object as a hashtable
-    $packageMetadata        = @{
-        PackageName         = $chocoPackageName
-        Version             = $latestTagName -replace '[^0-9.]', ''
-        Author              = $PackageData.user
-        Description         = $description
-        VersionDescription  = $retreivedLatestReleaseObj.body -replace "\r\n", " "
-        Url                 = $selectedAsset.browser_download_url
-        ProjectUrl          = $PackageData.baseRepoUrl
-        FileType            = $fileType
-        SilentArgs          = $silentArgs
-        IconUrl             = $iconUrl
-        GithubRepoName      = $packageTitle
-        LicenseUrl          = $licenseUrl
+    $packageMetadata = @{
+        PackageName        = $chocoPackageName
+        Version            = $latestTagName -replace '[^0-9.]', ''
+        Author             = $PackageData.user
+        Description        = $description
+        VersionDescription = $retreivedLatestReleaseObj.body -replace "\r\n", " "
+        Url                = $selectedAsset.browser_download_url
+        ProjectUrl         = $PackageData.baseRepoUrl
+        FileType           = $fileType
+        SilentArgs         = $silentArgs
+        IconUrl            = $iconUrl
+        GithubRepoName     = $packageTitle
+        LicenseUrl         = $licenseUrl
         #PackageSize         = $packageSize
-        Tags                = $tagString
+        Tags               = $tagString
         # Repository          = $nu_repoUrl
         # ProjectSiteUrl      = $homepage
     }
@@ -545,10 +557,10 @@ function Set-AssetInfo {
         $dataFromExe = Get-DataFromExe -DownloadUrl $selectedAsset.browser_download_url
         Function Set-Metadata {
             Param (
-                [Parameter(Mandatory=$true)][string]$property,
-                [Parameter(Mandatory=$true)][string]$value,
-                [Parameter(Mandatory=$true)][object]$metadataObject,
-                [Parameter(Mandatory=$true)][string]$logLabel
+                [Parameter(Mandatory = $true)][string]$property,
+                [Parameter(Mandatory = $true)][string]$value,
+                [Parameter(Mandatory = $true)][object]$metadataObject,
+                [Parameter(Mandatory = $true)][string]$logLabel
             )
             if (-not [string]::IsNullOrWhiteSpace($value)) {
                 $metadataObject.$property = $value
@@ -559,11 +571,11 @@ function Set-AssetInfo {
         
 
         # if datafromexe is not null or empty, set the metadata
-        if($null -ne $dataFromExe -and $dataFromExe.Count -gt 0){
+        if ($null -ne $dataFromExe -and $dataFromExe.Count -gt 0) {
             $dataProperties = @{
-                Version = 'FileVersion';
+                Version        = 'FileVersion';
                 GithubRepoName = 'ProductName';
-                IconUrl = 'IconUrl'
+                IconUrl        = 'IconUrl'
             }
             Write-DebugLog "Version Info: " -ForegroundColor Magenta
             foreach ($property in $dataProperties.GetEnumerator()) {
@@ -581,7 +593,8 @@ function Set-AssetInfo {
     if ($packageMetadata -is [System.Collections.Hashtable]) {
         Write-DebugLog "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $($packageMetadata.GetType().Name)
-    } else {
+    }
+    else {
         Write-DebugLog "    Type of packageMetadata before return: NOT Hashtable"
     }
     
@@ -646,14 +659,14 @@ function Initialize-PackageData {
 
     # hash table to store the PackageTable and information
     $packageTable = @{
-        baseRepoUrl             = $baseRepoUrl
-        baseRepoApiUrl          = $baseRepoApiUrl
-        user                    = $githubUser
-        repoName                = $githubRepoName
-        latestReleaseApiUrl     = $latestReleaseApiUrl
-        baseRepoObj             = $baseRepoObj
-        latestReleaseObj        = $latestReleaseObj
-        rootRepoObj             = $rootRepoObj
+        baseRepoUrl         = $baseRepoUrl
+        baseRepoApiUrl      = $baseRepoApiUrl
+        user                = $githubUser
+        repoName            = $githubRepoName
+        latestReleaseApiUrl = $latestReleaseApiUrl
+        baseRepoObj         = $baseRepoObj
+        latestReleaseObj    = $latestReleaseObj
+        rootRepoObj         = $rootRepoObj
     }
 
     # Add optional keys if they are not null or empty

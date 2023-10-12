@@ -17,9 +17,9 @@ $Global:resourcesDir = Join-Path $rootDir "resources"
 
 $packageDir = Join-Path $rootDir "packages"
 
-function Initialize-GithubPackage{
+function Initialize-GithubPackage {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$InputUrl
     )
     Write-LogHeader "Initialize-GithubPackage"
