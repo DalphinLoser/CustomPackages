@@ -100,6 +100,12 @@ function Get-Updates {
             Write-DebugLog "    $_"
         }
     }
+
+    # return the list of packages that were updated as a comma-separated string
+    $updatedPackages -join ','
+    Write-DebugLog "Updated packages: " -NoNewline -ForegroundColor Green
+    Write-DebugLog $updatedPackages
+
     Write-LogFooter "Get-Updates function"
-    return ($updatedPackages -join ',')
+    return $updatedPackages
 }
