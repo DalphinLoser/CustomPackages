@@ -138,16 +138,15 @@ function Get-RootRepositoryObject {
 function Get-Filetype {
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_fileName,
-        [string[]]$p_acceptedExtensions = $acceptedExtensions
+        [string]$FileName
     )
     Write-LogHeader "Get-Filetype function"
 
     $found = $false
 
     # Iterate through the accepted extensions and check if the file name ends with one of them
-    foreach ($ext in $p_acceptedExtensions) {
-        if ($p_fileName.EndsWith($ext, [System.StringComparison]::OrdinalIgnoreCase)) {
+    foreach ($ext in $acceptedExtensions) {
+        if ($FileName.EndsWith($ext, [System.StringComparison]::OrdinalIgnoreCase)) {
             $found = $true
             $extToReturn = $ext
             break
@@ -161,7 +160,7 @@ function Get-Filetype {
         Write-LogFooter "File Type"
         return $extToReturn
     } else {
-        Write-Error "   Unsupported file type: $p_fileName"
+        Write-Error "   Unsupported file type: $FileName"
         exit 1
     }
 }
@@ -171,13 +170,13 @@ function Get-SilentArgs {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [string]$p_fileType
+        [string]$FileType
     )
     Write-LogHeader "Get-SilentArgs function"
     
     $f_silentArgs = ''
     
-    switch ($p_fileType) {
+    switch ($FileType) {
         'exe' { 
             $f_silentArgs = '/S /s /Q /q /SP- /VERYSILENT /NORESTART /quiet /silent'  # Silent installation
         }
@@ -199,7 +198,7 @@ function Get-SilentArgs {
         }
         #>
         default { 
-            Write-Error "   Unsupported file type: $p_fileType"
+            Write-Error "   Unsupported file type: $FileType"
             exit 1
         }
     }
@@ -294,11 +293,11 @@ function Set-AssetInfo {
     Write-DebugLog $selectedAsset.name
 
     # Determine file type from asset name
-    $fileType = Get-Filetype -p_fileName $selectedAsset.name
+    $fileType = Get-Filetype -FileName $selectedAsset.name
     Write-DebugLog "    File type: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $fileType
     # Determine silent installation arguments based on file type
-    $silentArgs = Get-SilentArgs -p_fileType $fileType
+    $silentArgs = Get-SilentArgs -FileType $fileType
     Write-DebugLog "    Silent arguments: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $silentArgs
 

@@ -1,4 +1,4 @@
-name: CreatePackage - Modular
+name: Create-Package-Github
 
 on:
   workflow_dispatch:

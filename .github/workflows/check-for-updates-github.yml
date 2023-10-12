@@ -1,4 +1,4 @@
-name: Check-For-Updates-Github
+name: Updates-Packages-Github
 
 on:
   schedule:

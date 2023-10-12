@@ -60,31 +60,31 @@ function Get-Updates {
         }
 
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldTag), $latestReleaseObj.tag_name
-        Write-DebugLog "    Latest  URL: $latestReleaseUrl_Update"
+        $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($oldTag), $latestReleaseObj.tag_name
+        Write-DebugLog "    Latest  URL: $latestReleaseUrl"
         # Compare the two URLs
-        if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
+        if ($latestReleaseUrl -eq $packageSourceUrl) {
             Write-DebugLog "    The URLs are identical. No new version seems to be available." -ForegroundColor Yellow
         } else {
             Write-DebugLog "    The URLs are different. A new version appears to be available." -ForegroundColor Yellow
             Write-DebugLog "    Old URL: $packageSourceUrl"
-            Write-DebugLog "    New URL: $latestReleaseUrl_Update"
+            Write-DebugLog "    New URL: $latestReleaseUrl"
         }
         Write-DebugLog "    Current Version: $oldTag"
         Write-DebugLog "    Latest Version: $($latestReleaseObj.tag_name)"
         # If the URLs are different, update the metadata for the package
-        if ($latestReleaseUrl_Update -ne $packageSourceUrl) {
+        if ($latestReleaseUrl -ne $packageSourceUrl) {
             
             # Remove the old nuspec file
             Remove-Item -Path $nuspecFile -Force
 
             Write-DebugLog "    Updating metadata for $package"
             Write-DebugLog "    The latest release URL is: " -NoNewline -ForegroundColor Yellow
-            Write-DebugLog $latestReleaseUrl_Update
+            Write-DebugLog $latestReleaseUrl
             # Get the new metadata
             # TODO handle when asset iss specified (problem with version number)
-            Initialize-GithubPackage -InputUrl "$latestReleaseUrl_Update"
-            [void]($updatedPackages += $latestReleaseUrl_Update)
+            Initialize-GithubPackage -InputUrl "$latestReleaseUrl"
+            [void]($updatedPackages += $latestReleaseUrl)
             # Remove the old nuspec file
             Write-DebugLog "    Removing old nuspec file"
             
