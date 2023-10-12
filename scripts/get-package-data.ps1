@@ -264,10 +264,6 @@ function Get-LatestReleaseObject {
     Write-DebugLog "    Fetching latest release information..."
     $latestReleaseObj = (Invoke-WebRequest -Uri "$LatestReleaseApiUrl").Content | ConvertFrom-Json
     
-    # Content of latestReleaseObj
-    Write-DebugLog "Type of latestReleaseObj: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $latestReleaseObj.GetType().Name
-    
     if ($null -eq $latestReleaseObj) {
         Write-Error "   Received data is null. URL used: $LatestReleaseApiUrl"
         exit 1

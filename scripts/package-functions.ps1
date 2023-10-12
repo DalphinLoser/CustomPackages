@@ -1,5 +1,4 @@
 . "$PSScriptRoot\logging-functions.ps1"
-. "$PSScriptRoot\create-package-github.ps1"
 
 function New-NuspecFile {
     param (
@@ -308,9 +307,9 @@ function Get-Updates {
         Write-DebugLog "    Latest  URL: $latestReleaseUrl_Update"
         # Compare the two URLs
         if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
-            Write-DebugLog "    The URLs are identical. No new version seems to be available." -ForegroundColor Green
+            Write-DebugLog "    The URLs are identical. No new version seems to be available." -ForegroundColor Yellow
         } else {
-            Write-DebugLog "    The URLs are different. A new version appears to be available." -ForegroundColor Green
+            Write-DebugLog "    The URLs are different. A new version appears to be available." -ForegroundColor Yellow
             Write-DebugLog "    Old URL: $packageSourceUrl"
             Write-DebugLog "    New URL: $latestReleaseUrl_Update"
         }
@@ -333,7 +332,7 @@ function Get-Updates {
             Write-DebugLog "    Removing old nuspec file"
             
         } else {
-            Write-DebugLog "    No updates found for $package"
+            Write-DebugLog "    No updates found for $package" -ForegroundColor Cyan
         }
     }
     if($updatedPackages.Count -eq 0) {
