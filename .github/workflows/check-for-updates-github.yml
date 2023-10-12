@@ -37,7 +37,7 @@ jobs:
       run: |
         . "${{ env.SCRIPTS_DIR}}\auto-package-updates.ps1"
         $updatedPackages = Get-Updates -PackagesDir "${{ env.PACKAGES_DIR}}"
-        Write-Output "::set-env name=UPDATED_PACKAGES::$updatedPackages"
+        echo "UPDATED_PACKAGES=$updatedPackages" | Out-File -Append $env:GITHUB_ENV
       shell: pwsh
 
     - name: Commit and Push to GitHub
