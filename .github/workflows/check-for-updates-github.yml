@@ -44,7 +44,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add icons/ pachakges/
+        git add icons/ packages/
         # Commit the updated packages and list of updated packages in the commit message
         git commit -m "Automated Package Creation: ${{ env.UPDATED_PACKAGES}}" || echo "No changes to commit"
         git push origin ${{ github.ref }}
