@@ -10,18 +10,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-
     - name: Set Global Variables
       run: |
         echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
         echo "PACKAGES_DIR=$GITHUB_WORKSPACE\packages" >> $GITHUB_ENV
-
       shell: pwsh
 
-    - name: Checkout code
+    - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Check for Chocolatey
+    - name: Install Dependencies (Chocolatey)
       run: |
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
           Write-Host "Chocolatey is not installed. Installing now..."
