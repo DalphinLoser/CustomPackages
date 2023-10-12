@@ -36,7 +36,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         . "${{ env.SCRIPTS_DIR}}\auto-package-updates.ps1"
-        $updatedPackages = Get-Updates -PackagesDir "${{ env.PACKAGES_DIR}}"
+        $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR}}")[-1] # Not a great way to fix this but works. Entire output is getting stored in the env variable
         echo "UPDATED_PACKAGES=$updatedPackages" | Out-File -Append $env:GITHUB_ENV
       shell: pwsh
 
