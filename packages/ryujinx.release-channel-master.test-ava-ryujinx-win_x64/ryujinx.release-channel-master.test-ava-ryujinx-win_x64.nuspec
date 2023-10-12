@@ -2,16 +2,16 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ryujinx.release-channel-master.test-ava-ryujinx-win_x64</id>
-    <version>1.1.1051</version>
+    <version>1.1.1050</version>
     <title>Ryujinx</title>
     <authors>Ryujinx</authors>
-    <packageSourceUrl>https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1051/test-ava-ryujinx-1.1.1051-win_x64.zip</packageSourceUrl>
+    <packageSourceUrl>https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1050/test-ava-ryujinx-1.1.1050-win_x64.zip</packageSourceUrl>
     <releaseNotes>For more information about this release please check out the official [Changelog](https://github.com/Ryujinx/Ryujinx/wiki/Changelog).</releaseNotes>
     <licenseUrl>https://github.com/Ryujinx/release-channel-master/blob/master/LICENSE</licenseUrl>
-    <description>Ryujinx's Release channel: master</description>
-    <projectUrl>https://github.com/Ryujinx/release-channel-master</projectUrl>
     <tags>
     </tags>
+    <description>Ryujinx's Release channel: master</description>
     <iconUrl>https://avatars.githubusercontent.com/u/39036280?v=4</iconUrl>
+    <projectUrl>https://github.com/Ryujinx/release-channel-master</projectUrl>
   </metadata>
 </package>

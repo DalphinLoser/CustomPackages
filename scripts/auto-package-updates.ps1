@@ -84,7 +84,7 @@ function Get-Updates {
             # Get the new metadata
             # TODO handle when asset iss specified (problem with version number)
             Initialize-GithubPackage -InputUrl "$latestReleaseUrl_Update"
-            $updatedPackages += $package
+            $updatedPackages += $latestReleaseUrl_Update
             # Remove the old nuspec file
             Write-DebugLog "    Removing old nuspec file"
             
