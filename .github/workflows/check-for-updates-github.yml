@@ -14,7 +14,7 @@ jobs:
       run: |
         echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
         echo "PACKAGES_DIR=$GITHUB_WORKSPACE\packages" >> $GITHUB_ENV
-      shell: pwsh
+      shell: bash
 
     - name: Checkout Code
       uses: actions/checkout@v4
