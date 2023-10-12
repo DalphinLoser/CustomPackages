@@ -53,14 +53,14 @@ function Get-Updates {
         Write-DebugLog "    Current URL: $packageSourceUrl"
         # Extract the old version number using regex. This assumes the version follows right after '/download/'
         if ($packageSourceUrl -match '/download/([^/]+)/') {
-            $oldVersion = $matches[1]
+            $oldTag = $matches[1]
         } else {
             Write-Error "Could not find the version number in the URL."
             exit 1
         }
 
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldVersion), $latestReleaseObj.tag_name
+        $latestReleaseUrl_Update = $packageSourceUrl -replace [regex]::Escape($oldTag), $latestReleaseObj.tag_name
         Write-DebugLog "    Latest  URL: $latestReleaseUrl_Update"
         # Compare the two URLs
         if ($latestReleaseUrl_Update -eq $packageSourceUrl) {
@@ -70,7 +70,7 @@ function Get-Updates {
             Write-DebugLog "    Old URL: $packageSourceUrl"
             Write-DebugLog "    New URL: $latestReleaseUrl_Update"
         }
-        Write-DebugLog "    Current Version: $oldVersion"
+        Write-DebugLog "    Current Version: $oldTag"
         Write-DebugLog "    Latest Version: $($latestReleaseObj.tag_name)"
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl_Update -ne $packageSourceUrl) {
