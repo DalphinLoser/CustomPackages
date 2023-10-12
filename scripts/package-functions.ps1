@@ -256,6 +256,9 @@ function Get-Updates {
     )
     Write-LogHeader "Get-Updates function"
 
+    # Initialize variable to hold messages displaying if a package was updated or not
+    $updatedPackages = @()
+
     if (-not (Test-Path $PackagesDir)) {
         Write-Error "Path is not valid: $PackagesDir"
         exit 1
@@ -325,6 +328,7 @@ function Get-Updates {
             # Get the new metadata
             # TODO handle when asset iss specified (problem with version number)
             Initialize-GithubPackage -InputUrl "$latestReleaseUrl_Update"
+            $updatedPackages += $package
             # Remove the old nuspec file
             Write-DebugLog "    Removing old nuspec file"
             
@@ -332,5 +336,14 @@ function Get-Updates {
             Write-DebugLog "    No updates found for $package"
         }
     }
+    if($updatedPackages.Count -eq 0) {
+        Write-DebugLog "No updates found for any packages." -ForegroundColor Green
+    } else {
+        Write-DebugLog "Automatically Updated Packages: " -ForegroundColor Green
+        $updatedPackages | ForEach-Object {
+            Write-DebugLog "    $_"
+        }
+    }
+    return $updatedPackages
     Write-LogFooter "Get-Updates function"
 }
