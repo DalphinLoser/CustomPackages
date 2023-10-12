@@ -84,7 +84,7 @@ function Get-Updates {
             # Get the new metadata
             # TODO handle when asset iss specified (problem with version number)
             Initialize-GithubPackage -InputUrl "$latestReleaseUrl_Update"
-            $updatedPackages += $latestReleaseUrl_Update
+            [void]($updatedPackages += $latestReleaseUrl_Update)
             # Remove the old nuspec file
             Write-DebugLog "    Removing old nuspec file"
             
@@ -102,10 +102,10 @@ function Get-Updates {
     }
 
     # return the list of packages that were updated as a comma-separated string
-    $updatedPackages -join ','
+    $output = $updatedPackages -join ','
     Write-DebugLog "Updated packages: " -NoNewline -ForegroundColor Green
-    Write-DebugLog $updatedPackages
+    Write-DebugLog $output
 
     Write-LogFooter "Get-Updates function"
-    return $updatedPackages
+    return ($output)
 }
