@@ -2,13 +2,8 @@ $ErrorActionPreference = 'Stop';
 $toolsDir   = "C:\AutoPackages\ryujinx.release-channel-master.test-ava-ryujinx-win_x64"
 
 $packageArgs = @{
-<<<<<<< HEAD:packages/ryujinx.release-channel-master/tools/chocolateyInstall.ps1
-    packageName     = "ryujinx.release-channel-master"
-    url             = "https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1050/test-ava-ryujinx-1.1.1050-win_x64.zip"
-=======
     packageName     = "ryujinx.release-channel-master.test-ava-ryujinx-win_x64"
     url             = "https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1051/test-ava-ryujinx-1.1.1051-win_x64.zip"
->>>>>>> Modular:packages/ryujinx.release-channel-master.test-ava-ryujinx-win_x64/tools/chocolateyInstall.ps1
     unzipLocation   = $toolsDir
 }
 
