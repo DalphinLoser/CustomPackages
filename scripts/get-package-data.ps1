@@ -369,7 +369,6 @@ function Set-AssetInfo {
             Write-DebugLog "    No Favicon found on Homepage. Looking for alternatives..." -ForegroundColor Yellow
         }
     }
-    # TODO Check if broken. Its late an I might have messed up fixing other things
     # If the icon does not end in .svg, check if the repo has an svg icon
     if ($null -ne $iconInfo -and $iconInfo.width -lt 900 -and $iconInfo.height -lt 900) {
         $repoIconInfo = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
@@ -404,12 +403,7 @@ function Set-AssetInfo {
         Write-DebugLog "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $orgName
     }
-
-
-    # Get the content of the readme file of the base and root repositories
-    #$baseRepoReadme = (Invoke-WebRequest -Uri "$($PackageData.baseRepoApiUrl)/readme").Content | ConvertFrom-Json
-    #$rootRepoReadme = (Invoke-WebRequest -Uri "$($PackageData.latestReleaseObj.url)/readme").Content | ConvertFrom-Json
-
+    
     # Get the description from the root repository if it is not null or whitespace
     $description = $null
     switch ($true) {
