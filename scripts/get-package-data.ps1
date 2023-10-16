@@ -42,7 +42,24 @@ function Select-AssetByName {
         [System.Object[]]$Assets,
         [string]$AssetName
     )
-    return $Assets | Where-Object { $_.name -eq $AssetName }
+    Write-LogHeader "Select-AssetByName"
+    #The value we will return
+    $newSelectedAsset = $null
+
+    # If the Assets contains an exact match for the AssetName, set the return value to that asset
+    if ($Assets -contains $AssetName) {
+        $newSelectedAsset = $Assets | Where-Object { $_.name -eq $AssetName }
+        Write-DebugLog "    Exact match found: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $AssetName
+    }
+    else{
+        # Get the most similar string from the Assets array
+        $newSelectedAsset = Get-MostSimilarString -Key $AssetName -Strings $Assets
+        Write-DebugLog "    Most similar asset found: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $newSelectedAsset
+    }
+    Write-LogFooter "Select-AssetByName"
+    return $newSelectedAsset
 }
 function Select-AssetByType {
     param (
