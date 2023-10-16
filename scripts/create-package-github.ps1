@@ -7,15 +7,7 @@
 
 # Global Variables
 # If acceptedExtensions is null, set it
-if (-not $Global:acceptedExtensions) {
-    $Global:acceptedExtensions = @('exe', 'msi', 'zip')
-    Write-DebugLog "acceptedExtensions set to: " -NoNewline -ForegroundColor Magenta
-    Write-DebugLog $Global:acceptedExtensions
-}
-else {
-    Write-DebugLog "acceptedExtensions already set to: " -NoNewline -ForegroundColor Magenta
-    Write-DebugLog $Global:acceptedExtensions
-}
+
 $Global:EnableDebugMode = $true
 # Variable that stores the location of the scripts directory regardless of where the script is run from
 $Global:scriptsDir = $PSScriptRoot
@@ -33,6 +25,16 @@ function Initialize-GithubPackage {
     )
     Write-LogHeader "Initialize-GithubPackage"
 
+    if (-not $Global:acceptedExtensions) {
+        $Global:acceptedExtensions = @('exe', 'msi', 'zip')
+        Write-DebugLog "acceptedExtensions set to: " -NoNewline -ForegroundColor Magenta
+        Write-DebugLog $Global:acceptedExtensions
+    }
+    else {
+        Write-DebugLog "acceptedExtensions already set to: " -NoNewline -ForegroundColor Magenta
+        Write-DebugLog $Global:acceptedExtensions
+    }
+
     # Write the locations of each directory to the console
     Write-DebugLog "rootDir: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $rootDir
@@ -44,7 +46,7 @@ function Initialize-GithubPackage {
     Write-DebugLog $packageDir
     Write-DebugLog "acceptedExtensions: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $acceptedExtensions
-    Write-DebugLog "    Input Received: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog "Input Received: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $InputUrl
 
     # Create a hashtable to store the PackageTable

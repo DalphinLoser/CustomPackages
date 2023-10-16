@@ -58,7 +58,7 @@ function Get-Updates {
         # Extract the old version number using regex. This assumes the version follows right after '/download/'
         if ($packageSourceUrl -match '/download/([^/]+)/') {
             $oldTag = $matches[1]
-            $Global:acceptedExtensions = Get-FileType -FileName $packageSourceUrl
+            $Global:acceptedExtensions = Get-Filetype -FileName $packageSourceUrl
         }
         else {
             Write-Error "Could not find the tag in the URL."

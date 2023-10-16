@@ -22,6 +22,7 @@ function Select-AssetFromRelease {
     Write-DebugLog $LatestReleaseObj
 
     $specifiedAssetName = $PackageData.specifiedAssetName
+    $specifiedAssetType = $PackageData.specifiedAssetType
     
     $latestSelectedAsset = if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
         # If the user specified an asset name, select that asset
@@ -44,7 +45,7 @@ function Select-AssetByName {
         [string]$AssetName
     )
     Write-LogHeader "Select-AssetByName"
-    #The value we will return
+    # The value we will return
     $newSelectedAsset = $null
 
     Write-DebugLog "    Asset Name: " -NoNewline -ForegroundColor Yellow
@@ -59,12 +60,13 @@ function Select-AssetByName {
         $newSelectedAsset = $exactMatchAsset
     }
     
-    else{
+    else {
         # Get the most similar string from the Assets array
-        $mostSimilarAsset = Get-MostSimilarString -Key $AssetName -Strings ($Assets | ForEach-Object { $_.name })
-        Write-DebugLog "    Most similar asset found: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $mostSimilarAsset.name
-        $newSelectedAsset = $mostSimilarAsset
+        $mostSimilarAssetName = Get-MostSimilarString -Key $AssetName -Strings ($Assets | ForEach-Object { $_.name })
+        Write-DebugLog "    Most similar asset name found: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $mostSimilarAssetName
+        # Now get the corresponding asset object based on the most similar name
+        $newSelectedAsset = $Assets | Where-Object { $_.name -eq $mostSimilarAssetName }
     }
     Write-LogFooter "Select-AssetByName"
     return $newSelectedAsset
@@ -172,8 +174,10 @@ function Get-Filetype {
     if ($found) {
         # The file name ends with one of the accepted extensions
         Write-DebugLog "    File name ends with an accepted extension" -ForegroundColor Yellow
+        Write-DebugLog "    Extension: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $extToReturn
         # return the extension that was found
-        Write-LogFooter "File Type"
+        Write-LogFooter "Get-Filetype"
         return $extToReturn
     }
     else {
@@ -308,7 +312,7 @@ function Set-AssetInfo {
 
     # Select the best asset based on supported types
     $selectedAsset = Select-AssetFromRelease -LatestReleaseObj $retreivedLatestReleaseObj -PackageData $PackageData
-    Write-DebugLog "Selected asset name: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog "    Selected asset name: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $selectedAsset.name
 
     # Determine file type from asset name
@@ -325,7 +329,7 @@ function Set-AssetInfo {
     $PackageData.baseRepoApiUrl = $retreivedLatestReleaseObj.url -replace '/releases/.*', ''
 
     $myDefaultBranch = "$($PackageData.baseRepoObj.default_branch)"
-    Write-DebugLog "Default Branch (Root): " -ForegroundColor Yellow
+    Write-DebugLog "    Default Branch (Root): " -ForegroundColor Yellow
     Write-DebugLog "`"$myDefaultBranch`""
 
     # Array table to store the tags. Uses the topics json result from the GitHub API
@@ -345,7 +349,7 @@ function Set-AssetInfo {
         Write-DebugLog "No tags found."
     }
 
-    Write-DebugLog "Tags is of type: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog "    Tags is of type: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $tags.GetType().Name
 
     # if the tags array is not null or empty, print the tags
