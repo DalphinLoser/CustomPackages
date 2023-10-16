@@ -46,6 +46,14 @@ function Select-AssetByName {
     #The value we will return
     $newSelectedAsset = $null
 
+    Write-DebugLog "    Asset Name: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $AssetName
+
+    Write-DebugLog "    Assets: " -NoNewline -ForegroundColor Yellow
+    $Assets | ForEach-Object {
+        Write-DebugLog "    $_"
+    }
+
     # If the Assets contains an exact match for the AssetName, set the return value to that asset
     if ($Assets -contains $AssetName) {
         $newSelectedAsset = $Assets | Where-Object { $_.name -eq $AssetName }
