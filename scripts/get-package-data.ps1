@@ -15,10 +15,17 @@ function Select-AssetFromRelease {
 
     Write-LogHeader "Select-AssetFromRelease"
 
-    $assets = $LatestReleaseObj.assets
-    if (-not $assets) {
-        Write-Error "No assets found for the latest release. LatestReleaseObj is Null or Empty"
+    # Create a pscustomobject to store the latest release information
+    $assets = $LatestReleaseObj.assets | ForEach-Object {
+        [pscustomobject]@{
+            name = $_.name
+            url = $_.browser_download_url
+            size = $_.size
+        }
     }
+    # Print the content of the pscustomobject to the console
+    Write-DebugLog "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $LatestReleaseObj
 
     $specifiedAssetName = $PackageData.specifiedAssetName
     
@@ -48,12 +55,6 @@ function Select-AssetByName {
 
     Write-DebugLog "    Asset Name: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $AssetName
-
-    Write-DebugLog "    Assets: " -NoNewline -ForegroundColor Yellow
-    $Assets | ForEach-Object {
-        Write-DebugLog ("    " + ($_.psobject.properties | ForEach-Object { "$($_.Name): $($_.Value)" }) -join "; ")
-    }
-    
 
     # If the Assets contains an exact match for the AssetName, set the return value to that asset
     $exactMatchAsset = $Assets | Where-Object { $_.name -eq $AssetName }
