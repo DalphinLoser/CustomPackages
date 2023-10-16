@@ -57,18 +57,20 @@ function Select-AssetByName {
     Write-DebugLog $AssetName
 
     # If the Assets contains an exact match for the AssetName, set the return value to that asset
-    $exactMatchAsset = $Assets | Where-Object { $_.name -eq $AssetName }
-    if ($exactMatchAsset) {
-        $newSelectedAsset = $exactMatchAsset[0]  # Get the first matching asset
+    $exactMatchAssets = $Assets | Where-Object { $_.name -eq $AssetName }
+    if ($exactMatchAssets) {
+        $exactMatchAsset = $exactMatchAssets[0]  # Get the first matching asset
         Write-DebugLog "    Exact match found: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $newSelectedAsset
+        Write-DebugLog $exactMatchAsset.name
+        $newSelectedAsset = $exactMatchAsset.name
     }
     
     else{
         # Get the most similar string from the Assets array
-        $newSelectedAsset = Get-MostSimilarString -Key $AssetName -Strings ($Assets | ForEach-Object { $_.name })
+        $mostSimilarAsset = Get-MostSimilarString -Key $AssetName -Strings ($Assets | ForEach-Object { $_.name })
         Write-DebugLog "    Most similar asset found: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $newSelectedAsset
+        Write-DebugLog $mostSimilarAsset.name
+        $newSelectedAsset = $mostSimilarAsset.name
     }
     Write-LogFooter "Select-AssetByName"
     return $newSelectedAsset
