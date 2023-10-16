@@ -14,7 +14,7 @@ function Write-DebugLog {
     }
     
     if ($EnableDebug) {
-        $MessageString = if ($null -eq $Message) { "" } else { $Message }  # Convert message to string or use empty string if $Message is $null
+        $MessageString = if (-not $Message) { "" } else { $Message }  # Convert message to string or use empty string if $Message is $null
         if ($NoNewline) {
             Write-Host -NoNewline $MessageString -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor  # Include BackgroundColor
         }

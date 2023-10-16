@@ -51,7 +51,7 @@ Log=    $($logPath)
         # Extract version information and upload icon
         $versionInfo = Get-VersionInfo -FilePath "$($metadataPath)\VERSIONINFO.rc"
 
-        if ($null -eq $versionInfo) {
+        if (-not $versionInfo) {
             Write-DebugLog "Version information not found"
             Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
             return
@@ -69,7 +69,7 @@ Log=    $($logPath)
         # Add icon url to version info
         $versionInfo.IconUrl = $icoFileUrl
 
-        if ($null -eq $versionInfo.IconUrl) {
+        if (-not $versionInfo.IconUrl) {
             Write-DebugLog "Icon url not found"
             Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
             return $versionInfo
@@ -103,7 +103,7 @@ function Move-IconToDirectory {
     )
 
     $iconFile = Get-ChildItem -Path $IconPath -Filter "*.ico" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($null -eq $iconFile) {
+    if (-not $iconFile) {
         Write-Error "Icon file not found in path: $IconPath"
         return
     }

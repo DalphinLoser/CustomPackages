@@ -55,7 +55,7 @@ function New-NuspecFile {
 
         $value = $Metadata.$key
 
-        if ($null -eq $value) {
+        if (-not $value) {
             Write-DebugLog "Warning: Value for $key is null" -ForegroundColor Yellow
         }
 
@@ -82,7 +82,7 @@ function New-NuspecFile {
         $key = $elementMapping[$elementName]
         $value = $Metadata.$key
 
-        if ($null -eq $value) {
+        if (-not $value) {
             Write-DebugLog "Warning: Value for $key is null" -ForegroundColor Yellow
         }
 

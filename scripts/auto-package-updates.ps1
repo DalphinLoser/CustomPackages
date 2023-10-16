@@ -36,7 +36,7 @@ function Get-Updates {
 
         $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
 
-        if ($null -eq $nuspecFile) {
+        if (-not $nuspecFile) {
             Write-Error "No .nuspec file found in directory $($dirInfo.FullName)"
             continue
         }
@@ -51,13 +51,17 @@ function Get-Updates {
             exit 1
         }
         
+        # Find the value of the packageSourceUrl field in the nuspec file
+
+
         Write-DebugLog "    Current URL: $packageSourceUrl"
         # Extract the old version number using regex. This assumes the version follows right after '/download/'
         if ($packageSourceUrl -match '/download/([^/]+)/') {
             $oldTag = $matches[1]
+            $Global:acceptedExtensions = Get-FileType -FileName $packageSourceUrl
         }
         else {
-            Write-Error "Could not find the version number in the URL."
+            Write-Error "Could not find the tag in the URL."
             exit 1
         }
 
@@ -79,7 +83,9 @@ function Get-Updates {
         if ($latestReleaseUrl -ne $packageSourceUrl) {
             
             # Remove the old nuspec file
-            Remove-Item -Path $nuspecFile -Force
+            Write-DebugLog "Removing old nuspec file: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $nuspecFile.FullName
+            Remove-Item -Path $nuspecFile.FullName -Force
 
             Write-DebugLog "    Updating metadata for $package"
             Write-DebugLog "    The latest release URL is: " -NoNewline -ForegroundColor Yellow

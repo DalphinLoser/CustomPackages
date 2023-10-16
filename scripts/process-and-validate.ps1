@@ -77,8 +77,10 @@ function Confirm-DirectoryExists {
 }
 function Get-MostSimilarString {
     param (
-        [string]$key,
-        [string[]]$strings
+        [string]$Key,
+        [string[]]$Strings,
+        # Bool to determine if the output should be a Substring of the most similar string or the most similar string itself
+        [bool]$Substring = $false
     )
 
     # Helper function to calculate Jaccard similarity
@@ -94,7 +96,7 @@ function Get-MostSimilarString {
         return ($intersection.Count / $union.Count)
     }
 
-    # Helper function to find longest common substring
+    # Helper function to find longest common Substring
     function Get-LongestCommonSubstring {
         param (
             [string]$str1,
@@ -131,8 +133,8 @@ function Get-MostSimilarString {
     $maxSimilarity = 0
     $mostSimilarStrings = @()
 
-    foreach ($string in $strings) {
-        $similarity = Get-JaccardSimilarity -str1 $key -str2 $string
+    foreach ($string in $Strings) {
+        $similarity = Get-JaccardSimilarity -str1 $Key -str2 $string
         if ($similarity -gt $maxSimilarity) {
             $maxSimilarity = $similarity
             $mostSimilarStrings = @($string)
@@ -146,13 +148,17 @@ function Get-MostSimilarString {
     $finalString = ""
 
     foreach ($string in $mostSimilarStrings) {
-        $lcs = Get-LongestCommonSubstring -str1 $key.ToLower() -str2 $string.ToLower()
+        $lcs = Get-LongestCommonSubstring -str1 $Key.ToLower() -str2 $string.ToLower()
         if ($lcs.Length -gt $maxLcsLength) {
             $maxLcsLength = $lcs.Length
             $finalString = $string
         }
     }
 
-    $finalLcs = Get-LongestCommonSubstring -str1 $key.ToLower() -str2 $finalString.ToLower()
-    return $finalString.Substring($finalString.ToLower().IndexOf($finalLcs), $finalLcs.Length)
+    if($Substring){
+        $finalLcs = Get-LongestCommonSubstring -str1 $Key.ToLower() -str2 $finalString.ToLower()
+        $finalString = $finalString.Substring($finalString.ToLower().IndexOf($finalLcs), $finalLcs.Length)
+    }
+    
+    return $finalString
 }

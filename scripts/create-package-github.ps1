@@ -6,7 +6,16 @@
 . "$PSScriptRoot\new-data-method.ps1"
 
 # Global Variables
-$Global:acceptedExtensions = @('exe', 'msi', 'zip')
+# If acceptedExtensions is null, set it
+if (-not $Global:acceptedExtensions) {
+    $Global:acceptedExtensions = @('exe', 'msi', 'zip')
+    Write-DebugLog "acceptedExtensions set to: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $Global:acceptedExtensions
+}
+else {
+    Write-DebugLog "acceptedExtensions already set to: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $Global:acceptedExtensions
+}
 $Global:EnableDebugMode = $true
 # Variable that stores the location of the scripts directory regardless of where the script is run from
 $Global:scriptsDir = $PSScriptRoot

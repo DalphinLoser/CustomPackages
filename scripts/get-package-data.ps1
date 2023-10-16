@@ -1,59 +1,57 @@
 . "$PSScriptRoot\logging-functions.ps1"
 . "$PSScriptRoot\new-data-method.ps1"
+. "$PSScriptRoot\process-and-validate.ps1"
 
 function Select-AssetFromRelease {
     param (
         [Parameter(Mandatory = $true)]
         [System.Object[]]$LatestReleaseObj,
-
+        
         [Parameter(Mandatory = $true)]
-        [hashtable]$PackageData
+        [hashtable]$PackageData,
+        
+        [string[]]$AcceptedExtensions = $acceptedExtensions
     )
 
     Write-LogHeader "Select-AssetFromRelease"
 
-    # Validate that assets is not null or empty
-    if ($null -eq $LatestReleaseObj.assets -or $LatestReleaseObj.assets.Count -eq 0) {
+    $assets = $LatestReleaseObj.assets
+    if (-not $assets) {
         Write-Error "No assets found for the latest release. LatestReleaseObj is Null or Empty"
-        exit 1
     }
 
-    # If an asset name is providid, select the asset with that name. If not, select the first asset with a supported type.
-    if (-not [string]::IsNullOrWhiteSpace($PackageData.specifiedAssetName)) {
-        # if the specified asset name contains the version number, replace it with the version number from the latest release
-        if ($PackageData.specifiedAssetName -match $PackageData.tag) {
-            $cleanedSpecifiedAssetName = $PackageData.specifiedAssetName -replace $PackageData.tag, $LatestReleaseObj.tag_name
-            Write-DebugLog "    Specified Asset Name contains version number. Replacing with version number from latest release: " -ForegroundColor Yellow
-            Write-DebugLog "    `"$PackageData.specifiedAssetName`""
-            # Remove all special characters from the specified asset name except fot ._-
-            $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName -replace '[^a-zA-Z0-9._-]', ''
-            Write-DebugLog "    Specified Asset Name after removing special characters: " -ForegroundColor Yellow
-            Write-DebugLog "    `"$cleanedSpecifiedAssetName`""
-            $cleanedSpecifiedAssetName = $cleanedSpecifiedAssetName.Trim('-._')  # Remove leading and trailing hyphens, underscores, and dots
-            Write-DebugLog "    Specified Asset Name after removing leading and trailing hyphens, underscores, and dots: " -ForegroundColor Yellow
-            Write-DebugLog "    `"$cleanedSpecifiedAssetName`""
-            $PackageData.specifiedAssetName = $cleanedSpecifiedAssetName
-        }
-        Write-DebugLog "    Selecting asset with name: " -ForegroundColor Yellow -NoNewline
-        Write-DebugLog "`"$PackageData.specifiedAssetName`""
-        $latestSelectedAsset = $LatestReleaseObj.assets | Where-Object { $_.name -eq $PackageData.specifiedAssetName }
-        # If there is no match for the asset name, throw an error
-        if ($null -eq $latestSelectedAsset) {
-            # If there is still no match, throw an error
-            Write-Error "No asset found with name: `"$PackageData.specifiedAssetName`""
-            exit 1
-        }
+    $specifiedAssetName = $PackageData.specifiedAssetName
+    
+    $latestSelectedAsset = if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
+        # If the user specified an asset name, select that asset
+        Select-AssetByName -Assets $assets -AssetName $specifiedAssetName
+    } else {
+        # Otherwise, select the best asset based on supported types
+        Select-AssetByType -Assets $assets -AcceptedExtensions $specifiedAssetType
     }
-    else {
-        # Select the first asset with a supported type
-        $latestSelectedAsset = $LatestReleaseObj.assets | 
-        Where-Object { 
-            if ($_.name -match '\.([^.]+)$') {
-                return $acceptedExtensions -contains $matches[1]
-            }
-            return $false
-        } |
-        Sort-Object { 
+
+    if (-not $latestSelectedAsset) {
+        Write-Error "No suitable asset found for the latest release. Selected Asset is Null"
+    }
+
+    Write-LogFooter "Selected Asset"
+    return $latestSelectedAsset
+}
+function Select-AssetByName {
+    param (
+        [System.Object[]]$Assets,
+        [string]$AssetName
+    )
+    return $Assets | Where-Object { $_.name -eq $AssetName }
+}
+function Select-AssetByType {
+    param (
+        [System.Object[]]$Assets,
+        [string[]]$AcceptedExtensions
+    )
+    return $Assets |
+        Where-Object { $_.name -match '\.([^.]+)$' -and $AcceptedExtensions -contains $matches[1] } |
+        Sort-Object {
             switch -Regex ($_.name) {
                 '\.exe$' { return 0 }
                 '\.msi$' { return 1 }
@@ -62,16 +60,6 @@ function Select-AssetFromRelease {
             }
         } |
         Select-Object -First 1
-        Write-DebugLog "    Selected asset after sorting: $($latestSelectedAsset.name)"
-    }
-    # Validation check for the selected asset
-    if ($null -eq $latestSelectedAsset) {
-        Write-Error "No suitable asset found for the latest release. Selected Asset is Null"
-        exit 1
-    }
-
-    Write-LogFooter "Selected Asset"
-    return $latestSelectedAsset
 }
 function Get-BaseRepositoryObject {
     param (
@@ -235,14 +223,14 @@ function Get-MostRecentValidRelease {
         return $null
     }
 
-    if ($null -eq $releasesObj -or $releasesObj.Count -eq 0) {
+    if (-not $releasesObj -or $releasesObj.Count -eq 0) {
         Write-DebugLog "No releases found."
         return $null
     }
 
     # Iterate through the releases and return the URL of the first release that contains a valid asset
     foreach ($release in $releasesObj) {
-        if ($null -eq $release.assets -or $release.assets.Count -eq 0) {
+        if (-not $release.assets -or $release.assets.Count -eq 0) {
             continue
         }
 
@@ -269,14 +257,14 @@ function Get-LatestReleaseObject {
     Write-DebugLog "    Fetching latest release information..."
     $latestReleaseObj = (Invoke-WebRequest -Uri "$LatestReleaseApiUrl").Content | ConvertFrom-Json
     
-    if ($null -eq $latestReleaseObj) {
+    if (-not $latestReleaseObj) {
         Write-Error "   Received data is null. URL used: $LatestReleaseApiUrl"
         exit 1
     }
 
     # Make sure the assets field is not null or empty
     $assetCount = ($latestReleaseObj.assets | Measure-Object).Count
-    if ($null -eq $latestReleaseObj.assets -or $assetCount -eq 0) {
+    if (-not $latestReleaseObj.assets -or $assetCount -eq 0) {
         Write-Error "   No assets found for the latest release. URL used: $LatestReleaseApiUrl"
         exit 1
     }
@@ -392,7 +380,7 @@ function Set-AssetInfo {
     }
 
     # If still no suitable icon is found, use the owner's avatar
-    if ($null -eq $iconUrl) {
+    if (-not $iconUrl) {
         $iconUrl = $PackageData.rootRepoObj.owner.avatar_url
         Write-DebugLog "    Using owner's avatar as icon: $iconUrl" -ForegroundColor Green
     }
@@ -403,7 +391,7 @@ function Set-AssetInfo {
         Write-DebugLog "    Updated orgName to Organization Name: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $orgName
     }
-    
+
     # Get the description from the root repository if it is not null or whitespace
     $description = $null
     switch ($true) {
@@ -511,14 +499,17 @@ function Set-AssetInfo {
     # Shoule probably (maybe) use root instead
     $licenseUrl = "$($PackageData.baseRepoUrl)/blob/$myDefaultBranch/LICENSE"
     Write-DebugLog "    License URL: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $licenseUrl
 
     Write-DebugLog "    Repository: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $nu_repoUrl
+    Write-DebugLog $PackageData.baseRepoUrl
 
     $tagString = $tags -join ' '
+    Write-DebugLog "    Tags: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $tagString
 
     # $packageTitle = Get-MostSimilarString -key "ProtonVPN_v3.2.1.exe" -strings @("maah", "ProtonVPN-win-app", "ProtonVPN")
-    $packageTitle = Get-MostSimilarString -key $selectedAsset.name -strings @($PackageData.user, $PackageData.repoName, $PackageData.latestReleaseObj.name)
+    $packageTitle = Get-MostSimilarString -Key $selectedAsset.name -Strings @($PackageData.user, $PackageData.repoName, $PackageData.latestReleaseObj.name) -Substring $true
 
     Write-DebugLog "    Package Title: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $packageTitle
