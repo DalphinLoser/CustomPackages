@@ -40,7 +40,10 @@ function Initialize-GithubPackage {
     Write-DebugLog $scriptsDir
     Write-DebugLog "resourcesDir: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $resourcesDir
-
+    Write-DebugLog "packageDir: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $packageDir
+    Write-DebugLog "acceptedExtensions: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog $acceptedExtensions
     Write-DebugLog "    Input Received: " -NoNewline -ForegroundColor Magenta
     Write-DebugLog $InputUrl
 
