@@ -51,18 +51,21 @@ function Select-AssetByName {
 
     Write-DebugLog "    Assets: " -NoNewline -ForegroundColor Yellow
     $Assets | ForEach-Object {
-        Write-DebugLog "    $_"
+        Write-DebugLog ("    " + ($_.psobject.properties | ForEach-Object { "$($_.Name): $($_.Value)" }) -join "; ")
     }
+    
 
     # If the Assets contains an exact match for the AssetName, set the return value to that asset
-    if ($Assets -contains $AssetName) {
-        $newSelectedAsset = $Assets | Where-Object { $_.name -eq $AssetName }
+    $exactMatchAsset = $Assets | Where-Object { $_.name -eq $AssetName }
+    if ($exactMatchAsset) {
+        $newSelectedAsset = $exactMatchAsset[0]  # Get the first matching asset
         Write-DebugLog "    Exact match found: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $AssetName
+        Write-DebugLog $newSelectedAsset
     }
+    
     else{
         # Get the most similar string from the Assets array
-        $newSelectedAsset = Get-MostSimilarString -Key $AssetName -Strings $Assets
+        $newSelectedAsset = Get-MostSimilarString -Key $AssetName -Strings ($Assets | ForEach-Object { $_.name })
         Write-DebugLog "    Most similar asset found: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $newSelectedAsset
     }
