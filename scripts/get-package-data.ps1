@@ -16,13 +16,7 @@ function Select-AssetFromRelease {
     Write-LogHeader "Select-AssetFromRelease"
 
     # Create a pscustomobject to store the latest release information
-    $assets = $LatestReleaseObj.assets | ForEach-Object {
-        [pscustomobject]@{
-            name = $_.name
-            url = $_.browser_download_url
-            size = $_.size
-        }
-    }
+    $assets = $LatestReleaseObj.assets
     # Print the content of the pscustomobject to the console
     Write-DebugLog "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $LatestReleaseObj
