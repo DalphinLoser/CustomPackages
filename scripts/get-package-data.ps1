@@ -153,38 +153,23 @@ function Get-RootRepositoryObject {
         return $repoObj
     }
 }
-function Get-Filetype {
+function Get-FileType {
     param (
         [Parameter(Mandatory = $true)]
         [string]$FileName
     )
-    Write-LogHeader "Get-Filetype"
+    Write-LogHeader "Get-FileType"
+    Write-DebugLog "    File Name: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $FileName
 
-    $found = $false
+    # Get the file extension
+    $extension = $FileName -replace '.*\.(.+)$', '$1'
+    Write-DebugLog "    File Extension: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $extension
 
-    # Iterate through the accepted extensions and check if the file name ends with one of them
-    foreach ($ext in $acceptedExtensions) {
-        if ($FileName.EndsWith($ext, [System.StringComparison]::OrdinalIgnoreCase)) {
-            $found = $true
-            $extToReturn = $ext
-            break
-        }
-    }
-    
-    if ($found) {
-        # The file name ends with one of the accepted extensions
-        Write-DebugLog "    File name ends with an accepted extension" -ForegroundColor Yellow
-        Write-DebugLog "    Extension: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $extToReturn
-        # return the extension that was found
-        Write-LogFooter "Get-Filetype"
-        return $extToReturn
-    }
-    else {
-        Write-Error "   Unsupported file type: $FileName"
-        exit 1
-    }
+    return $extension
 }
+
 function Get-SilentArgs {
     # This is admittedly not a great way to handle this.
     # TODO: Get from the installer when possible
@@ -316,7 +301,7 @@ function Set-AssetInfo {
     Write-DebugLog $selectedAsset.name
 
     # Determine file type from asset name
-    $fileType = Get-Filetype -FileName $selectedAsset.name
+    $fileType = Get-FileType -FileName $selectedAsset.name
     Write-DebugLog "    File type: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $fileType
     # Determine silent installation arguments based on file type

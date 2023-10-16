@@ -9,9 +9,10 @@ function Get-Updates {
     param (
         [Parameter(Mandatory = $true)]
         [string]$PackagesDir
+
     )
     Write-LogHeader "Get-Updates"
-
+    
     # Initialize variable to hold messages displaying if a package was updated or not
     $updatedPackages = @()
 
@@ -31,8 +32,6 @@ function Get-Updates {
 
         Write-DebugLog "Checking for updates for: $($dirInfo.Name)" -ForegroundColor Magenta
         $package = $dirInfo.Name
-
-        $latestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
 
@@ -58,12 +57,16 @@ function Get-Updates {
         # Extract the old version number using regex. This assumes the version follows right after '/download/'
         if ($packageSourceUrl -match '/download/([^/]+)/') {
             $oldTag = $matches[1]
-            $Global:acceptedExtensions = Get-Filetype -FileName $packageSourceUrl
+            $Global:acceptedExtensions = Get-FileType -FileName $packageSourceUrl
+            Write-DebugLog "    Accepted Extensions Set To: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $Global:acceptedExtensions
         }
         else {
             Write-Error "Could not find the tag in the URL."
             exit 1
         }
+
+        $latestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
         $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($oldTag), $latestReleaseObj.tag_name
