@@ -41,7 +41,7 @@ function Select-AssetFromRelease {
         Write-Error "No suitable asset found for the latest release. Selected Asset is Null"
     }
 
-    Write-LogFooter "Selected Asset"
+    Write-LogFooter "Select-AssetFromRelease"
     return $latestSelectedAsset
 }
 function Select-AssetByName {
@@ -62,7 +62,7 @@ function Select-AssetByName {
         $exactMatchAsset = $exactMatchAssets[0]  # Get the first matching asset
         Write-DebugLog "    Exact match found: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $exactMatchAsset.name
-        $newSelectedAsset = $exactMatchAsset.name
+        $newSelectedAsset = $exactMatchAsset
     }
     
     else{
@@ -70,7 +70,7 @@ function Select-AssetByName {
         $mostSimilarAsset = Get-MostSimilarString -Key $AssetName -Strings ($Assets | ForEach-Object { $_.name })
         Write-DebugLog "    Most similar asset found: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $mostSimilarAsset.name
-        $newSelectedAsset = $mostSimilarAsset.name
+        $newSelectedAsset = $mostSimilarAsset
     }
     Write-LogFooter "Select-AssetByName"
     return $newSelectedAsset
