@@ -102,7 +102,7 @@ function Get-Updates {
         # if the $updateData.specifiedAssetName is not null or empty, use that to find the latest release
         if (-not [string]::IsNullOrWhiteSpace($updateData.specifiedAssetName)) {
             Write-DebugLog "    Current Asset Name: $($updateData.specifiedAssetName)"
-            Write-DebugLog "    Current Asset URL: $($updateData.specifiedAssetUrl)"
+            Write-DebugLog "    Current Asset URL: $($updateData.specifiedAssetApiUrl)"
 
             $currentAssetName = $updateData.specifiedAssetName
 
@@ -128,7 +128,14 @@ function Get-Updates {
                 Write-DebugLog "$currentAssetName" -NoNewline
                 Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog "$currentVersion"
-                $latestAssetName = $currentAssetName -replace $currentVersion, ''
+                $latestAssetName = $currentAssetName -replace $currentVersion, $latestVersion
+            }
+            else {
+                Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "$currentAssetName" -NoNewline
+                Write-DebugLog " does not contain tag: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "$currentVersion"
+                $latestAssetName = $currentAssetName
             }
             Write-DebugLog "    Latest Asset Name: " -NoNewline -ForegroundColor Yellow
             Write-DebugLog "$latestAssetName"
@@ -188,7 +195,7 @@ function Get-Updates {
         if ($latestReleaseUrl -ne $packageSourceUrl) {
             
             Write-DebugLog "    Updating metadata for " -NoNewline -ForegroundColor Yellow
-            Write-DebugLog $package -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$package"
             Write-DebugLog "    The nuspec file is: " -NoNewline -ForegroundColor Yellow
             Write-DebugLog $nuspecFile.FullName
 
