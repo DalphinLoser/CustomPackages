@@ -35,4 +35,3 @@ foreach ($exe in $exes) {
     $DesktopShortcut.TargetPath = $exe.FullName
     $StartMenuShortcut.Save()
 }
-
