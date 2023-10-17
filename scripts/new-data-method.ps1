@@ -64,7 +64,7 @@ Log=    $($logPath)
         # Variable for icon name that will work in url
         $iconName = $versionInfo.ProductName -replace " ", "%20"
         # Variable for icon url
-        $icoFileUrl = "https://raw.githubusercontent.com/DalphinLoser/CustomPackages/Modular/icons/$iconName.ico"
+        $icoFileUrl = "https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/$iconName.ico"
 
         # Add icon url to version info
         $versionInfo.IconUrl = $icoFileUrl
