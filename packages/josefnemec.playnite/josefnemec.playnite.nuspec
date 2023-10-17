@@ -2,25 +2,30 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>josefnemec.playnite</id>
-    <version>10.19</version>
+    <version>10.20</version>
     <title>Playnite</title>
     <authors>Josef Nemec, JosefNemec</authors>
-    <packageSourceUrl>https://github.com/JosefNemec/Playnite/releases/download/10.19/Playnite1019.exe</packageSourceUrl>
+    <packageSourceUrl>https://github.com/JosefNemec/Playnite/releases/download/10.20/Playnite1020.exe</packageSourceUrl>
     <releaseNotes>New:
 
-  * Option to control SafeSearch settings when using web image search 
-  * Long running global searches no longer prevent from typing new requests 
-  * Double click on global search results invokes primary action 
-  * Added profile for QT6 based RPCS3 versions 
+  * Global search result order rankinng improvements (by darklinkpower) 
+  * Data editing dialogs now show warning about unsaved changes when closing 
+  * {PlayniteDir} variable can be used in software tools paths 
+  * Crashes related to lack of disk space are reported as such 
+  * Ruffle emulator profile 
+  * Added chd support to PPSSPP profiles 
+
 
 Fixed:
 
-  * UI freezes for a long time when downloading unavailable image via web search 
-  * Cancelling metadata download stuck on long timeout doesn't work properly 
-  * Games imported via .lnk files are sometimes wrongly named 
-  * Crash when tracking games with invalid installation data 
-  * Fullscreen crash with invalid view settings 
-  * Crash when launching Fullscreen exe first after fresh installation 
+  * ScummVM game import script updated to support portable install and relative paths (by mobeck1) 
+  * "Match all filters" option doesn't properly filter lists when "None" field state is selected 
+  * Some windows do not fit properly on 768p screens 
+  * Cancelling game startup from a script or an extension doesn't set UI state properly in Fullscreen mode 
+  * Emulation scanner exclusions don't work properly on nested folders 
+  * Crash when shutting down Playnite related to Discord integration 
+  * Crash when assigning new category 
+  * Localized strings not displaying properly under certain Windows language settings 
 </releaseNotes>
     <licenseUrl>https://github.com/JosefNemec/Playnite/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/JosefNemec/Playnite</projectUrl>
