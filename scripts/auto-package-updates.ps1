@@ -1,6 +1,7 @@
 . "$PSScriptRoot\logging-functions.ps1"
 . "$PSScriptRoot\get-package-data.ps1"
 . "$PSScriptRoot\process-and-validate.ps1"
+. "$PSScriptRoot\package-functions.ps1"
 
 # Global Variables
 $Global:EnableDebugMode = $true
@@ -93,34 +94,96 @@ function Get-Updates {
 
 
         Write-DebugLog "    Current URL: $packageSourceUrl"
-        # Extract the old version number using regex. This assumes the version follows right after '/download/'
-        if ($packageSourceUrl -match '/download/([^/]+)/') {
-            $oldTag = $matches[1]
-            $Global:acceptedExtensions = Get-FileType -FileName $packageSourceUrl
-            Write-DebugLog "    Accepted Extensions Set To: " -NoNewline -ForegroundColor Yellow
-            Write-DebugLog $Global:acceptedExtensions
-        }
-        else {
-            Write-Error "Could not find the tag in the URL."
-            exit 1
-        }
+  
+        $updateData = Initialize-PackageData -InputGithubUrl $packageSourceUrl
 
-        $latestReleaseObj = Get-ReleaseObject -ReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
+        $latestReleaseObj = $updateData.latestReleaseObj
 
-        # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-        $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($oldTag), $latestReleaseObj.tag_name
-        Write-DebugLog "    Latest  URL: $latestReleaseUrl"
-        # Compare the two URLs
-        if ($latestReleaseUrl -eq $packageSourceUrl) {
-            Write-DebugLog "    The URLs are identical. No new version seems to be available." -ForegroundColor Yellow
-        }
+        # if the $updateData.specifiedAssetName is not null or empty, use that to find the latest release
+        if (-not [string]::IsNullOrWhiteSpace($updateData.specifiedAssetName)) {
+            Write-DebugLog "    Current Asset Name: $($updateData.specifiedAssetName)"
+            Write-DebugLog "    Current Asset URL: $($updateData.specifiedAssetUrl)"
+
+            $currentAssetName = $updateData.specifiedAssetName
+
+            $currentTag = $updateData.tag
+            $latestTag = $latestReleaseObj.tag_name
+            
+            $currentVersion = $currentTag -replace '[a-zA-Z]', ''
+            $latestVersion = $latestTag -replace '[a-zA-Z]', ''
+
+            if ($currentVersion -eq $latestVersion) {
+                Write-DebugLog "    No update available for: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "$currentAssetName"
+                continue
+            }
+
+            Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$currentAssetName" -NoNewline
+            Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$currentVersion"
+            # If the name contains the original tag without the alpha characters, remove the numeric tag from the package name
+            if ($currentAssetName -match $currentVersion) {
+                Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "$currentAssetName" -NoNewline
+                Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "$currentVersion"
+                $latestAssetName = $currentAssetName -replace $currentVersion, ''
+            }
+            Write-DebugLog "    Latest Asset Name: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$latestAssetName"
+
+            Write-DebugLog "    Selecting asset by name: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$latestAssetName" -NoNewline
+            Write-DebugLog " from list of assets: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$($latestReleaseObj.assets.name)"
+
+            $latestAsset = Select-AssetByName -Assets $($latestReleaseObj.assets) -AssetName $latestAssetName
+            Write-DebugLog "    Latest Asset Name: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$($latestAsset.name)"
+
+            $latestReleaseUrl = $latestAsset.browser_download_url
+            Write-DebugLog "    Latest Asset URL: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$($latestAsset.browser_download_url)"
+        } 
         else {
-            Write-DebugLog "    The URLs are different. A new version appears to be available." -ForegroundColor Yellow
-            Write-DebugLog "    Old URL: $packageSourceUrl"
-            Write-DebugLog "    New URL: $latestReleaseUrl"
+            # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
+            $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($currentVersion), $latestVersion
+            Write-DebugLog "    Latest  URL: $latestReleaseUrl"
+            # Compare the two URLs
+            if ($latestReleaseUrl -eq $packageSourceUrl) {
+                Write-DebugLog "    The URLs are identical. No new version seems to be available." -ForegroundColor Yellow
+            }
+            else {
+                Write-DebugLog "    The URLs are different. A new version appears to be available." -ForegroundColor Yellow
+                Write-DebugLog "    Old URL: $packageSourceUrl"
+                Write-DebugLog "    New URL: $latestReleaseUrl"
+
+                $latestAsset = Select-AssetByDownloadURL -Assets $($latestReleaseObj.assets) -DownloadURL $latestReleaseUrl
+                Write-DebugLog "    Latest Asset Name: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "$($latestAsset.name)"
+
+                $latestReleaseUrl = $latestAsset.browser_download_url
+                Write-DebugLog "    Latest Asset URL: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "$($latestAsset.browser_download_url)"
+            }
         }
-        Write-DebugLog "    Current Tag: $oldTag"
-        Write-DebugLog "    Latest Tag:  $($latestReleaseObj.tag_name)"
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl -ne $packageSourceUrl) {
             
@@ -135,8 +198,7 @@ function Get-Updates {
             $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($packageSourceUrl), $latestReleaseUrl
             Write-DebugLog "    The latest version is:     " -NoNewline -ForegroundColor Yellow
             # tag_name without any alpha characters
-            $currentVersion = $oldTag -replace '[a-zA-Z]', ''
-            $latestVersion = $latestReleaseObj.tag_name -replace '[a-zA-Z]', ''
+
             Write-DebugLog $latestVersion
             # if the version from the nuget package is the same as the current version, update the version number
             if ($currentVersion -eq $version) {
@@ -154,7 +216,7 @@ function Get-Updates {
             $installFileContent = $installFileContent -replace [regex]::Escape($url), $latestReleaseUrl
 
 
-            [void]($updatedPackages += $latestReleaseUrl)
+            [void]($updatedPackages += $latestAsset.name)
 
             # Save the updated nuspec file
             $nuspecFileContent | Set-Content -Path $nuspecFile.FullName -Force
@@ -162,6 +224,8 @@ function Get-Updates {
             # Save the updated install file
             $installFileContent | Set-Content -Path $installFile.FullName -Force
             Write-DebugLog "    Install file updated successfully." -ForegroundColor Green
+
+            New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
             
         }
         else {
@@ -180,8 +244,6 @@ function Get-Updates {
 
     # return the list of packages that were updated as a comma-separated string
     $output = $updatedPackages -join ', '
-    Write-DebugLog "Updated packages: " -NoNewline -ForegroundColor Green
-    Write-DebugLog $output
 
     Write-LogFooter "Get-Updates"
     return ("$output")

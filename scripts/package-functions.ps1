@@ -226,7 +226,7 @@ function New-ChocolateyPackage {
     Write-LogHeader "New-ChocolateyPackage"
     # Check the type of the nuspecPath
     Write-DebugLog "    The type of NuspecPath is: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $NuspecPath.GetType().Name -ForegroundColor Blue
+    Write-DebugLog $NuspecPath.GetType().Name
     # Write the content of the nuspecPath
 
     # Check for Nuspec File
@@ -236,9 +236,12 @@ function New-ChocolateyPackage {
         exit 1
     }
     else {
-        Write-DebugLog "    Nuspec file found at: $NuspecPath" -ForegroundColor Yellow
+        Write-DebugLog "    Nuspec file found at: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $NuspecPath
     }
-
+    # Remove any existing packages in the package directory
+    Write-DebugLog "    Removing existing packages from package directory..."
+    Remove-Item -Path "$PackageDir\*.nupkg" -Force -Verbose
     # Create Chocolatey package
     try {
         Write-DebugLog "    Creating Chocolatey package..."

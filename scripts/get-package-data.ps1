@@ -71,6 +71,38 @@ function Select-AssetByName {
     Write-LogFooter "Select-AssetByName"
     return $newSelectedAsset
 }
+function Select-AssetByDownloadURL{
+    param (
+        [System.Object[]]$Assets,
+        [string]$DownloadURL
+    )
+    Write-LogHeader "Select-AssetByDownloadURL"
+    # The value we will return
+    $newSelectedAsset = $null
+
+    Write-DebugLog "    Download URL: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $DownloadURL
+
+    # If the Assets contains an exact match for the AssetName, set the return value to that asset
+    $exactMatchAssets = $Assets | Where-Object { $_.browser_download_url -eq $DownloadURL }
+    if ($exactMatchAssets) {
+        $exactMatchAsset = $exactMatchAssets[0]  # Get the first matching asset
+        Write-DebugLog "    Exact match found: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $exactMatchAsset.name
+        $newSelectedAsset = $exactMatchAsset
+    }
+    
+    else {
+        # Get the most similar string from the Assets array
+        $mostSimilarAssetName = Get-MostSimilarString -Key $DownloadURL -Strings ($Assets | ForEach-Object { $_.browser_download_url })
+        Write-DebugLog "    Most similar asset name found: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $mostSimilarAssetName
+        # Now get the corresponding asset object based on the most similar name
+        $newSelectedAsset = $Assets | Where-Object { $_.browser_download_url -eq $mostSimilarAssetName }
+    }
+    Write-LogFooter "Select-AssetByDownloadURL"
+    return $newSelectedAsset
+}
 function Select-AssetByType {
     param (
         [System.Object[]]$Assets,
@@ -269,22 +301,22 @@ function Get-ReleaseObject {
     Write-DebugLog "    Target GitHub API URL: $ReleaseApiUrl"
 
     Write-DebugLog "    Fetching latest release information..."
-    $latestReleaseObj = (Invoke-WebRequest -Uri "$ReleaseApiUrl").Content | ConvertFrom-Json
+    $releaseObj = (Invoke-WebRequest -Uri "$ReleaseApiUrl").Content | ConvertFrom-Json
     
-    if (-not $latestReleaseObj) {
+    if (-not $releaseObj) {
         Write-Error "   Received data is null. URL used: $ReleaseApiUrl"
         exit 1
     }
 
     # Make sure the assets field is not null or empty
-    $assetCount = ($latestReleaseObj.assets | Measure-Object).Count
-    if (-not $latestReleaseObj.assets -or $assetCount -eq 0) {
+    $assetCount = ($releaseObj.assets | Measure-Object).Count
+    if (-not $releaseObj.assets -or $assetCount -eq 0) {
         Write-Error "   No assets found for the latest release. URL used: $ReleaseApiUrl"
         exit 1
     }
 
     Write-LogFooter "Get-ReleaseObject"
-    return $latestReleaseObj
+    return $releaseObj
 }
 function Set-AssetInfo {
     param (
@@ -659,7 +691,7 @@ function Initialize-PackageData {
         # Get the base repository object and the latest release object
         $baseRepoObj = Get-BaseRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
         $rootRepoObj = Get-RootRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
-        $latestReleaseObj = Get-ReleaseObject -LatestReleaseApiUrl $latestReleaseApiUrl        
+        $latestReleaseObj = Get-ReleaseObject -ReleaseApiUrl $latestReleaseApiUrl        
 
         #region Display URL information for debugging
         Write-DebugLog "    GitHub User: " -NoNewline -ForegroundColor Magenta
