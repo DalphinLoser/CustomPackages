@@ -90,11 +90,11 @@ function Get-Updates {
             exit 1
         }
         # Find the release notes in the nuspec file
-        if ($nuspecFileContent -match '<releaseNotes>(.*?)<\/releaseNotes>') {
+        if ($nuspecFileContent -match '<releaseNotes>((.|\n|\r)*)<\/releaseNotes>') {
             $releaseNotes = $matches[1]
         }
         else {
-            Write-Error "No <releaseNotes> tag found."
+            Write-Error "No <releaseNotes> tag found in $($nuspecFile.FullName)"
             exit 1
         }
         
@@ -226,9 +226,12 @@ function Get-Updates {
                 Write-DebugLog $currentVersion
                 Write-Error "    The version numbers is not the tag..."
             }
-            
+
+            # Decode HTML entities in the release notes
+            $latestReleaseNotes = [System.Net.WebUtility]::HtmlDecode($latestReleaseObj.body)
+
             # Update the release notes
-            $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($releaseNotes), $latestReleaseObj.body
+            $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($releaseNotes), $latestReleaseNotes
 
             # Update the install file with the new URL
             $installFileContent = $installFileContent -replace [regex]::Escape($url), $latestReleaseUrl

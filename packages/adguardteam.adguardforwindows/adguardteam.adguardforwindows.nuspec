@@ -4,13 +4,129 @@
     <id>adguardteam.adguardforwindows</id>
     <version>7.15.4385.0</version>
     <title>AdGuard</title>
-    <authors>Adguard Software Limited</authors>
+    <authors>Adguard Software Limited, AdguardTeam</authors>
     <packageSourceUrl>https://github.com/AdguardTeam/AdguardForWindows/releases/download/v7.15.0/AdGuard-7.15-.4385.exe</packageSourceUrl>
-    <releaseNotes>&gt; **Disclaimer** AdGuard for Windows is not an open-source project. We use Github as an open bug tracker for users to see what developers are working on.  “To infinity and beyond” could be the motto of our hard-working AdGuard team. This time, we are pleased to introduce the fresh new version of AdGuard for Windows.   ## New HTTP/3 filtering  One of the major updates in this version is the support for HTTP/3 filtering, powered by our CoreLibs v1.12. HTTP/3 (HTTP-over-QUIC) is the latest version of the HTTP protocol that uses QUIC instead of TCP. The QUIC network protocol offers many advantages over the TCP transport layer protocol, such as improved privacy and security, faster internet connection, and the ability to handle data packets in any order. Enabling HTTP/3 filtering also means more efficient ad blocking. You’re welcome!  Currently, HTTP/3 filtering only works in Edge and Firefox browsers. This is because Chrome has different logic for verifying QUIC and TCP certificates, which does not accept AdGuard certificates. However, this feature is available in Advanced settings for testing and debugging purposes to ensure seamless operation.  &lt;image src="https://cdn.adtidy.org/content/release_notes/ad_blocker/windows/v7.15/http3_en.png" width = "600"&gt;  ## Annoying bugs belong in the past  We’ve addressed a minor problem in context menus — the dark theme now appears flawless. Additionally, upon installation, you will now have five recommended ad-blocking filters readily accessible instead of just one. This upgrade will make life easier and protect you from annoying ads.   Along with other fixes, we have made several improvements to boost the overall performance of AdGuard for Windows. Previously, the application would sometimes crash due to high memory usage. However, we have addressed this issue. Also, when the internet connection was unstable or very slow, the application could behave unpredictably or even crash. Now, everything works more smoothly.   To top it all off, we have updated the WFP and TDI drivers, and as per our tradition, we have also updated CoreLibs, DnsLibs, and scriptlets to ensure even more stable operation.  ## Changelog  ### Features * Added support for HTTP/3 (IETF QUIC) [#487](https://github.com/AdguardTeam/CoreLibs/issues/487) * Improved the notification informing users about the necessary reboot [#4817](https://github.com/AdguardTeam/AdguardForWindows/issues/4817) * Added the ability to press the buttons in the dialog boxes using the Space bar [#4677](https://github.com/AdguardTeam/AdguardForWindows/issues/4677) * Enhanced settings icon in the Filtering log when filtering criteria are set [#4656](https://github.com/AdguardTeam/AdguardForWindows/issues/4656) * Added more information on the TLS properties to the Filtering log [#1171](https://github.com/AdguardTeam/CoreLibs/issues/1171) * Added `$referrerpolicy` modifier [#135](https://github.com/AdguardTeam/CoreLibs/issues/135)   ### Fixes * Adapted the context menu of the app to the dark theme [#4587](https://github.com/AdguardTeam/AdguardForWindows/issues/4587) * Cannot add a new rule in a specific case in the Filter editor [#4684](https://github.com/AdguardTeam/AdguardForWindows/issues/4684) * Chinese Traditional words in the Chinese Simplified description of Web of Trust [#4739](https://github.com/AdguardTeam/AdguardForWindows/issues/4739) * The app is installed with one non-recommended Annoyances filter instead of five recommended ones [#4764](https://github.com/AdguardTeam/AdguardForWindows/issues/4764) * Scroll left/right doesn’t work in the Filtering log for preview via touchpad [#4638](https://github.com/AdguardTeam/AdguardForWindows/issues/4638) * No element is selected when double-clicking the radio buttons in the Filtering log [#4672](https://github.com/AdguardTeam/AdguardForWindows/issues/4672) * Minor dark theme UI issue on the `Remove filter` dialog in `Filter Editor` [#4664](https://github.com/AdguardTeam/AdguardForWindows/issues/4664) * Allowed `$stealth` rules with empty pattern [#1762](https://github.com/AdguardTeam/CoreLibs/issues/1762) * uBO media queries are not supported [#1707](https://github.com/AdguardTeam/CoreLibs/issues/1707) * A few seconds delay when visiting ipTIME home routers [#1756](https://github.com/AdguardTeam/CoreLibs/issues/1756) * AdGuard slows down WebPage loading time [#1522](https://github.com/AdguardTeam/CoreLibs/issues/1522) * Hide referer with “Hide your search queries” option is enabled if request is made by click [#1766](https://github.com/AdguardTeam/CoreLibs/issues/1766) * System DNS is a loopback when running Cloudflare WARP [#4692](https://github.com/AdguardTeam/AdguardForWindows/issues/4692) * Consider `:has()`, `:not()`, `:is()` as a standard pseudo-class if ExtendedCss usage is not forced by `#?#` rule marker [#1683](https://github.com/AdguardTeam/CoreLibs/issues/1683) * When the `network.https.ech.enabled` setting is enabled, ECH GREASE is enabled for sites that do not support ECH [#1781](https://github.com/AdguardTeam/CoreLibs/issues/1781) * Error when processing script `text decryption key not found` [#1750](https://github.com/AdguardTeam/CoreLibs/issues/1750) * Sometimes DNS fallbacks helper returns 127.0.0.1 instead of provider’s servers [#1687](https://github.com/AdguardTeam/CoreLibs/issues/1687) * TCP/IP: Added new reject mode — ICMP administratively prohibited [#1774](https://github.com/AdguardTeam/CoreLibs/issues/1774) * `SaveFrom` gives error when loading video from `ok.ru` site [#1776](https://github.com/AdguardTeam/CoreLibs/issues/1776) * Cosmetic rules don’t work at `mypikpak.com` [#1767](https://github.com/AdguardTeam/CoreLibs/issues/1767)  ### Important for filter maintainers  #### Features * Added `$method` modifier for basic rules [#1713](https://github.com/AdguardTeam/CoreLibs/issues/1713) * Added `$to` modifier [#1714](https://github.com/AdguardTeam/CoreLibs/issues/1714) #### Fixes * `$jsonprune`, `$replace`, `$hls` do not work with non-GET-POST HTTP methods [#1743](https://github.com/AdguardTeam/CoreLibs/issues/1743) * Made `$app` modifier case insensitive for AdGuard for Windows [#1755](https://github.com/AdguardTeam/CoreLibs/issues/1755) * `$path` modifier does not work on the path `market.yandex.ru/?` [#1726](https://github.com/AdguardTeam/CoreLibs/issues/1726) * Exception rules interfere with each other [#1749](https://github.com/AdguardTeam/CoreLibs/issues/1749) * Wrong location of the text cursor in the Filter Editor [#4702](https://github.com/AdguardTeam/AdguardForWindows/issues/4702) * Setting the focus adequately after certain actions in DNS Filter Editor, like deleting a rule (for use of the up/down arrow keys) [#4362](https://github.com/AdguardTeam/AdguardForWindows/issues/4362) * `$jsonprune` modifier should be able to handle quotes for `jsonp` [#1734](https://github.com/AdguardTeam/CoreLibs/issues/1734)  ### DnsLibs * DnsLibs updated to v2.2.24 [#4826](https://github.com/AdguardTeam/AdguardForWindows/issues/4826)  ### CoreLibs * CoreLibs updated to v1.12.78 [#4832](https://github.com/AdguardTeam/AdguardForWindows/issues/4832)  ### Scriptlets ### Scriptlets updated to v1.9.58  #### Features * Added new scriptlet `evaldata-prune` [#322](https://github.com/AdguardTeam/Scriptlets/issues/322) * Improved `trusted-replace-fetch-response`/`trusted-replace-xhr-response` — added ability to replace all matched content [#303](https://github.com/AdguardTeam/Scriptlets/issues/303) * Added new scriptlet `remove-node-text` [#318](https://github.com/AdguardTeam/Scriptlets/issues/318) * Added new scriptlet `trusted-replace-node-text` [#319](https://github.com/AdguardTeam/Scriptlets/issues/319)  #### Fixes * Mock `getResponseHeader()` and `getAllResponseHeaders()` methods for `prevent-xhr` and `trusted-replace-xhr-response` [#295](https://github.com/AdguardTeam/Scriptlets/issues/295) * `cannot apply rule` message removed for logging scriptlets [#313](https://github.com/AdguardTeam/Scriptlets/issues/313) * Added new way for returning supported values of `set-constant` scriptlet [#316](https://github.com/AdguardTeam/Scriptlets/issues/316) * The version that declares support for scriptlets or redirect is specified [#273](https://github.com/AdguardTeam/Scriptlets/issues/273) * Fixed issue with pruning when `addEventListener` was used before calling `send()` method in `m3u-prune` and `xml-prune` scriptlets [#315](https://github.com/AdguardTeam/Scriptlets/issues/315) * Added ability for `prevent-element-src-loading` scriptlet to prevent inline `onerror` and match `link` tag [#276](https://github.com/AdguardTeam/Scriptlets/issues/276) * `trusted-set-cookie-reload` — website is not reloaded if `$now$` value is used [#291](https://github.com/AdguardTeam/Scriptlets/issues/291) * Cookie setting scriptlets — name and value encoding problem [#311](https://github.com/AdguardTeam/Scriptlets/issues/311) * Instance properties of `Response` issue in scriptlet and redirect [#297](https://github.com/AdguardTeam/Scriptlets/issues/297) * Value encoding problem with `trusted-set-cookie` and `trusted-set-cookie-reload` scriptlets [#320](https://github.com/AdguardTeam/Scriptlets/issues/320) * `log-addEventListener` — a lot of errors are printed to console [#335](https://github.com/AdguardTeam/Scriptlets/issues/335) * Scriptlets `prevent-fetch`, `prevent-xhr` do not help if a request/domain is blocked by DNS filtering [#334](https://github.com/AdguardTeam/Scriptlets/issues/334) * Fixed `googletagservices-gpt` — updateTargetingFromMap() [#293](https://github.com/AdguardTeam/Scriptlets/issues/293) * Scriptlets don’t handle escaped quotes correctly [#286](https://github.com/AdguardTeam/Scriptlets/issues/286) * Added `Accept` and `Reject` values for `set-cookie` [#336](https://github.com/AdguardTeam/Scriptlets/issues/336) * Made case-insensitive values for `set-cookie` [#342](https://github.com/AdguardTeam/Scriptlets/issues/342) * Improved `google-ima3` to avoid conflict with the DAI SDK [#331](https://github.com/AdguardTeam/Scriptlets/issues/331) * Improved storage item scriptlets — added ability to remove item by key [#338](https://github.com/AdguardTeam/Scriptlets/issues/338) * AdGuard takes commas into account when converting rules to uBO rules [#343](https://github.com/AdguardTeam/Scriptlets/issues/343)  ### UserscriptsWrapper updated to v1.2.20  #### Fixes * Userscript for `imdb.com` doesn’t work [#1729](https://github.com/AdguardTeam/CoreLibs/issues/1729)  **AdGuard for Windows direct download links:**    ​[Release channel](https://agrd.io/windows)  [Beta channel](https://agrd.io/windows_beta)  [Nightly channel](https://agrd.io/windows_nightly)</releaseNotes>
+    <releaseNotes>&gt; **Disclaimer** AdGuard for Windows is not an open-source project. We use Github as an open bug tracker for users to see what developers are working on.
+
+“To infinity and beyond” could be the motto of our hard-working AdGuard team. This time, we are pleased to introduce the fresh new version of AdGuard for Windows. 
+
+## New HTTP/3 filtering
+
+One of the major updates in this version is the support for HTTP/3 filtering, powered by our CoreLibs v1.12. HTTP/3 (HTTP-over-QUIC) is the latest version of the HTTP protocol that uses QUIC instead of TCP. The QUIC network protocol offers many advantages over the TCP transport layer protocol, such as improved privacy and security, faster internet connection, and the ability to handle data packets in any order. Enabling HTTP/3 filtering also means more efficient ad blocking. You’re welcome!
+
+Currently, HTTP/3 filtering only works in Edge and Firefox browsers. This is because Chrome has different logic for verifying QUIC and TCP certificates, which does not accept AdGuard certificates. However, this feature is available in Advanced settings for testing and debugging purposes to ensure seamless operation.
+
+&lt;image src="https://cdn.adtidy.org/content/release_notes/ad_blocker/windows/v7.15/http3_en.png" width = "600"&gt;
+
+## Annoying bugs belong in the past
+
+We’ve addressed a minor problem in context menus — the dark theme now appears flawless. Additionally, upon installation, you will now have five recommended ad-blocking filters readily accessible instead of just one. This upgrade will make life easier and protect you from annoying ads.
+
+
+Along with other fixes, we have made several improvements to boost the overall performance of AdGuard for Windows. Previously, the application would sometimes crash due to high memory usage. However, we have addressed this issue. Also, when the internet connection was unstable or very slow, the application could behave unpredictably or even crash. Now, everything works more smoothly.
+
+
+To top it all off, we have updated the WFP and TDI drivers, and as per our tradition, we have also updated CoreLibs, DnsLibs, and scriptlets to ensure even more stable operation.
+
+## Changelog
+
+### Features
+* Added support for HTTP/3 (IETF QUIC) [#487](https://github.com/AdguardTeam/CoreLibs/issues/487)
+* Improved the notification informing users about the necessary reboot [#4817](https://github.com/AdguardTeam/AdguardForWindows/issues/4817)
+* Added the ability to press the buttons in the dialog boxes using the Space bar [#4677](https://github.com/AdguardTeam/AdguardForWindows/issues/4677)
+* Enhanced settings icon in the Filtering log when filtering criteria are set [#4656](https://github.com/AdguardTeam/AdguardForWindows/issues/4656)
+* Added more information on the TLS properties to the Filtering log [#1171](https://github.com/AdguardTeam/CoreLibs/issues/1171)
+* Added `$referrerpolicy` modifier [#135](https://github.com/AdguardTeam/CoreLibs/issues/135)
+
+
+### Fixes
+* Adapted the context menu of the app to the dark theme [#4587](https://github.com/AdguardTeam/AdguardForWindows/issues/4587)
+* Cannot add a new rule in a specific case in the Filter editor [#4684](https://github.com/AdguardTeam/AdguardForWindows/issues/4684)
+* Chinese Traditional words in the Chinese Simplified description of Web of Trust [#4739](https://github.com/AdguardTeam/AdguardForWindows/issues/4739)
+* The app is installed with one non-recommended Annoyances filter instead of five recommended ones [#4764](https://github.com/AdguardTeam/AdguardForWindows/issues/4764)
+* Scroll left/right doesn’t work in the Filtering log for preview via touchpad [#4638](https://github.com/AdguardTeam/AdguardForWindows/issues/4638)
+* No element is selected when double-clicking the radio buttons in the Filtering log [#4672](https://github.com/AdguardTeam/AdguardForWindows/issues/4672)
+* Minor dark theme UI issue on the `Remove filter` dialog in `Filter Editor` [#4664](https://github.com/AdguardTeam/AdguardForWindows/issues/4664)
+* Allowed `$stealth` rules with empty pattern [#1762](https://github.com/AdguardTeam/CoreLibs/issues/1762)
+* uBO media queries are not supported [#1707](https://github.com/AdguardTeam/CoreLibs/issues/1707)
+* A few seconds delay when visiting ipTIME home routers [#1756](https://github.com/AdguardTeam/CoreLibs/issues/1756)
+* AdGuard slows down WebPage loading time [#1522](https://github.com/AdguardTeam/CoreLibs/issues/1522)
+* Hide referer with “Hide your search queries” option is enabled if request is made by click [#1766](https://github.com/AdguardTeam/CoreLibs/issues/1766)
+* System DNS is a loopback when running Cloudflare WARP [#4692](https://github.com/AdguardTeam/AdguardForWindows/issues/4692)
+* Consider `:has()`, `:not()`, `:is()` as a standard pseudo-class if ExtendedCss usage is not forced by `#?#` rule marker [#1683](https://github.com/AdguardTeam/CoreLibs/issues/1683)
+* When the `network.https.ech.enabled` setting is enabled, ECH GREASE is enabled for sites that do not support ECH [#1781](https://github.com/AdguardTeam/CoreLibs/issues/1781)
+* Error when processing script `text decryption key not found` [#1750](https://github.com/AdguardTeam/CoreLibs/issues/1750)
+* Sometimes DNS fallbacks helper returns 127.0.0.1 instead of provider’s servers [#1687](https://github.com/AdguardTeam/CoreLibs/issues/1687)
+* TCP/IP: Added new reject mode — ICMP administratively prohibited [#1774](https://github.com/AdguardTeam/CoreLibs/issues/1774)
+* `SaveFrom` gives error when loading video from `ok.ru` site [#1776](https://github.com/AdguardTeam/CoreLibs/issues/1776)
+* Cosmetic rules don’t work at `mypikpak.com` [#1767](https://github.com/AdguardTeam/CoreLibs/issues/1767)
+
+### Important for filter maintainers
+
+#### Features
+* Added `$method` modifier for basic rules [#1713](https://github.com/AdguardTeam/CoreLibs/issues/1713)
+* Added `$to` modifier [#1714](https://github.com/AdguardTeam/CoreLibs/issues/1714)
+#### Fixes
+* `$jsonprune`, `$replace`, `$hls` do not work with non-GET-POST HTTP methods [#1743](https://github.com/AdguardTeam/CoreLibs/issues/1743)
+* Made `$app` modifier case insensitive for AdGuard for Windows [#1755](https://github.com/AdguardTeam/CoreLibs/issues/1755)
+* `$path` modifier does not work on the path `market.yandex.ru/?` [#1726](https://github.com/AdguardTeam/CoreLibs/issues/1726)
+* Exception rules interfere with each other [#1749](https://github.com/AdguardTeam/CoreLibs/issues/1749)
+* Wrong location of the text cursor in the Filter Editor [#4702](https://github.com/AdguardTeam/AdguardForWindows/issues/4702)
+* Setting the focus adequately after certain actions in DNS Filter Editor, like deleting a rule (for use of the up/down arrow keys) [#4362](https://github.com/AdguardTeam/AdguardForWindows/issues/4362)
+* `$jsonprune` modifier should be able to handle quotes for `jsonp` [#1734](https://github.com/AdguardTeam/CoreLibs/issues/1734)
+
+### DnsLibs
+* DnsLibs updated to v2.2.24 [#4826](https://github.com/AdguardTeam/AdguardForWindows/issues/4826)
+
+### CoreLibs
+* CoreLibs updated to v1.12.78 [#4832](https://github.com/AdguardTeam/AdguardForWindows/issues/4832)
+
+### Scriptlets
+### Scriptlets updated to v1.9.58
+
+#### Features
+* Added new scriptlet `evaldata-prune` [#322](https://github.com/AdguardTeam/Scriptlets/issues/322)
+* Improved `trusted-replace-fetch-response`/`trusted-replace-xhr-response` — added ability to replace all matched content [#303](https://github.com/AdguardTeam/Scriptlets/issues/303)
+* Added new scriptlet `remove-node-text` [#318](https://github.com/AdguardTeam/Scriptlets/issues/318)
+* Added new scriptlet `trusted-replace-node-text` [#319](https://github.com/AdguardTeam/Scriptlets/issues/319)
+
+#### Fixes
+* Mock `getResponseHeader()` and `getAllResponseHeaders()` methods for `prevent-xhr` and `trusted-replace-xhr-response` [#295](https://github.com/AdguardTeam/Scriptlets/issues/295)
+* `cannot apply rule` message removed for logging scriptlets [#313](https://github.com/AdguardTeam/Scriptlets/issues/313)
+* Added new way for returning supported values of `set-constant` scriptlet [#316](https://github.com/AdguardTeam/Scriptlets/issues/316)
+* The version that declares support for scriptlets or redirect is specified [#273](https://github.com/AdguardTeam/Scriptlets/issues/273)
+* Fixed issue with pruning when `addEventListener` was used before calling `send()` method in `m3u-prune` and `xml-prune` scriptlets [#315](https://github.com/AdguardTeam/Scriptlets/issues/315)
+* Added ability for `prevent-element-src-loading` scriptlet to prevent inline `onerror` and match `link` tag [#276](https://github.com/AdguardTeam/Scriptlets/issues/276)
+* `trusted-set-cookie-reload` — website is not reloaded if `$now$` value is used [#291](https://github.com/AdguardTeam/Scriptlets/issues/291)
+* Cookie setting scriptlets — name and value encoding problem [#311](https://github.com/AdguardTeam/Scriptlets/issues/311)
+* Instance properties of `Response` issue in scriptlet and redirect [#297](https://github.com/AdguardTeam/Scriptlets/issues/297)
+* Value encoding problem with `trusted-set-cookie` and `trusted-set-cookie-reload` scriptlets [#320](https://github.com/AdguardTeam/Scriptlets/issues/320)
+* `log-addEventListener` — a lot of errors are printed to console [#335](https://github.com/AdguardTeam/Scriptlets/issues/335)
+* Scriptlets `prevent-fetch`, `prevent-xhr` do not help if a request/domain is blocked by DNS filtering [#334](https://github.com/AdguardTeam/Scriptlets/issues/334)
+* Fixed `googletagservices-gpt` — updateTargetingFromMap() [#293](https://github.com/AdguardTeam/Scriptlets/issues/293)
+* Scriptlets don’t handle escaped quotes correctly [#286](https://github.com/AdguardTeam/Scriptlets/issues/286)
+* Added `Accept` and `Reject` values for `set-cookie` [#336](https://github.com/AdguardTeam/Scriptlets/issues/336)
+* Made case-insensitive values for `set-cookie` [#342](https://github.com/AdguardTeam/Scriptlets/issues/342)
+* Improved `google-ima3` to avoid conflict with the DAI SDK [#331](https://github.com/AdguardTeam/Scriptlets/issues/331)
+* Improved storage item scriptlets — added ability to remove item by key [#338](https://github.com/AdguardTeam/Scriptlets/issues/338)
+* AdGuard takes commas into account when converting rules to uBO rules [#343](https://github.com/AdguardTeam/Scriptlets/issues/343)
+
+### UserscriptsWrapper updated to v1.2.20
+
+#### Fixes
+* Userscript for `imdb.com` doesn’t work [#1729](https://github.com/AdguardTeam/CoreLibs/issues/1729)
+
+**AdGuard for Windows direct download links:**  
+
+​[Release channel](https://agrd.io/windows)
+
+[Beta channel](https://agrd.io/windows_beta)
+
+[Nightly channel](https://agrd.io/windows_nightly)</releaseNotes>
     <licenseUrl>https://github.com/AdguardTeam/AdguardForWindows/blob/master/LICENSE</licenseUrl>
-    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/Modular/icons/AdGuard.ico</iconUrl>
-    <description>AdGuard for Windows open bug tracker</description>
-    <tags>adguard windows</tags>
     <projectUrl>https://github.com/AdguardTeam/AdguardForWindows</projectUrl>
+    <tags>adguard windows</tags>
+    <description>AdGuard for Windows open bug tracker</description>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/Modular/icons/AdGuard.ico</iconUrl>
   </metadata>
 </package>

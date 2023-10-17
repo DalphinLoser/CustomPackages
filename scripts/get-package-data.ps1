@@ -18,18 +18,31 @@ function Select-AssetFromRelease {
     # Create a pscustomobject to store the latest release information
     $assets = $LatestReleaseObj.assets
     # Print the content of the pscustomobject to the console
-    Write-DebugLog "    Latest Release Object: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $LatestReleaseObj
+    Write-DebugLog "    Latest Release Object Name: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $LatestReleaseObj.name
 
     $specifiedAssetName = $PackageData.specifiedAssetName
-    $specifiedAssetType = $PackageData.specifiedAssetType
+    # if specifiedAssetName is not null or empty print it
+    if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
+        Write-DebugLog "    Specified Asset Name: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $specifiedAssetName
+        $specifiedAssetType = Get-FileType -FileName $specifiedAssetName
+
+    }
+    else {
+        Write-DebugLog "    No specified asset name found."
+    }
     
     $latestSelectedAsset = if (-not [string]::IsNullOrWhiteSpace($specifiedAssetName)) {
         # If the user specified an asset name, select that asset
         Select-AssetByName -Assets $assets -AssetName $specifiedAssetName
     } else {
         # Otherwise, select the best asset based on supported types
-        Select-AssetByType -Assets $assets -AcceptedExtensions $specifiedAssetType
+        Write-DebugLog "    Selecting asset by type: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $specifiedAssetType
+        Write-DebugLog "    Accepted extensions: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $AcceptedExtensions
+        Select-AssetByType -Assets $assets -AcceptedExtensions $AcceptedExtensions
     }
 
     if (-not $latestSelectedAsset) {
@@ -457,6 +470,9 @@ function Set-AssetInfo {
         }
     }
 
+
+    $description = [System.Net.WebUtility]::HtmlDecode($description)
+
     Write-DebugLog "    Description: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $description
 
@@ -595,13 +611,17 @@ function Set-AssetInfo {
     Write-DebugLog "    Package Title: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $packageTitle
 
+    $latestReleaseNotes = [System.Net.WebUtility]::HtmlDecode($retreivedLatestReleaseObj.body)
+    Write-DebugLog "    Release Notes: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $latestReleaseNotes
+
     # Create package metadata object as a hashtable
     $packageMetadata = @{
         PackageName        = $chocoPackageName
         Version            = $latestTagName -replace '[^0-9.]', ''
         Author             = $PackageData.user
         Description        = $description
-        VersionDescription = $retreivedLatestReleaseObj.body -replace "\r\n", " "
+        VersionDescription = $latestReleaseNotes
         Url                = $selectedAsset.browser_download_url
         ProjectUrl         = $PackageData.baseRepoUrl
         FileType           = $fileType
