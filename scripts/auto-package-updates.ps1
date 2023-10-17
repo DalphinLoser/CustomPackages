@@ -232,7 +232,7 @@ function Get-Updates {
             $installFileContent | Set-Content -Path $installFile.FullName -Force
             Write-DebugLog "    Install file updated successfully." -ForegroundColor Green
 
-            New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
+            $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
             
         }
         else {
