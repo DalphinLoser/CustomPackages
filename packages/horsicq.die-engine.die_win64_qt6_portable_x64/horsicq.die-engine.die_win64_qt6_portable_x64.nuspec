@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>horsicq.die-engine.die_win64_qt6_portable_x64</id>
-    <version>3.08</version>
-    <title>3.08</title>
-    <authors>horsicq</authors>
+    <version>3.08.0.0</version>
+    <title>Detect It Easy</title>
+    <authors>NTInfo, horsicq</authors>
     <packageSourceUrl>https://github.com/horsicq/DIE-engine/releases/download/3.08/die_win64_qt6_portable_3.08_x64.zip</packageSourceUrl>
     <releaseNotes>Please see the file [CHANGELOG](https://github.com/horsicq/Detect-It-Easy/blob/master/changelog.txt) for a detailed list of changes.
 
@@ -41,9 +41,9 @@ Experimental versions - There may be bugs in the GUI
 
 </releaseNotes>
     <licenseUrl>https://github.com/horsicq/DIE-engine/blob/master/LICENSE</licenseUrl>
-    <tags>binary-analysis disassembler elf entropy hacktoberfest hacktoberfest22 program-analysis reverse-engineering signature unpacker yara</tags>
-    <iconUrl>https://avatars.githubusercontent.com/u/7762949?v=4</iconUrl>
-    <projectUrl>https://github.com/horsicq/DIE-engine</projectUrl>
     <description>DIE engine</description>
+    <tags>binary-analysis disassembler elf entropy hacktoberfest hacktoberfest22 program-analysis reverse-engineering signature unpacker yara</tags>
+    <projectUrl>https://github.com/horsicq/DIE-engine</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Detect%20It%20Easy.ico</iconUrl>
   </metadata>
 </package>
