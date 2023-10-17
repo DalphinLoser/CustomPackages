@@ -649,7 +649,7 @@ function Set-AssetInfo {
                 [Parameter(Mandatory = $true)][string]$logLabel
             )
             if (-not [string]::IsNullOrWhiteSpace($value)) {
-                $metadataObject.$property = $value
+                $metadataObject.$logLabel = $value
                 Write-DebugLog "    $($logLabel): " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog $value
             }
