@@ -136,7 +136,8 @@ function Get-BaseRepositoryObject {
         Write-DebugLog $repoObj.full_name
     }
     catch {
-        Write-Error "Failed to fetch repository information."
+        # Detailed error message
+        Write-Error "Failed to fetch repository information. URL used: $baseRepoApiUrl $($Error[0].Exception.Message)" 
         return $null
     }
 
