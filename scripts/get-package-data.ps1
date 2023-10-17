@@ -259,31 +259,31 @@ function Get-MostRecentValidRelease {
     Write-DebugLog "No valid release found."
     return $null
 }
-function Get-LatestReleaseObject {
+function Get-ReleaseObject {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$LatestReleaseApiUrl
+        [string]$ReleaseApiUrl
     )
 
-    Write-LogHeader "Get-LatestReleaseObject"
-    Write-DebugLog "    Target GitHub API URL: $LatestReleaseApiUrl"
+    Write-LogHeader "Get-ReleaseObject"
+    Write-DebugLog "    Target GitHub API URL: $ReleaseApiUrl"
 
     Write-DebugLog "    Fetching latest release information..."
-    $latestReleaseObj = (Invoke-WebRequest -Uri "$LatestReleaseApiUrl").Content | ConvertFrom-Json
+    $latestReleaseObj = (Invoke-WebRequest -Uri "$ReleaseApiUrl").Content | ConvertFrom-Json
     
     if (-not $latestReleaseObj) {
-        Write-Error "   Received data is null. URL used: $LatestReleaseApiUrl"
+        Write-Error "   Received data is null. URL used: $ReleaseApiUrl"
         exit 1
     }
 
     # Make sure the assets field is not null or empty
     $assetCount = ($latestReleaseObj.assets | Measure-Object).Count
     if (-not $latestReleaseObj.assets -or $assetCount -eq 0) {
-        Write-Error "   No assets found for the latest release. URL used: $LatestReleaseApiUrl"
+        Write-Error "   No assets found for the latest release. URL used: $ReleaseApiUrl"
         exit 1
     }
 
-    Write-LogFooter "Get-LatestReleaseObject"
+    Write-LogFooter "Get-ReleaseObject"
     return $latestReleaseObj
 }
 function Set-AssetInfo {
@@ -293,7 +293,7 @@ function Set-AssetInfo {
     )
     Write-LogHeader "Set-AssetInfo"
     
-    $retreivedLatestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $PackageData.latestReleaseApiUrl
+    $retreivedLatestReleaseObj = $PackageData.latestReleaseObj
 
     # Select the best asset based on supported types
     $selectedAsset = Select-AssetFromRelease -LatestReleaseObj $retreivedLatestReleaseObj -PackageData $PackageData
@@ -314,7 +314,7 @@ function Set-AssetInfo {
     $PackageData.baseRepoApiUrl = $retreivedLatestReleaseObj.url -replace '/releases/.*', ''
 
     $myDefaultBranch = "$($PackageData.baseRepoObj.default_branch)"
-    Write-DebugLog "    Default Branch (Root): " -ForegroundColor Yellow
+    Write-DebugLog "    Default Branch (Root): " -NoNewline -ForegroundColor Yellow
     Write-DebugLog "`"$myDefaultBranch`""
 
     # Array table to store the tags. Uses the topics json result from the GitHub API
@@ -427,6 +427,10 @@ function Set-AssetInfo {
     Write-DebugLog "    Description: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $description
 
+    $originalTagName = $PackageData.tag
+    Write-DebugLog "    Original Tag Name: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $originalTagName
+
     # Get the latest release version number
     $latestTagName = $retreivedLatestReleaseObj.tag_name
     Write-DebugLog "    Latest Tag Name: " -NoNewline -ForegroundColor Yellow
@@ -453,15 +457,45 @@ function Set-AssetInfo {
     if (-not [string]::IsNullOrWhiteSpace($cleanedSpecifiedAssetName)) {
         $chocoPackageName += ".$($cleanedSpecifiedAssetName)"
     }
-    # If the name contains the version number exactly, remove the version number from the package name
+    Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $chocoPackageName -NoNewline
+    Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $latestTagName
+    # If the name contains the tag exactly, remove the tag from the package name
     if ($chocoPackageName -match $latestTagName) {
-        Write-DebugLog "Package name: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $chocoPackageName -NoNewline
-        Write-DebugLog " contains version number: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $latestTagName
         $chocoPackageName = $chocoPackageName -replace $latestTagName, ''
     }
-    Write-DebugLog "    Package Name: " -NoNewline -ForegroundColor Yellow
+    $tagNameNoAlpha = $latestTagName -replace '[^0-9.]', ''
+    $originalTagNameNoAlpha = $PackageData.tag -replace '[^0-9.]', ''
+    Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $chocoPackageName -NoNewline
+    Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $tagNameNoAlpha
+    # If the name contains the latest tag without the alpha characters, remove the numeric tag from the package name
+    if ($chocoPackageName -match $tagNameNoAlpha) {
+        Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $chocoPackageName -NoNewline
+        Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $tagNameNoAlpha
+        $chocoPackageName = $chocoPackageName -replace $tagNameNoAlpha, ''
+    }
+    Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $chocoPackageName -NoNewline
+    Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $originalTagNameNoAlpha
+    # If the name contains the original tag without the alpha characters, remove the numeric tag from the package name
+    if ($chocoPackageName -match $originalTagNameNoAlpha) {
+        Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $chocoPackageName -NoNewline
+        Write-DebugLog "contains tag: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $originalTagNameNoAlpha
+        $chocoPackageName = $chocoPackageName -replace $originalTagNameNoAlpha, ''
+    }
+    Write-DebugLog "    Processed Package Name: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $chocoPackageName
     # Convert to valid package name
     $chocoPackageName = ConvertTo-ValidPackageName -PackageName $chocoPackageName
@@ -625,7 +659,7 @@ function Initialize-PackageData {
         # Get the base repository object and the latest release object
         $baseRepoObj = Get-BaseRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
         $rootRepoObj = Get-RootRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
-        $latestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl $latestReleaseApiUrl        
+        $latestReleaseObj = Get-ReleaseObject -LatestReleaseApiUrl $latestReleaseApiUrl        
 
         #region Display URL information for debugging
         Write-DebugLog "    GitHub User: " -NoNewline -ForegroundColor Magenta

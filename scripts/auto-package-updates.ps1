@@ -1,6 +1,6 @@
 . "$PSScriptRoot\logging-functions.ps1"
 . "$PSScriptRoot\get-package-data.ps1"
-. "$PSScriptRoot\create-package-github.ps1"
+. "$PSScriptRoot\process-and-validate.ps1"
 
 # Global Variables
 $Global:EnableDebugMode = $true
@@ -9,7 +9,6 @@ function Get-Updates {
     param (
         [Parameter(Mandatory = $true)]
         [string]$PackagesDir
-
     )
     Write-LogHeader "Get-Updates"
     
@@ -24,6 +23,13 @@ function Get-Updates {
 
     $packageDirNames = Get-ChildItem -Path $PackagesDir -Directory
 
+    # Print the names of the directories in the packages directory
+    Write-DebugLog "Directories in PackagesDir: " -ForegroundColor Magenta
+    # One per line
+    $packageDirNames | ForEach-Object {
+        Write-DebugLog "    $($_.FullName)"
+    }
+
     foreach ($dirInfo in $packageDirNames) {
         if ([string]::IsNullOrWhiteSpace($dirInfo)) {
             Write-Error "dirInfo is null or empty"
@@ -35,6 +41,31 @@ function Get-Updates {
 
         $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
 
+        # Get the install file for the package. Located under the tools directory within the package directory. File will be named chocolateyInstall.ps1
+        $installFile = Get-ChildItem -Path "$($dirInfo.FullName)\tools" -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
+
+        # If the install file doesn't exist, skip this package
+        if (-not $installFile) {
+            Write-Error "No install file found in directory $($dirInfo.FullName)"
+            continue
+        }
+
+        # Get the contents of the install file
+        $installFileContent = Get-Content -Path $installFile.FullName -Raw
+
+        # Find the value of the url field in the install file
+        if ($installFileContent -match 'url\s*=\s*["''](.*)["'']') {
+            $url = $matches[1]
+            Write-DebugLog "    Current URL From Install: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $url
+
+        }
+        else {
+            Write-Error "No url found."
+            exit 1
+        }
+
+        # If the nuspec file doesn't exist, skip this package
         if (-not $nuspecFile) {
             Write-Error "No .nuspec file found in directory $($dirInfo.FullName)"
             continue
@@ -47,6 +78,14 @@ function Get-Updates {
         }
         else {
             Write-Error "No <packageSourceUrl> tag found."
+            exit 1
+        }
+        # Find the version number in the nuspec file
+        if ($nuspecFileContent -match '<version>(.*?)<\/version>') {
+            $version = $matches[1]
+        }
+        else {
+            Write-Error "No <version> tag found."
             exit 1
         }
         
@@ -66,7 +105,7 @@ function Get-Updates {
             exit 1
         }
 
-        $latestReleaseObj = Get-LatestReleaseObject -LatestReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
+        $latestReleaseObj = Get-ReleaseObject -ReleaseApiUrl "https://api.github.com/repos/$($($package -split '\.')[0])/$($($package -split '\.')[1])/releases/latest"
 
         # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
         $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($oldTag), $latestReleaseObj.tag_name
@@ -80,25 +119,49 @@ function Get-Updates {
             Write-DebugLog "    Old URL: $packageSourceUrl"
             Write-DebugLog "    New URL: $latestReleaseUrl"
         }
-        Write-DebugLog "    Current Version: $oldTag"
-        Write-DebugLog "    Latest Version: $($latestReleaseObj.tag_name)"
+        Write-DebugLog "    Current Tag: $oldTag"
+        Write-DebugLog "    Latest Tag:  $($latestReleaseObj.tag_name)"
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl -ne $packageSourceUrl) {
             
-            # Remove the old nuspec file
-            Write-DebugLog "Removing old nuspec file: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "    Updating metadata for " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $package -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "    The nuspec file is: " -NoNewline -ForegroundColor Yellow
             Write-DebugLog $nuspecFile.FullName
-            Remove-Item -Path $nuspecFile.FullName -Force
 
-            Write-DebugLog "    Updating metadata for $package"
             Write-DebugLog "    The latest release URL is: " -NoNewline -ForegroundColor Yellow
             Write-DebugLog $latestReleaseUrl
-            # Get the new metadata
-            # TODO handle when asset iss specified (problem with version number)
-            Initialize-GithubPackage -InputUrl "$latestReleaseUrl"
+            # Replace the packageSourceUrl in the nuspec file with the new URL
+            $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($packageSourceUrl), $latestReleaseUrl
+            Write-DebugLog "    The latest version is:     " -NoNewline -ForegroundColor Yellow
+            # tag_name without any alpha characters
+            $currentVersion = $oldTag -replace '[a-zA-Z]', ''
+            $latestVersion = $latestReleaseObj.tag_name -replace '[a-zA-Z]', ''
+            Write-DebugLog $latestVersion
+            # if the version from the nuget package is the same as the current version, update the version number
+            if ($currentVersion -eq $version) {
+                $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($version), $latestVersion
+            }
+            else {
+                Write-DebugLog "    Version number from nuspec: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog $version
+                Write-DebugLog "    Version number from Tag:    " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog $currentVersion
+                Write-Error "    The version numbers is not the tag..."
+            }
+
+            # Update the install file with the new URL
+            $installFileContent = $installFileContent -replace [regex]::Escape($url), $latestReleaseUrl
+
+
             [void]($updatedPackages += $latestReleaseUrl)
-            # Remove the old nuspec file
-            Write-DebugLog "    Removing old nuspec file"
+
+            # Save the updated nuspec file
+            $nuspecFileContent | Set-Content -Path $nuspecFile.FullName -Force
+            Write-DebugLog "    Nuspec file updated successfully." -ForegroundColor Green
+            # Save the updated install file
+            $installFileContent | Set-Content -Path $installFile.FullName -Force
+            Write-DebugLog "    Install file updated successfully." -ForegroundColor Green
             
         }
         else {
