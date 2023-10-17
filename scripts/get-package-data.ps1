@@ -669,11 +669,18 @@ function Set-AssetInfo {
             foreach ($property in $dataProperties.GetEnumerator()) {
                 Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
             }
+            $dataFromExeCompanyNameNoAlpha = $dataFromExe.CompanyName -replace '[^a-zA-Z]', ''
+            $packageMetadataAuthorNoAlpha = $packageMetadata.Author -replace '[^a-zA-Z]', ''
             # If the company name is not null or empty, and the values are not the same, append it to the author
-            if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName) -and $dataFromExe.CompanyName -ne $packageMetadata.Author) {
-                $packageMetadata.Author = "$($dataFromExe.CompanyName), $($packageMetadata.Author)"
-                Write-DebugLog "    Authors: " -NoNewline -ForegroundColor Yellow
-                Write-DebugLog $packageMetadata.Author
+            if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName)) {
+                if ($dataFromExeCompanyNameNoAlpha -ne $packageMetadataAuthorNoAlpha){
+                    $packageMetadata.Author = "$($dataFromExe.CompanyName), $($packageMetadata.Author)"
+                    Write-DebugLog "    Authors: " -NoNewline -ForegroundColor Yellow
+                    Write-DebugLog $packageMetadata.Author
+                }
+                else {
+                    $packageMetadata.Author = $dataFromExe.CompanyName
+                }
             }
             # If command line args are not null or empty, CommandLineArgs is a hashtable. Use the CompleteSilentInstall key
             if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CommandLineArgs)) {
