@@ -677,7 +677,7 @@ function Set-AssetInfo {
             }
             # If command line args are not null or empty, CommandLineArgs is a hashtable. Use the CompleteSilentInstall key
             if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CommandLineArgs)) {
-                $packageMetadata.CompleteSilentInstall = "$($dataFromExe.CommandLineArgs.CompleteSilentInstall)"
+                $packageMetadata.SilentArgs = "$($dataFromExe.CommandLineArgs.CompleteSilentInstall)"
                 Write-DebugLog "    Silent Args: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog $packageMetadata.SilentArgs
             }
