@@ -269,36 +269,62 @@ function Get-InstallerArgs {
     )
 
     $argsMap = @{
+        # TODO: Implement MSI detection
+        "MSI" = @{
+            "CompleteSilentInstall" = @("/quiet");
+            "SilentUninstall" = @("/quiet", "/uninstall {0}");
+            "LoggedInstall" = @("/quiet", "/l* {0}");
+            "NoReboot" = @("/quiet", "/norestart");
+            "ForceReboot" = @("/quiet", "/forcerestart");
+            "RepairInstallation" = @("/quiet", "/fpecms {0}");
+            "CustomInstallPath" = @("/quiet", "INSTALLDIR={0}");
+            "AllUsersInstall" = @("/quiet", "ALLUSERS=1");
+            "Update" = @("/update {0}");
+            "LanguageSelection" = @("/quiet", "TRANSFORMS={0}.mst");
+        };
         "NSIS" = @{
             "CompleteSilentInstall" = @("/S");
             "SilentUninstall" = @("/S", "/uninstall");
-            "CustomInstallPath" = @("/S", "/D=<InstallPath>");
-            "LoggedInstall" = @("/S", "/LOG=<LogFileName>");
+            "CustomInstallPath" = @("/S", "/D={0}");
+            "LoggedInstall" = @("/S", "/LOG={0}");
             "ForceOverwrite" = @("/S", "/overwrite");
             "StopRunningPrograms" = @("/S", "/CLOSEAPPLICATIONS");
             "Update" = @("/S", "/UPDATE");
             "IgnorePreRequisites" = @("/S", "/NOREQCHECK");
-            "LanguageSelection" = @("/S", "/LANG=<LanguageCode>");
-            "LicenseKeyInsertion" = @("/S", "/LICENSE_KEY=<LicenseKey>");
+            "LanguageSelection" = @("/S", "/LANG={0}");
+            "LicenseKeyInsertion" = @("/S", "/LICENSE_KEY={0}");
             "NoDesktopShortcut" = @("/S", "/NODESKTOP");
             "ForceRemoveOld" = @("/S", "/REMOVE_OLD");
         };
         "InnoSetup" = @{
-            # ... (existing groupings)
+            "CompleteSilentInstall" = @("/VERYSILENT");
+            "SilentUninstall" = @("/VERYSILENT", "/uninstall");
+            "CustomInstallPath" = @("/VERYSILENT", "/DIR={0}");
+            "NoReboot" = @("/VERYSILENT", "/NORESTART");
+            "AllUsersInstall" = @("/VERYSILENT", "/ALLUSERS");
+            "LoggedInstall" = @("/VERYSILENT", "/LOG={0}");
+            "RepairInstallation" = @("/VERYSILENT", "/REPAIR");
+            "StopRunningPrograms" = @("/VERYSILENT", "/CLOSEAPPLICATIONS");
+            "Update" = @("/VERYSILENT", "/UPDATE");
             "IgnorePreRequisites" = @("/VERYSILENT", "/NOCHECK");
-            "LanguageSelection" = @("/VERYSILENT", "/LANG=<LanguageCode>");
-            "LicenseKeyInsertion" = @("/VERYSILENT", "/LICENSE_KEY=<LicenseKey>");
-            "CustomConfiguration" = @("/VERYSILENT", "/LOADINF=<ConfigFileName>");
+            "LanguageSelection" = @("/VERYSILENT", "/LANG={0}");
+            "LicenseKeyInsertion" = @("/VERYSILENT", "/LICENSE_KEY={0}");
+            "CustomConfiguration" = @("/VERYSILENT", "/LOADINF={0}");
             "NoDesktopShortcut" = @("/VERYSILENT", "/NODESKTOP");
         };
         "WiX" = @{
-            # ... (existing groupings)
-            "NetworkInstall" = @("/quiet", "/source=<NetworkPath>");
-            "CustomConfiguration" = @("/quiet", "/config=<ConfigFileName>");
+            "CompleteSilentInstall" = @("/quiet");
+            "SilentUninstall" = @("/quiet", "/uninstall");
+            "LogInstallation" = @("/quiet", "/log {0}");
+            "NoReboot" = @("/quiet", "/norestart");
+            "RepairInstallation" = @("/quiet", "/repair");
+            "LimitedUIInstall" = @("/passive");
+            "Update" = @("/quiet", "/update");
+            "NetworkInstall" = @("/quiet", "/source={0}");
+            "CustomConfiguration" = @("/quiet", "/config={0}");
             "NoDesktopShortcut" = @("/quiet", "/NODESKTOP");
             "ForceRemoveOld" = @("/quiet", "/REMOVEROLDER");
         };
-        # Add more installer types and groupings as needed
     }
 
     $installerArgs = $argsMap[$installerType]

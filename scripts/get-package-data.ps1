@@ -670,15 +670,21 @@ function Set-AssetInfo {
                 Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
             }
             # If the company name is not null or empty, and the values are not the same, append it to the author
-            if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName) -and $dataFromExe.CompanyName -ne $dataFromExe.ProductName) {
+            if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName) -and $dataFromExe.CompanyName -ne $packageMetadata.Author) {
                 $packageMetadata.Author = "$($dataFromExe.CompanyName), $($packageMetadata.Author)"
                 Write-DebugLog "    Authors: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog $packageMetadata.Author
             }
             # If command line args are not null or empty, CommandLineArgs is a hashtable. Use the CompleteSilentInstall key
             if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CommandLineArgs)) {
+                # if StopRunningPrograms is not null or empty, set packageMetadata.SilentArgs to the value
+                if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CommandLineArgs.StopRunningPrograms)) {
+                    $packageMetadata.SilentArgs = "$($dataFromExe.CommandLineArgs.StopRunningPrograms)"
+                    Write-DebugLog "    Silent Args (StopRunningPrograms): " -NoNewline -ForegroundColor Yellow
+                    Write-DebugLog $packageMetadata.SilentArgs
+                }
                 $packageMetadata.SilentArgs = "$($dataFromExe.CommandLineArgs.CompleteSilentInstall)"
-                Write-DebugLog "    Silent Args: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "    Silent Args (CompleteSilentInstall): " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog $packageMetadata.SilentArgs
             }
         }
