@@ -89,6 +89,14 @@ function Get-Updates {
             Write-Error "No <version> tag found."
             exit 1
         }
+        # Find the release notes in the nuspec file
+        if ($nuspecFileContent -match '<releaseNotes>(.*?)<\/releaseNotes>') {
+            $releaseNotes = $matches[1]
+        }
+        else {
+            Write-Error "No <releaseNotes> tag found."
+            exit 1
+        }
         
         # Find the value of the packageSourceUrl field in the nuspec file
 
@@ -218,6 +226,9 @@ function Get-Updates {
                 Write-DebugLog $currentVersion
                 Write-Error "    The version numbers is not the tag..."
             }
+            
+            # Update the release notes
+            $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($releaseNotes), $latestReleaseObj.body
 
             # Update the install file with the new URL
             $installFileContent = $installFileContent -replace [regex]::Escape($url), $latestReleaseUrl
