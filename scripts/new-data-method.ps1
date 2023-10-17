@@ -246,7 +246,7 @@ function Get-InstallerUsed{
             $installerUsed = "NSIS"
         }
         elseif ($installerDescription -match "Inno") {
-            $installerUsed = "Inno Setup"
+            $installerUsed = "InnoSetup"
         }
         elseif ($installerDescription -match "WiX") {
             $installerUsed = "WiX"
