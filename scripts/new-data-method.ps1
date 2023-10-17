@@ -93,6 +93,31 @@ Log=    $($logPath)
         # Extract version information and upload icon
         $versionInfo = Get-VersionInfo -FilePath "$($metadataPath)\VERSIONINFO.rc"
 
+        # Find the path of the fime names MANIFEST*.txt in the metadata directory
+        $manifestPath = Get-ChildItem -Path $metadataPath -Filter "MANIFEST*.txt" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+
+        # Get the installer type from the manifest file
+        $installerUsed = Get-InstallerUsed -ManifestPath $manifestPath.FullName
+
+        Write-DebugLog "    Installer used: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $installerUsed
+
+        # Get silent args based on installer type
+        $installerArgs = Get-InstallerArgs -InstallerType $installerUsed
+
+        # Add silent args to version info
+        $versionInfo.CommandLineArgs = $installerArgs
+
+        Write-DebugLog "    Silent args: " -ForegroundColor Yellow
+        # Print the content of the hashtable to the console
+        foreach ($key in $versionInfo.CommandLineArgs.Keys) {
+            Write-DebugLog "    $($key): " -NoNewline -ForegroundColor Cyan
+            Write-DebugLog $versionInfo.CommandLineArgs[$key]
+        }
+
+        # Add installer type to version info
+        $versionInfo.InstallerUsed = $installerUsed
+
         if (-not $versionInfo) {
             Write-DebugLog "    Version information not found" -ForegroundColor Red
             Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
@@ -100,8 +125,6 @@ Log=    $($logPath)
         }
 
         Move-IconToDirectory -IconPath $iconPath -VersionInfo $versionInfo -Destination "$rootDir\icons"
-
-
 
         # Variable for icon name that will work in url
         $iconName = $versionInfo.ProductName -replace " ", "%20"
@@ -197,3 +220,94 @@ function Get-VersionInfo {
         Write-Error "An error occurred: $_"
     }
 }
+function Get-InstallerUsed{
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$ManifestPath
+    )
+    Write-LogHeader "Get-InstallerUsed"
+    # Check if the manifest file exists
+    if (-not (Test-Path -Path $ManifestPath -PathType Leaf)) {
+        Write-Error "Manifest file not found at path: $ManifestPath"
+        return
+    }
+
+    # Read the content of the manifest file, which will be in xml format. Set the content to a variable
+    $manifestContent = Get-Content -Path $ManifestPath -Raw
+
+
+    # Extract the value of the "InstallerUsed" node
+    if ($manifestContent -match '<description>(.+?)</description>') {
+        $installerDescription = $matches[1]
+        Write-DebugLog "    Installer description: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $installerDescription
+        # Handle different installer types based on if the description contains its name.
+        if ($installerDescription -match "Nullsoft") {
+            $installerUsed = "NSIS"
+        }
+        elseif ($installerDescription -match "Inno") {
+            $installerUsed = "Inno Setup"
+        }
+        elseif ($installerDescription -match "WiX") {
+            $installerUsed = "WiX"
+        }
+        else {
+            Write-DebugLog "    Installer type not found in description" -ForegroundColor Red
+            return
+        }
+
+    }
+
+    Write-LogFooter "Get-InstallerUsed"
+    # Return the extracted values
+    return $installerUsed
+
+}
+function Get-InstallerArgs {
+    param (
+        [string]$installerType
+    )
+
+    $argsMap = @{
+        "NSIS" = @{
+            "CompleteSilentInstall" = @("/S");
+            "SilentUninstall" = @("/S", "/uninstall");
+            "CustomInstallPath" = @("/S", "/D=<InstallPath>");
+            "LoggedInstall" = @("/S", "/LOG=<LogFileName>");
+            "ForceOverwrite" = @("/S", "/overwrite");
+            "StopRunningPrograms" = @("/S", "/CLOSEAPPLICATIONS");
+            "Update" = @("/S", "/UPDATE");
+            "IgnorePreRequisites" = @("/S", "/NOREQCHECK");
+            "LanguageSelection" = @("/S", "/LANG=<LanguageCode>");
+            "LicenseKeyInsertion" = @("/S", "/LICENSE_KEY=<LicenseKey>");
+            "NoDesktopShortcut" = @("/S", "/NODESKTOP");
+            "ForceRemoveOld" = @("/S", "/REMOVE_OLD");
+        };
+        "InnoSetup" = @{
+            # ... (existing groupings)
+            "IgnorePreRequisites" = @("/VERYSILENT", "/NOCHECK");
+            "LanguageSelection" = @("/VERYSILENT", "/LANG=<LanguageCode>");
+            "LicenseKeyInsertion" = @("/VERYSILENT", "/LICENSE_KEY=<LicenseKey>");
+            "CustomConfiguration" = @("/VERYSILENT", "/LOADINF=<ConfigFileName>");
+            "NoDesktopShortcut" = @("/VERYSILENT", "/NODESKTOP");
+        };
+        "WiX" = @{
+            # ... (existing groupings)
+            "NetworkInstall" = @("/quiet", "/source=<NetworkPath>");
+            "CustomConfiguration" = @("/quiet", "/config=<ConfigFileName>");
+            "NoDesktopShortcut" = @("/quiet", "/NODESKTOP");
+            "ForceRemoveOld" = @("/quiet", "/REMOVEROLDER");
+        };
+        # Add more installer types and groupings as needed
+    }
+
+    $installerArgs = $argsMap[$installerType]
+
+    if ($null -eq $installerArgs) {
+        Write-DebugLog "Unknown installer type: $installerType" -ForegroundColor Red
+        return $null
+    }
+
+    return $installerArgs
+}
+

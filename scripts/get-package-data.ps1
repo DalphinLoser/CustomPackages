@@ -656,22 +656,30 @@ function Set-AssetInfo {
         }
         
 
-        # if datafromexe is not null or empty, set the metadata
+        # If the data from the exe is not null or empty, set the metadata
         if ($null -ne $dataFromExe -and $dataFromExe.Count -gt 0) {
             $dataProperties = @{
-                Version        = 'FileVersion';
-                GithubRepoName = 'ProductName';
-                IconUrl        = 'IconUrl'
+                Version         = 'FileVersion';
+                GithubRepoName  = 'ProductName';
+                IconUrl         = 'IconUrl';
+                CommandLineArgs = 'CommandLineArgs';
             }
             Write-DebugLog "Version Info: " -ForegroundColor Magenta
+            # Iterate through the properties and set the metadata
             foreach ($property in $dataProperties.GetEnumerator()) {
                 Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
             }
-            # Prepend the company name to the beginning of the author string without overwriting the author if it is already set
-            if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName)) {
+            # If the company name is not null or empty, and the values are not the same, append it to the author
+            if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CompanyName) -and $dataFromExe.CompanyName -ne $dataFromExe.ProductName) {
                 $packageMetadata.Author = "$($dataFromExe.CompanyName), $($packageMetadata.Author)"
-                Write-DebugLog "    Author: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog "    Authors: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog $packageMetadata.Author
+            }
+            # If command line args are not null or empty, CommandLineArgs is a hashtable. Use the CompleteSilentInstall key
+            if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CommandLineArgs)) {
+                $packageMetadata.CompleteSilentInstall = "$($dataFromExe.CommandLineArgs.CompleteSilentInstall)"
+                Write-DebugLog "    Silent Args: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog $packageMetadata.SilentArgs
             }
         }
     }
