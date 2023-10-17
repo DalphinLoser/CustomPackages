@@ -683,9 +683,11 @@ function Set-AssetInfo {
                     Write-DebugLog "    Silent Args (StopRunningPrograms): " -NoNewline -ForegroundColor Yellow
                     Write-DebugLog $packageMetadata.SilentArgs
                 }
-                $packageMetadata.SilentArgs = "$($dataFromExe.CommandLineArgs.CompleteSilentInstall)"
-                Write-DebugLog "    Silent Args (CompleteSilentInstall): " -NoNewline -ForegroundColor Yellow
-                Write-DebugLog $packageMetadata.SilentArgs
+                else {
+                    $packageMetadata.SilentArgs = "$($dataFromExe.CommandLineArgs.CompleteSilentInstall)"
+                    Write-DebugLog "    Silent Args (CompleteSilentInstall): " -NoNewline -ForegroundColor Yellow
+                    Write-DebugLog $packageMetadata.SilentArgs
+                }
             }
         }
     }
