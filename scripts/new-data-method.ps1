@@ -14,8 +14,50 @@ function Get-DataFromExe {
 
         # Download file using WebClient
         $webClient = New-Object System.Net.WebClient
-        $downloadedFilePath = Join-Path $tempDir.FullName "downloadedFile.exe"
-        $webClient.DownloadFile($DownloadUrl, $downloadedFilePath)
+        $downloadType = $DownloadUrl.Split(".")[-1]
+        # Set path for downloaded file based on download type (exe or zip) using switch
+        switch ($downloadType) {
+            "exe" {
+                $downloadedFilePath = Join-Path $tempDir.FullName "downloadedFile.exe"
+                $webClient.DownloadFile($DownloadUrl, $downloadedFilePath)
+            }
+            "zip" {
+                Write-DebugLog "    Download type is zip" -ForegroundColor Magenta
+                Write-DebugLog "    Downloading zip file" -ForegroundColor Yellow
+                $downloadedFileZip = Join-Path $tempDir.FullName "downloadedFile.zip"
+                Write-DebugLog "    Downloaded file path: " -NoNewline -ForegroundColor Cyan
+                Write-DebugLog "$downloadedFileZip"
+                $webClient.DownloadFile($DownloadUrl, $downloadedFileZip)
+                Write-DebugLog "    Extracting exe files from zip file" -ForegroundColor Yellow
+                try {
+                    # Extract the zip file to the temporary directory
+                    [System.IO.Compression.ZipFile]::ExtractToDirectory($downloadedFileZip, $tempDir)
+                    # Get the list of .exe files
+                    $downloadedFilePaths = Get-ChildItem -Path $tempDir -Recurse -Filter "*.exe" | Select-Object -ExpandProperty FullName
+
+                    # Output the list of .exe files
+                    if ($downloadedFilePaths) {
+                        Write-DebugLog "    Exe files extracted from zip file: " -NoNewline -ForegroundColor Cyan
+                        Write-DebugLog "$downloadedFilePaths"
+                        $downloadedFilePath = $downloadedFilePaths[0]
+                        Write-DebugLog "    Downloaded file path: " -NoNewline -ForegroundColor Cyan
+                        Write-DebugLog "$downloadedFilePath"
+                    }
+                }
+                catch {
+                    Write-Error "An error occurred while processing the ZIP file: $_"
+                }
+                if (-not $downloadedFilePaths) {
+                    Write-Error "   No exe files found in zip file"
+                    return
+                }
+            }
+            default {
+                Write-Error "Download type not supported for extraction method: $downloadType"
+                return
+            }
+        }
+
 
         # Set paths for Resource Hacker and associated files
         $resourceHackerPath = Join-Path $rootDir "resources\RH-Get\resource_hacker\ResourceHacker.exe"
@@ -52,7 +94,7 @@ Log=    $($logPath)
         $versionInfo = Get-VersionInfo -FilePath "$($metadataPath)\VERSIONINFO.rc"
 
         if (-not $versionInfo) {
-            Write-DebugLog "Version information not found"
+            Write-DebugLog "    Version information not found" -ForegroundColor Red
             Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
             return
         }
@@ -78,6 +120,7 @@ Log=    $($logPath)
         # Clean up RH-Get directory
         Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
         
+        Write-LogFooter "Get-DataFromExe"
         return $versionInfo
             
     }
@@ -125,7 +168,7 @@ function Get-VersionInfo {
     try {
         # Check if the file exists
         if (-not (Test-Path -Path $FilePath -PathType Leaf)) {
-            Write-DebugLog "File not found at path: $FilePath"
+            Write-DebugLog "    File not found at path: $FilePath" -ForegroundColor Red
             return
         }
 

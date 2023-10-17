@@ -635,8 +635,8 @@ function Set-AssetInfo {
         # ProjectSiteUrl      = $homepage
     }
 
-    # If the file type is an exe, get the product version and company name from the exe
-    if ($fileType -eq 'exe') {
+    # If the file type is an exe or zip, get the product version and company name from the exe
+    if ($fileType -eq 'exe' -or $fileType -eq 'zip') {
         Write-DebugLog "    File type is: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $fileType
         Write-DebugLog "    Getting product version and company name from exe: " -ForegroundColor Yellow

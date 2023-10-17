@@ -162,3 +162,40 @@ function Get-MostSimilarString {
     
     return $finalString
 }
+function Get-ExeInZip {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$ZipPath
+    )
+
+    # Load necessary assembly
+    Add-Type -AssemblyName "System.IO.Compression.FileSystem"
+
+    # Check if the zip file exists
+    if (-not (Test-Path -Path $ZipPath)) {
+        Write-Error "The specified ZIP file does not exist."
+        return
+    }
+
+    # Create a temporary directory to extract the zip file
+    $tempDir = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [Guid]::NewGuid().ToString())
+    New-Item -Path $tempDir -ItemType Directory | Out-Null
+
+    try {
+        # Extract the zip file to the temporary directory
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $tempDir)
+
+        # Get the list of .exe files
+        $exeFiles = Get-ChildItem -Path $tempDir -Recurse -Filter "*.exe" | Select-Object -ExpandProperty FullName
+
+        # Output the list of .exe files
+        $exeFiles
+    }
+    catch {
+        Write-Error "An error occurred while processing the ZIP file: $_"
+    }
+    finally {
+        # Clean up the temporary directory
+        Remove-Item -Path $tempDir -Recurse -Force
+    }
+}
