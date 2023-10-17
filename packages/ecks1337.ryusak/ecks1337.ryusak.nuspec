@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ecks1337.ryusak</id>
+    <version>1.6.2</version>
+    <title>RyuSAK</title>
+    <authors>Ecks1337, Ecks1337</authors>
+    <packageSourceUrl>https://github.com/Ecks1337/RyuSAK/releases/download/v1.6.2/RyuSAK-1.6.2.Setup.exe</packageSourceUrl>
+    <releaseNotes>Catch error thrown when GitHub API ignores a request</releaseNotes>
+    <licenseUrl>https://github.com/Ecks1337/RyuSAK/blob/main/LICENSE</licenseUrl>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/Modular/icons/RyuSAK.ico</iconUrl>
+    <tags>electron electron-forge material-ui react switch typescript</tags>
+    <projectUrl>https://github.com/Ecks1337/RyuSAK</projectUrl>
+    <description>This is a tool which allows you to download saves or mods for Nintendo Switch emulators using a compatible Emusak backend</description>
+  </metadata>
+</package>
