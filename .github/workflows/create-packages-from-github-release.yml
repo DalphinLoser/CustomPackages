@@ -34,7 +34,7 @@ jobs:
     - name: Create and Checkout to Unique Local Branch
       run: |
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
-        git checkout -b $unique_branch
+        git checkout -b $unique_branch || exit 1
       shell: bash
 
     - name: Set Global Variables
@@ -48,7 +48,7 @@ jobs:
       run: |
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
           Set-ExecutionPolicy Bypass -Scope Process -Force
-          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) || exit 1
         }
       shell: pwsh
 
@@ -56,17 +56,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
-        Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}"
+        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1" || exit 1
+        Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}" || exit 1
       shell: pwsh
       
-    # Commit changes to the unique local branch for successful jobs
     - name: Commit changes
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
-        git add .
+        git add . || exit 1
         git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
       shell: bash
 
@@ -82,15 +80,9 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-
-        # Merge each unique local branch into the default branch
         for unique_branch in $(git branch --list 'staging_*'); do
-          git merge --no-ff -m "Merging $unique_branch" $unique_branch
-          
-          # Delete the unique local branch
-          git branch -d $unique_branch
+          git merge --no-ff -m "Merging $unique_branch" $unique_branch || exit 1
+          git branch -d $unique_branch || exit 1
         done
-
-        # Push the changes to the default branch
-        git push origin ${{ github.event.repository.default_branch }}
+        git push origin ${{ github.event.repository.default_branch }} || exit 1
       shell: bash
