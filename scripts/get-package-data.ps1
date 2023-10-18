@@ -218,7 +218,6 @@ function Get-FileType {
 
 function Get-SilentArgs {
     # This is admittedly not a great way to handle this.
-    # TODO: Get from the installer when possible
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
@@ -667,7 +666,11 @@ function Set-AssetInfo {
             Write-DebugLog "Version Info: " -ForegroundColor Magenta
             # Iterate through the properties and set the metadata
             foreach ($property in $dataProperties.GetEnumerator()) {
-                Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
+                # if the value is not null or empty, set the metadata
+                if (-not [string]::IsNullOrWhiteSpace($dataFromExe.$($property.Value))) {
+                    Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
+                }
+
             }
             $dataFromExeCompanyNameNoAlpha = $dataFromExe.CompanyName -replace '[^a-zA-Z]', ''
             $packageMetadataAuthorNoAlpha = $packageMetadata.Author -replace '[^a-zA-Z]', ''
