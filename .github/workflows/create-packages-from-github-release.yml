@@ -1,4 +1,4 @@
-name: Create-Package-Github
+name: Create-Packages-Github
 
 on:
   workflow_dispatch:
@@ -20,7 +20,8 @@ jobs:
       id: set-matrix
       run: |
         urls=$(echo "${{ github.event.inputs.repoUrls }}" | tr -d '\n' | tr ',' '\n' | tr ' ' '\n' | awk '{$1=$1};1' | sort -u)
-        echo "matrix=${urls[@]}" >> $GITHUB_ENV
+        json_array="\"$(echo "$urls" | tr '\n' '","' | sed 's/,$//')\""
+        echo "::set-output name=matrix::[$json_array]"
       shell: bash
 
   build:
@@ -33,6 +34,12 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+
+    - name: Initialize Result Files
+      run: |
+        echo "" > success.txt
+        echo "" > failure.txt
+      shell: pwsh
 
     - name: Cache Chocolatey Install
       uses: actions/cache@v2
@@ -48,7 +55,7 @@ jobs:
         echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
       shell: bash
 
-    - name: Install Dependencies (Chocolatey)
+    - name: Install Chocolatey
       run: |
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
           Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -66,9 +73,9 @@ jobs:
 
     - name: Stage Changes for Commit
       run: |
-        echo "${{ matrix.repoUrl }}" >> $GITHUB_WORKSPACE/success.txt
-        git add packages/${{ matrix.repoUrl }}/
-        git commit -m "Staging for ${{ matrix.repoUrl }}" || (echo "${{ matrix.repoUrl }}" >> $GITHUB_WORKSPACE/failure.txt; exit 0)
+        git add "packages/${{ matrix.repoUrl }}/." || echo "${{ matrix.repoUrl }}" >> failure.txt
+        git commit -m "Staging for ${{ matrix.repoUrl }}" || echo "${{ matrix.repoUrl }}" >> failure.txt
+        echo "${{ matrix.repoUrl }}" >> success.txt
       shell: pwsh
 
     - name: Upload success and failure lists
@@ -100,7 +107,7 @@ jobs:
     - name: Merge Staged Changes and Generate Commit Message
       run: |
         git pull --no-commit
-        successes=$(cat success.txt)
+        successes=$(cat success.txt | xargs echo)
         commit_msg="Successfully created packages for: $successes"
         git commit -m "$commit_msg"
         git push origin ${{ github.ref }}
@@ -108,6 +115,6 @@ jobs:
 
     - name: Failure Notification
       run: |
-        failures=$(cat failure.txt)
+        failures=$(cat failure.txt | xargs echo)
         echo "Jobs failed for the following repositories: $failures"
       shell: bash
