@@ -1,4 +1,4 @@
-name: Create-Packages-Github
+name: Create-Package-Github
 
 on:
   workflow_dispatch:
@@ -16,8 +16,9 @@ jobs:
     - name: Generate Matrix
       id: set-matrix
       run: |
-        matrix=$(echo -n '['; echo ${{ github.event.inputs.repoUrls }} | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u | awk -vORS=',' '{ print "\""$0"\""}' | sed 's/,$//'; echo -n ']')
-        echo "matrix=$matrix" >> $GITHUB_OUTPUT
+        matrix_list=$(echo "${{ github.event.inputs.repoUrls }}" | tr -d '\n' | tr ',' ' ' | tr -s ' ' | xargs echo)
+        echo "matrix=$matrix_list" >> $GITHUB_ENV
+        echo "matrix=$matrix_list" >> $GITHUB_OUTPUT
       shell: bash
 
   build:
@@ -26,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repoUrl: ${{fromJson(needs.pre_process.outputs.matrix)}}
+        repoUrl: ${{ needs.pre_process.outputs.matrix }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -73,6 +74,9 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
     - name: Download success and failure lists
       uses: actions/download-artifact@v3
       with:
