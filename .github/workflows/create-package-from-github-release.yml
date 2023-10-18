@@ -3,24 +3,43 @@ name: Create-Package-Github
 on:
   workflow_dispatch:
     inputs:
-      repoUrl:
-        description: 'GitHub Repository URL or Direct Asset Download URL'
+      repoUrls:
+        description: 'List of GitHub Repository URLs or Direct Asset Download URLs separated by commas, spaces, or new lines'
         required: true
 
+env:
+  CHOCO_CONFIG_PATH: ${{ github.workspace }}/.choco
+
 jobs:
+  pre_process:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - name: Generate Matrix
+      id: set-matrix
+      run: |
+        IFS=', ' read -ra urls <<< "${{ github.event.inputs.repoUrls }}"
+        urls=($(printf "%s\n" "${urls[@]}" | awk '{$1=$1};1' | sort -u))
+        echo "::set-output name=matrix::['${urls[@]}']"
+
   build:
     runs-on: windows-latest
-
+    needs: pre_process
+    strategy:
+      fail-fast: false
+      matrix:
+        repoUrl: ${{fromJson(needs.pre_process.outputs.matrix)}}
     steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
     - name: Set Global Variables
       run: |
-        echo "REPO_URL=${{ github.event.inputs.repoUrl }}" >> $GITHUB_ENV
+        echo "REPO_URL=${{ matrix.repoUrl }}" >> $GITHUB_ENV
         echo "ROOT_DIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
         echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
       shell: bash
-
-    - name: Checkout Code
-      uses: actions/checkout@v4    
 
     - name: Install Dependencies (Chocolatey)
       run: |
@@ -34,15 +53,35 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
-        Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}"
+        . "${{ env.SCRIPTS_DIR }}\create-package-github.ps1"
+        Initialize-GithubPackage -InputUrl "${{ env.REPO_URL }}"
       shell: pwsh
 
-    - name: Commit and Push to GitHub
+    - name: Stage Changes for Commit
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add icons/ packages/
-        git commit -m "Automated Package Creation: ${{ env.REPO_URL}}" || echo "No changes to commit"
-        git push origin ${{ github.ref }}
+        git add packages/${{ matrix.repoUrl }}/
+        git commit -m "Staging for ${{ matrix.repoUrl }}" || echo "No changes to commit"
       shell: pwsh
+
+  post_process:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Merge Staged Changes and Generate Commit Message
+      run: |
+        git pull --no-commit
+        commit_msg="Merged all successful jobs from: "
+        commit_msg+=$(git log --pretty=%s HEAD..FETCH_HEAD)
+        git commit -m "$commit_msg"
+        git push origin ${{ github.ref }}
+      shell: bash
+
+    - name: Failure Notification
+      if: failure()
+      run: |
+        echo "One or more jobs failed. Please check the workflow."
+      shell: bash
