@@ -33,7 +33,7 @@ jobs:
 
     - name: Create and Checkout to Unique Local Branch
       run: |
-        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | tr '/ ' '__')"
+        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
         git checkout -b $unique_branch
       shell: bash
 
