@@ -16,9 +16,10 @@ jobs:
     - name: Generate Matrix
       id: set-matrix
       run: |
-        echo "::set-output name=matrix::$(echo ${{ github.event.inputs.repoUrls }} | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u)"
+        matrix=$(echo -n '['; echo ${{ github.event.inputs.repoUrls }} | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u | awk -vORS=',' '{ print "\""$0"\""}' | sed 's/,$//'; echo -n ']')
+        echo "matrix=$matrix" >> $GITHUB_OUTPUT
       shell: bash
-      
+
   build:
     runs-on: windows-latest
     needs: pre_process
