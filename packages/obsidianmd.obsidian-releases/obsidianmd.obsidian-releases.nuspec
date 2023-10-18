@@ -11,6 +11,6 @@
     <projectUrl>https://github.com/obsidianmd/obsidian-releases</projectUrl>
     <tags>obsidian obsidian-md</tags>
     <description>Community plugins list, theme list, and releases of Obsidian.</description>
-    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/Modular/icons/Obsidian.ico</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Obsidian.ico</iconUrl>
   </metadata>
 </package>

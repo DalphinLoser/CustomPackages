@@ -5,7 +5,7 @@ $packageArgs = @{
     fileType        = "exe"
     url             = "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.4.16/Obsidian.1.4.16-arm64.exe"
     softwareName    = "Obsidian"
-    silentArgs      = "/S /s /Q /q /SP- /VERYSILENT /NORESTART /quiet /silent"
+    silentArgs      = "/S"
     validExitCodes  = @(0)
 }
 
