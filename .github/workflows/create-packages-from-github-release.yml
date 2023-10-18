@@ -31,11 +31,11 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Initialize Result Files
+    - name: Create and Checkout to Unique Local Branch
       run: |
-        echo "" > success.txt
-        echo "" > failure.txt
-      shell: pwsh
+        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | tr '/ ' '__')"
+        git checkout -b $unique_branch
+      shell: bash
 
     - name: Set Global Variables
       run: |
@@ -59,14 +59,13 @@ jobs:
         . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
         Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}"
       shell: pwsh
-
-    - name: Upload success and failure lists
-      uses: actions/upload-artifact@v3
-      with:
-        name: result-files
-        path: |
-          success.txt
-          failure.txt
+      
+    # Commit changes to the unique local branch for successful jobs
+    - name: Commit changes
+      run: |
+        git add .
+        git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
+      shell: bash
 
   post_process:
     needs: build
@@ -76,16 +75,22 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Download success and failure lists
-      uses: actions/download-artifact@v3
-      with:
-        name: result-files
-
-    - name: Commit and Push to GitHub
+    - name: Merge Unique Branches and Push to Main
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add icons/ packages/
-        git commit -m "Automated Package Creation: ${{ env.REPO_URL }}" || echo "No changes to commit"
+        
+        # Checkout to the main branch
+        git checkout ${{ github.ref }}
+
+        # Merge each unique local branch into main
+        for unique_branch in $(git branch --list 'staging_*'); do
+          git merge --no-ff -m "Merging $unique_branch" $unique_branch
+          
+          # Delete the unique local branch
+          git branch -d $unique_branch
+        done
+
+        # Push the changes to the main branch
         git push origin ${{ github.ref }}
       shell: bash
