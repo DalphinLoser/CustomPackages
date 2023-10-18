@@ -17,7 +17,10 @@ jobs:
       id: set-matrix
       run: |
         urls=$(echo "${{ github.event.inputs.repoUrls }}" | tr -d '\n' | tr ',' '\n' | tr ' ' '\n' | awk '{$1=$1};1' | sort -u)
-        echo "matrix=$urls" >> $GITHUB_ENV
+        matrix_list="[\"$(echo "$urls" | tr '\n' '","' | sed 's/,$//')\"]"
+        echo "matrix_list=$matrix_list"
+        echo "matrix=$matrix_list" | tee -a $GITHUB_ENV
+        echo "::set-output name=matrix::$matrix_list"
       shell: bash
 
   build:
