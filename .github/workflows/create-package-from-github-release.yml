@@ -8,7 +8,7 @@ on:
         required: true
 
 env:
-  CHOCO_CONFIG_PATH: ${{ github.workspace }}/.choco
+  CHOCO_INSTALL_PATH: C:\ProgramData\chocolatey
 
 jobs:
   pre_process:
@@ -19,9 +19,9 @@ jobs:
     - name: Generate Matrix
       id: set-matrix
       run: |
-        IFS=', ' read -ra urls <<< "${{ github.event.inputs.repoUrls }}"
-        urls=($(printf "%s\n" "${urls[@]}" | awk '{$1=$1};1' | sort -u))
-        echo "::set-output name=matrix::['${urls[@]}']"
+        urls=$(echo "${{ github.event.inputs.repoUrls }}" | tr -d '\n' | tr ',' '\n' | tr ' ' '\n' | awk '{$1=$1};1' | sort -u)
+        echo "matrix=${urls[@]}" >> $GITHUB_ENV
+      shell: bash
 
   build:
     runs-on: windows-latest
@@ -33,6 +33,13 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+
+    - name: Cache Chocolatey Install
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.CHOCO_INSTALL_PATH }}
+        key: ${{ runner.os }}-choco-install-${{ hashFiles('**/*.ps1') }}
+        restore-keys: ${{ runner.os }}-choco-install-
 
     - name: Set Global Variables
       run: |
@@ -59,9 +66,18 @@ jobs:
 
     - name: Stage Changes for Commit
       run: |
+        echo "${{ matrix.repoUrl }}" >> $GITHUB_WORKSPACE/success.txt
         git add packages/${{ matrix.repoUrl }}/
-        git commit -m "Staging for ${{ matrix.repoUrl }}" || echo "No changes to commit"
+        git commit -m "Staging for ${{ matrix.repoUrl }}" || (echo "${{ matrix.repoUrl }}" >> $GITHUB_WORKSPACE/failure.txt; exit 0)
       shell: pwsh
+
+    - name: Upload success and failure lists
+      uses: actions/upload-artifact@v2
+      with:
+        name: result-files
+        path: |
+          ${{ github.workspace }}/success.txt
+          ${{ github.workspace }}/failure.txt
 
   post_process:
     needs: build
@@ -71,17 +87,27 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
+    - name: Download success and failure lists
+      uses: actions/download-artifact@v2
+      with:
+        name: result-files
+
+    - name: Set Git Identity
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
     - name: Merge Staged Changes and Generate Commit Message
       run: |
         git pull --no-commit
-        commit_msg="Merged all successful jobs from: "
-        commit_msg+=$(git log --pretty=%s HEAD..FETCH_HEAD)
+        successes=$(cat success.txt)
+        commit_msg="Successfully created packages for: $successes"
         git commit -m "$commit_msg"
         git push origin ${{ github.ref }}
       shell: bash
 
     - name: Failure Notification
-      if: failure()
       run: |
-        echo "One or more jobs failed. Please check the workflow."
+        failures=$(cat failure.txt)
+        echo "Jobs failed for the following repositories: $failures"
       shell: bash
