@@ -1,4 +1,4 @@
-name: Create-Package-Github
+name: Create-Packages-Github
 
 on:
   workflow_dispatch:
@@ -19,8 +19,7 @@ jobs:
         urls=$(echo "${{ github.event.inputs.repoUrls }}" | tr -d '\n' | tr ',' '\n' | tr ' ' '\n' | awk '{$1=$1};1' | sort -u)
         matrix_list="[\"$(echo "$urls" | tr '\n' '","' | sed 's/,$//')\"]"
         echo "matrix_list=$matrix_list"
-        echo "matrix=$matrix_list" | tee -a $GITHUB_ENV
-        echo "::set-output name=matrix::$matrix_list"
+        echo "matrix=$matrix_list" >> $GITHUB_STATE
       shell: bash
 
   build:
@@ -29,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repoUrl: ${{ needs.pre_process.outputs.matrix }}
+        repoUrl: ${{fromJson(needs.pre_process.outputs.matrix)}}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
