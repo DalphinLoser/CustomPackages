@@ -99,24 +99,26 @@ Log=    $($logPath)
         # Get the installer type from the manifest file
         $installerUsed = Get-InstallerUsed -ManifestPath $manifestPath.FullName
 
-        Write-DebugLog "    Installer used: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $installerUsed
+        if ($installerUsed) {
+            Write-DebugLog "    Installer used: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $installerUsed
+    
+            # Get silent args based on installer type
+            $installerArgs = Get-InstallerArgs -InstallerType $installerUsed
+            # Add silent args to version info
+            $versionInfo.CommandLineArgs = $installerArgs
+    
+            Write-DebugLog "    Silent args: " -ForegroundColor Yellow
 
-        # Get silent args based on installer type
-        $installerArgs = Get-InstallerArgs -InstallerType $installerUsed
+            # Add installer type to version info
+            $versionInfo.InstallerUsed = $installerUsed
+        }
 
-        # Add silent args to version info
-        $versionInfo.CommandLineArgs = $installerArgs
-
-        Write-DebugLog "    Silent args: " -ForegroundColor Yellow
         # Print the content of the hashtable to the console
         foreach ($key in $versionInfo.CommandLineArgs.Keys) {
             Write-DebugLog "    $($key): " -NoNewline -ForegroundColor Cyan
             Write-DebugLog $versionInfo.CommandLineArgs[$key]
         }
-
-        # Add installer type to version info
-        $versionInfo.InstallerUsed = $installerUsed
 
         if (-not $versionInfo) {
             Write-DebugLog "    Version information not found" -ForegroundColor Red

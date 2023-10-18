@@ -513,9 +513,9 @@ function Set-AssetInfo {
     # If the name contains the tag exactly, remove the tag from the package name
     if ($chocoPackageName -match $latestTagName) {
         Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $chocoPackageName -NoNewline
+        Write-DebugLog "$chocoPackageName " -NoNewline
         Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $latestTagName
+        Write-DebugLog "$latestTagName"
         $chocoPackageName = $chocoPackageName -replace $latestTagName, ''
     }
     $tagNameNoAlpha = $latestTagName -replace '[^0-9.]', ''
@@ -639,7 +639,7 @@ function Set-AssetInfo {
     if ($fileType -eq 'exe' -or $fileType -eq 'zip') {
         Write-DebugLog "    File type is: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $fileType
-        Write-DebugLog "    Getting product version and company name from exe: " -ForegroundColor Yellow
+        Write-DebugLog "    Getting product version and company name from exe... " -ForegroundColor Magenta
         $dataFromExe = Get-DataFromExe -DownloadUrl $selectedAsset.browser_download_url
         Function Set-Metadata {
             Param (
