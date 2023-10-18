@@ -1,4 +1,4 @@
-name: Create-Packages-Github
+name: Create-Package-Github
 
 on:
   workflow_dispatch:
@@ -6,9 +6,6 @@ on:
       repoUrls:
         description: 'List of GitHub Repository URLs or Direct Asset Download URLs separated by commas, spaces, or new lines'
         required: true
-
-env:
-  CHOCO_INSTALL_PATH: C:\ProgramData\chocolatey
 
 jobs:
   pre_process:
@@ -20,8 +17,7 @@ jobs:
       id: set-matrix
       run: |
         urls=$(echo "${{ github.event.inputs.repoUrls }}" | tr -d '\n' | tr ',' '\n' | tr ' ' '\n' | awk '{$1=$1};1' | sort -u)
-        json_array="\"$(echo "$urls" | tr '\n' '","' | sed 's/,$//')\""
-        echo "::set-output name=matrix::[$json_array]"
+        echo "matrix=$urls" >> $GITHUB_ENV
       shell: bash
 
   build:
@@ -30,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repoUrl: ${{fromJson(needs.pre_process.outputs.matrix)}}
+        repoUrl: ${{ needs.pre_process.outputs.matrix }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -40,13 +36,6 @@ jobs:
         echo "" > success.txt
         echo "" > failure.txt
       shell: pwsh
-
-    - name: Cache Chocolatey Install
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.CHOCO_INSTALL_PATH }}
-        key: ${{ runner.os }}-choco-install-${{ hashFiles('**/*.ps1') }}
-        restore-keys: ${{ runner.os }}-choco-install-
 
     - name: Set Global Variables
       run: |
@@ -67,54 +56,33 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        . "${{ env.SCRIPTS_DIR }}\create-package-github.ps1"
-        Initialize-GithubPackage -InputUrl "${{ env.REPO_URL }}"
-      shell: pwsh
-
-    - name: Stage Changes for Commit
-      run: |
-        git add "packages/${{ matrix.repoUrl }}/." || echo "${{ matrix.repoUrl }}" >> failure.txt
-        git commit -m "Staging for ${{ matrix.repoUrl }}" || echo "${{ matrix.repoUrl }}" >> failure.txt
-        echo "${{ matrix.repoUrl }}" >> success.txt
+        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1"
+        Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}"
       shell: pwsh
 
     - name: Upload success and failure lists
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: result-files
         path: |
-          ${{ github.workspace }}/success.txt
-          ${{ github.workspace }}/failure.txt
+          success.txt
+          failure.txt
 
   post_process:
     needs: build
     if: always()
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
     - name: Download success and failure lists
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: result-files
 
-    - name: Set Git Identity
+    - name: Commit and Push to GitHub
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-
-    - name: Merge Staged Changes and Generate Commit Message
-      run: |
-        git pull --no-commit
-        successes=$(cat success.txt | xargs echo)
-        commit_msg="Successfully created packages for: $successes"
-        git commit -m "$commit_msg"
+        git add icons/ packages/
+        git commit -m "Automated Package Creation: ${{ env.REPO_URL }}" || echo "No changes to commit"
         git push origin ${{ github.ref }}
-      shell: bash
-
-    - name: Failure Notification
-      run: |
-        failures=$(cat failure.txt | xargs echo)
-        echo "Jobs failed for the following repositories: $failures"
       shell: bash
