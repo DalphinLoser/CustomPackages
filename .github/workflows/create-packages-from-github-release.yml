@@ -65,6 +65,17 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "github-actions[bot]"
+
+        # Identify existing pull requests for the branch
+        existing_prs=$(gh pr list --state open --head "$unique_branch")
+
+        # If an existing pull request is found, close it
+        if [[ ! -z "$existing_prs" ]]; then
+          pr_number=$(echo "$existing_prs" | awk '{print $1}')
+          gh pr close "$pr_number" --delete-branch --comment "Closing PR as a new PR has been created for the same branch."
+        fi
+
+        # Commit and push changes
         git add . || exit 1
         git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
