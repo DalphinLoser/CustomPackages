@@ -120,43 +120,25 @@ jobs:
           pr_list_label=$(gh pr list --state open --label "auto gh-package" | awk -F'\t' '{print $1}')
           pr_array_label=($(echo "$pr_list_label"))
 
-          # Fetch PR numbers for specific author and convert to array
-          pr_list_author=$(gh pr list --state open --author "github-actions" | awk -F'\t' '{print $1}')
-          pr_array_author=($(echo "$pr_list_author"))
-
-          # Fetch PR numbers for specific author (bot) and convert to array
-          pr_list_author2=$(gh pr list --state open --author "github-actions[bot]" | awk -F'\t' '{print $1}')
-          pr_array_author2=($(echo "$pr_list_author2"))
-
-          # Debug: Fetch PR numbers created by 'github-actions' and display them immediately
-          echo "Debug: Fetching and displaying PR numbers created by 'github-actions'."
-          gh pr list --state open --author "github-actions"
-          if [ $? -ne 0 ]; then
-              echo "Debug: Failed to fetch PRs by 'github-actions'"
-          fi
-
-          # Debug: Fetch PR numbers created by 'github-actions[bot]' and display them immediately
-          echo "Debug: Fetching and displaying PR numbers created by 'github-actions[bot]'."
-          gh pr list --state open --author "github-actions[bot]"
-          if [ $? -ne 0 ]; then
-              echo "Debug: Failed to fetch PRs by 'github-actions[bot]'"
-          fi
-
-
           # Debug output
           echo "Debug: pr_array_label = ${pr_array_label[@]}"
-          echo "Debug: pr_array_author = ${pr_array_author[@]}"
-          echo "Debug: pr_array_author2 = ${pr_array_author2[@]}"
 
-          # View the content of the matching PRs
-          echo "Viewing the content of the matching PRs:"
+          # Initialize an empty array to hold PRs that match both the label and the author
+          pr_array=()
+
+          # Loop through PR numbers fetched by label to verify author
           for pr in "${pr_array_label[@]}"; do
-              gh pr view $pr
+            author=$(gh pr view $pr --json author -q '.author.login')
+            echo "Debug: Author of PR #$pr is $author"
+
+            if [[ "$author" == "github-actions" || "$author" == "github-actions[bot]" ]]; then
+              pr_array+=($pr)
+              echo "Debug: PR #$pr matches both the label and author."
+            fi
           done
 
           # Loop through the matched PR numbers and attempt to merge each
           for pr in "${pr_array[@]}"; do
-              gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
+            gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
           done
-  
         shell: bash
