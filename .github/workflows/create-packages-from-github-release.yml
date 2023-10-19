@@ -131,9 +131,20 @@ jobs:
           pr_list_author2=$(gh pr list --state open --author "github-actions[bot]" | awk -F'\t' '{print $1}')
           IFS=' ' read -ra pr_array_author2 <<< "$pr_list_author2"
 
-          echo "Debug: pr_array_label = ${pr_array_label[@]}"
-          echo "Debug: pr_array_author = ${pr_array_author[@]}"
-          echo "Debug: pr_array_author2 = ${pr_array_author2[@]}"
+          echo "Listing all PR Numbers matching the label (auto gh-package):"
+          for pr in "${pr_array_label[@]}"; do
+              echo "PR Number: $pr"
+          done
+
+          echo "Listing all PR Numbers matching the author (github-actions):"
+          for pr in "${pr_array_author[@]}"; do
+              echo "PR Number: $pr"
+          done
+
+          echo "Listing all PR Numbers matching the author (github-actions[bot]):"
+          for pr in "${pr_array_author2[@]}"; do
+              echo "PR Number: $pr"
+          done
 
           # Identify PRs that match both the label and the author
           echo "Listing all PR Numbers matching both the label and author:"
