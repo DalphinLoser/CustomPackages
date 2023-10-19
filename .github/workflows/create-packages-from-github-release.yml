@@ -18,7 +18,6 @@ jobs:
       run: |
         matrix=$(echo -n '['; echo "${{ github.event.inputs.repoUrls }}" | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u | awk -vORS=',' '{ print "\""$0"\""}' | sed 's/,$//'; echo -n ']')
         echo "matrix=${matrix}" >> $GITHUB_OUTPUT  # Updated according to new guidelines  
-
   build:
     runs-on: windows-latest
     needs: pre_process
@@ -77,7 +76,7 @@ jobs:
 
         # Commit and push changes
         git add . || exit 1
-        git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
+        git commit -m "Automatically Created: ${{ matrix.repoUrl }}" || echo "No changes to commit"
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
         git push --set-upstream origin $unique_branch --force || exit 1
         
@@ -107,30 +106,34 @@ jobs:
       - name: Auto-Merge Created PRs using gh pr merge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBERS: ${{ needs.build.outputs.pr_numbers }}
+          PR_NUMBERS: ${{ needs.build.outputs.pr_numbers }}  # Get the output variable from build job
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-      
-          git fetch origin main
-          git pull origin main  # Safely update the local main branch
-      
+  
+          git fetch --all
+          git branch -a
+  
           # Debug: List all open PRs
           echo "Listing all open PRs:"
           gh pr list --state open
-      
+  
           # Fetch PR numbers for specific label and debug
           pr_list_label=$(gh pr list --state open --label "auto gh-package")
           echo "Filtered PR list by label: $pr_list_label"
-      
+
           # Convert comma-separated PR numbers into an array
           IFS=',' read -ra pr_array <<< "$PR_NUMBERS"
-      
+
+          # List all found PRs matching the PR numbers and label
+          echo "Listing all PRs matching both the PR numbers and label:"
+          for pr in "${pr_array[@]}"; do
+            gh pr view $pr
+          done
+  
           # Loop through PR numbers and attempt to merge each
           for pr in "${pr_array[@]}"; do
             gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
           done
-      
-          git push -u origin main || exit 1  # Push changes to main
+  
         shell: bash
-      
