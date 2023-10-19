@@ -102,13 +102,17 @@ jobs:
         git branch -a
   
         # List all PRs with some additional info
-        gh pr list --json number,title,author,labels -q '.[] | "\(.number) \(.title) \(.author.login) \(.labels.nodes[].name)"'
+        gh pr list --json number,title,author,labels -q '.[] | {number: .number, title: .title, author: .author.login, labels: [.labels.nodes[] | .name]}'
   
         # Perform the auto-merge
-        gh pr list --state open --author github-actions[bot] --label "auto gh-package" | awk '{print $1}' | xargs -I {} gh pr merge {} --auto || exit 1
+        pr_numbers=$(gh pr list --state open --author github-actions[bot] --label "auto gh-package" -q '.[].number')
+        for pr in $pr_numbers; do
+          gh pr merge $pr --auto || echo "Failed to merge PR #$pr"
+        done
   
         git push -u origin main || exit 1
       shell: bash
+      
     
 
 
