@@ -95,7 +95,7 @@ jobs:
       shell: bash
 
   post_process:
-    needs: build  # Make sure to depend on the build job to get its outputs
+    needs: build
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -118,7 +118,8 @@ jobs:
   
           # Fetch PR numbers for specific label and convert to array
           pr_list_label=$(gh pr list --state open --label "auto gh-package" | awk -F'\t' '{print $1}')
-          echo "Debug: pr_list_label = $pr_list_label"
+          echo "Debug: pr_list_label = "
+          echo "$pr_list_label"
           IFS=$'\n' read -ra  pr_array_label <<< "$pr_list_label"
           echo "Debug: pr_array_label = ${pr_array_label[@]}"
 
@@ -135,24 +136,10 @@ jobs:
               echo "PR Number: $pr"
           done
 
-          echo "Listing all PR Numbers matching the author (github-actions):"
-          for pr in "${pr_array_author[@]}"; do
-              echo "PR Number: $pr"
-          done
-
-          echo "Listing all PR Numbers matching the author (github-actions[bot]):"
-          for pr in "${pr_array_author2[@]}"; do
-              echo "PR Number: $pr"
-          done
-
-          # Identify PRs that match both the label and the author
-          echo "Listing all PR Numbers matching both the label and author:"
-          pr_array=()
+          # View the content of the matching PRs
+          echo "Viewing the content of the matching PRs:"
           for pr in "${pr_array_label[@]}"; do
-              if [[ " ${pr_array_author[@]} " =~ " ${pr} " ]] || [[ " ${pr_array_author2[@]} " =~ " ${pr} " ]]; then
-                  pr_array+=($pr)
-                  echo "Matched PR Number: $pr"
-              fi
+              gh pr view $pr
           done
 
           # Loop through the matched PR numbers and attempt to merge each
