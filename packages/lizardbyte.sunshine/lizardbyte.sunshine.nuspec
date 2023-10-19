@@ -108,7 +108,7 @@
     <licenseUrl>https://github.com/LizardByte/Sunshine/blob/nightly/LICENSE</licenseUrl>
     <projectUrl>https://github.com/LizardByte/Sunshine</projectUrl>
     <description>Self-hosted game stream host for Moonlight.</description>
-    <iconUrl>https://raw.githubusercontent.com/LizardByte/Sunshine/nightly/sunshine.svg</iconUrl>
     <tags>cpp docker game-stream game-streaming game-streaming-server geforce-experience moonlight python remote-desktop replicator-release-notifications</tags>
+    <iconUrl>https://raw.githubusercontent.com/LizardByte/Sunshine/nightly/sunshine.svg</iconUrl>
   </metadata>
 </package>
