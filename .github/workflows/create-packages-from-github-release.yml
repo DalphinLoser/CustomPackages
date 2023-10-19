@@ -116,23 +116,20 @@ jobs:
           echo "Listing all open PRs:"
           gh pr list --state open
   
-          # Fetch PR numbers for specific label and convert to array
-          echo "Listing all PRs matching the label (auto gh-package):"
-          pr_list_label=$(gh pr list --state open --label auto gh-package | awk '{print $1}')
-          IFS=' ' read -ra pr_array_label <<< "$pr_list_label"
+          # Debug: List all PRs with the label
+          echo "Listing all PRs with the label:"
+          gh pr list --state open --search "label:auto gh-package"
 
-          # Fetch PR numbers for specific author and convert to array
-          echo "Listing all PRs created by github-actions:"
-          pr_list_author=$(gh pr list --state open --author github-actions | awk '{print $1}')
-          IFS=' ' read -ra pr_array_author <<< "$pr_list_author"
+          # Debug: List all PRs with the author
+          echo "Listing all PRs with the author:"
+          gh pr list --state open --search "label:auto gh-package author:github-actions[bot]"
 
-          # Fetch PR numbers for specific author (bot) and convert to array
-          echo "Listing all PRs created by github-actions[bot]:"
-          pr_list_author2=$(gh pr list --state open --author github-actions[bot] | awk '{print $1}')
-          IFS=' ' read -ra pr_array_author2 <<< "$pr_list_author2"
+          # Debug: List all PRs with the author
+          echo "Listing all PRs with the author:"
+          gh pr list --state open --search "label:auto gh-package author:github-actions"
 
           # Identify PRs that match both the label and the author
-          echo "Listing all PRs matching both the label and author:"
+          echo "Listing all PR Numbers matching both the label and author:"
           pr_array=()
           for pr in "${pr_array_label[@]}"; do
               if [[ " ${pr_array_author[@]} " =~ " ${pr} " ]] || [[ " ${pr_array_author2[@]} " =~ " ${pr} " ]]; then
