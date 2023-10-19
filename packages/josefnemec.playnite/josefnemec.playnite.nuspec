@@ -29,8 +29,8 @@ Fixed:
 </releaseNotes>
     <licenseUrl>https://github.com/JosefNemec/Playnite/blob/master/LICENSE</licenseUrl>
     <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Playnite.ico</iconUrl>
-    <projectUrl>https://github.com/JosefNemec/Playnite</projectUrl>
     <description>Video game library manager with support for wide range of 3rd party libraries and game emulation support, providing one unified interface for your games.</description>
     <tags>csharp gaming launcher wpf</tags>
+    <projectUrl>https://github.com/JosefNemec/Playnite</projectUrl>
   </metadata>
 </package>
