@@ -389,9 +389,9 @@ This release focus mainly on notification and previous Windows compatibility
 Windows x64 from 7 and above but keep in mind that this was mostly tested with Windows 10.
 'Video souvenir' feature requires NVIDIA or AMD GPU with hardware-accelerated encoding capabilities.</releaseNotes>
     <licenseUrl>https://github.com/xan105/Achievement-Watcher/blob/master/LICENSE</licenseUrl>
-    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Achievement Watcher.ico</iconUrl>
-    <tags>achievement notification playtime-tracking rpcs3 steam trophy uplay</tags>
     <description>A sexy achievement file parser with real-time notification, automatic screenshot and playtime tracking. View every achievements earned on your PC whether it's coming from Steam, a Steam emulator, and more.</description>
     <projectUrl>https://github.com/xan105/Achievement-Watcher</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Achievement Watcher.ico</iconUrl>
+    <tags>achievement notification playtime-tracking rpcs3 steam trophy uplay</tags>
   </metadata>
 </package>
