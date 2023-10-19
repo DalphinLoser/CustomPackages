@@ -89,9 +89,26 @@ Log=    $($logPath)
 
         # Clean up temporary directory
         Remove-Item -Path $tempDir.FullName -Recurse -Force -ErrorAction Continue
+
+        # Create object to hold content of versioninfo and manifest files
+        $exeData = @{}
         
         # Extract version information and upload icon
         $versionInfo = Get-VersionInfo -FilePath "$($metadataPath)\VERSIONINFO.rc"
+
+        # If version info is not null or empty add it to the exeData object
+        if ($versionInfo) {
+            Write-DebugLog "    Version info: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $versionInfo
+
+            $iconMoved = Move-IconToDirectory -IconPath $iconPath -VersionInfo $versionInfo -Destination "$rootDir\icons"
+            # If iconMoved true add icon url to version info
+            if ($iconMoved) {
+                $versionInfo.IconUrl = "https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/$($versionInfo.ProductName).ico"
+            }
+            # Add version info to exeData object
+            $exeData += @{VersionInfo = $versionInfo}
+        }
 
         # Find the path of the fime names MANIFEST*.txt in the metadata directory
         $manifestPath = Get-ChildItem -Path $metadataPath -Filter "MANIFEST*.txt" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -103,51 +120,26 @@ Log=    $($logPath)
             Write-DebugLog "    Installer used: " -NoNewline -ForegroundColor Yellow
             Write-DebugLog $installerUsed
     
-            # Get silent args based on installer type
+            # Get args based on installer type
             $installerArgs = Get-InstallerArgs -InstallerType $installerUsed
-            Write-DebugLog "    Silent args: " -NoNewline -ForegroundColor Yellow
-            Write-DebugLog $installerArgs
 
-            # Add silent args to version info
-            $versionInfo += @{CommandLineArgs = $installerArgs}
-            Write-DebugLog "    Added Silent args: " -NoNewline -ForegroundColor Yellow
-
-            # Print the content of the hashtable to the console
-            foreach ($key in $versionInfo.CommandLineArgs.Keys) {
-                Write-DebugLog "    $($key): " -NoNewline -ForegroundColor Cyan
-                Write-DebugLog $versionInfo.CommandLineArgs[$key]
+            # If args are not null or empty add them to the exeData object
+            if ($installerArgs) {
+                $exeData += @{CommandLineArgs = $installerArgs}
+                # Print the content of the hashtable to the console
+                Write-DebugLog "    Command Line Args: " -NoNewline -ForegroundColor Yellow
+                foreach ($key in $exeData.CommandLineArgs.Keys) {
+                    Write-DebugLog "    $($key): " -NoNewline -ForegroundColor Cyan
+                    Write-DebugLog $exeData.CommandLineArgs[$key]
+                }
             }
-        }
-
-
-
-        if (-not $versionInfo) {
-            Write-DebugLog "    Version information not found" -ForegroundColor Red
-            Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
-            return
-        }
-
-        Move-IconToDirectory -IconPath $iconPath -VersionInfo $versionInfo -Destination "$rootDir\icons"
-
-        # Variable for icon name that will work in url
-        $iconName = $versionInfo.ProductName -replace " ", "%20"
-        # Variable for icon url
-        $icoFileUrl = "https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/$iconName.ico"
-
-        # Add icon url to version info
-        $versionInfo.IconUrl = $icoFileUrl
-
-        if (-not $versionInfo.IconUrl) {
-            Write-DebugLog "Icon url not found"
-            Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
-            return $versionInfo
         }
 
         # Clean up RH-Get directory
         Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
         
         Write-LogFooter "Get-DataFromExe"
-        return $versionInfo
+        return $exeData
             
     }
     catch {
@@ -171,6 +163,8 @@ function Move-IconToDirectory {
         [string]$Destination
     )
 
+    Write-LogHeader "Move-IconToDirectory"
+
     $iconFile = Get-ChildItem -Path $IconPath -Filter "*.ico" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $iconFile) {
         Write-Error "Icon file not found in path: $IconPath"
@@ -184,6 +178,9 @@ function Move-IconToDirectory {
 
     # Move the icon to the destination directory and rename it to the product name
     Move-Item -Path $iconFile.FullName -Destination "$Destination\$($VersionInfo.ProductName).ico" -Force -ErrorAction Stop
+
+    Write-LogFooter "Move-IconToDirectory"
+    return $true
 }
 function Get-VersionInfo {
     param (
@@ -191,10 +188,13 @@ function Get-VersionInfo {
         [string]$FilePath
     )
 
+    Write-LogHeader "Get-VersionInfo"
+
     try {
         # Check if the file exists
         if (-not (Test-Path -Path $FilePath -PathType Leaf)) {
-            Write-DebugLog "    File not found at path: $FilePath" -ForegroundColor Red
+            Write-DebugLog "    Version Info File not found at path: $FilePath" -ForegroundColor Red
+            Write-LogFooter "Get-VersionInfo"
             return
         }
 
