@@ -72,7 +72,6 @@ jobs:
         echo "Listing all open PRs for the branch:"
         echo "Existing PRs: $existing_prs"
 
-
         # If an existing pull request is found, close it
         IFS=$'\n' read -ra prs <<< "$existing_prs"
         for pr_line in "${prs[@]}"; do
@@ -80,9 +79,13 @@ jobs:
           gh pr close "$pr_number" --comment "Closing PR as a new PR has been created for the same branch."
         done        
 
+        # Stage only changes in the packages and icons directories
+        echo "Staging changes from packages and icons directories"
+        git add packages/ || echo "No changes in packages directory to add"
+        git add icons/ || echo "No changes in icons directory to add"
+
         # Commit and push changes
         echo "Committing and pushing changes to branch $unique_branch"
-        git add . || exit 1
         git commit -m "Automatically Created: ${{ matrix.repoUrl }}" || echo "No changes to commit"
         echo "Pushing changes to branch $unique_branch"
         git push --set-upstream origin $unique_branch --force || exit 1
