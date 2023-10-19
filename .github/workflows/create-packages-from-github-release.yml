@@ -127,7 +127,6 @@ jobs:
             pr_array=()
             
             # Fetch and update the main branch
-            git checkout main
             git pull origin main
             
             # Loop through PRs with the specific label to fetch the author and check conditions
@@ -139,8 +138,10 @@ jobs:
                 # Fetch PR branch details
                 pr_branch=$(gh pr view $pr --json headRefName -q '.headRefName')
             
-                # Checkout the PR branch
+                # Checkout and rebase the PR branch
                 git checkout $pr_branch
+                git pull origin $pr_branch
+                git rebase main
             
                 # Check rebase success and merge
                 if [ $? -eq 0 ]; then
