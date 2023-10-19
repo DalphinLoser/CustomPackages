@@ -65,6 +65,8 @@ jobs:
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
   
+        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
+
         # Identify existing pull requests for the branch
         existing_prs=$(gh pr list --state open --head "$unique_branch")
         echo "Listing all open PRs for the branch:"
@@ -84,7 +86,6 @@ jobs:
         git add . || exit 1
         git commit -m "Automatically Created: ${{ matrix.repoUrl }}" || echo "No changes to commit"
         echo "Pushing changes to branch $unique_branch"
-        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
         git push --set-upstream origin $unique_branch --force || exit 1
         echo "Pushed changes to branch $unique_branch"
         
