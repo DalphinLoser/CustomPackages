@@ -30,8 +30,8 @@
 </releaseNotes>
     <licenseUrl>https://github.com/horsicq/Nauz-File-Detector/blob/master/LICENSE</licenseUrl>
     <description>Linker/Compiler/Tool detector  for Windows, Linux and MacOS.</description>
-    <projectUrl>https://github.com/horsicq/Nauz-File-Detector</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Nauz File Detector.ico</iconUrl>
     <tags>detect hacktoberfest hacktoberfest2023 malware-analysis malware-detection malware-research reverse-engineering signature</tags>
+    <projectUrl>https://github.com/horsicq/Nauz-File-Detector</projectUrl>
   </metadata>
 </package>
