@@ -126,13 +126,32 @@ jobs:
             # Initialize an array to hold PRs that match both the label and the author
             pr_array=()
             
+            # Fetch and update the main branch
+            git checkout main
+            git pull origin main
+            
             # Loop through PRs with the specific label to fetch the author and check conditions
             for pr in "${pr_array_label[@]}"; do
               pr_author=$(gh pr view $pr --json author -q '.author.login')
               if [ "$pr_author" == "app/github-actions" ]; then
                 pr_array+=($pr)
-                echo "Debug: PR #($pr) matches both label and author. Queuing for merge."
-                gh pr merge $pr --rebase --admin || echo "Failed to merge PR #$pr"
+            
+                # Fetch PR branch details
+                pr_branch=$(gh pr view $pr --json headRefName -q '.headRefName')
+            
+                # Checkout and rebase the PR branch
+                git checkout $pr_branch
+                git pull origin $pr_branch
+                git rebase main
+            
+                # Check rebase success and merge
+                if [ $? -eq 0 ]; then
+                  echo "Debug: PR #$pr matches both label and author. Queuing for merge."
+                  git push origin $pr_branch --force-with-lease
+                  gh pr merge $pr --squash --admin
+                else
+                  echo "Failed to rebase PR #$pr. Skipping merge."
+                fi
               fi
             done
         shell: bash
