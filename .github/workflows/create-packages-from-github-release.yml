@@ -82,12 +82,17 @@ jobs:
         git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
         git push --set-upstream origin $unique_branch --force || exit 1  # Push to remote
+        
         # Create the PR and capture its number
         pr_output=$(gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --head $unique_branch --label "auto gh-package" --fill)
         pr_number=$(echo "$pr_output" | grep -o -E '\/pull\/[0-9]+' | grep -o -E '[0-9]+')
 
-        # Set PR number as output variable
-        echo "pr_number=$pr_number" >> $GITHUB_ENV
+        # If pr_numbers is empty, set it; otherwise, append
+        if [[ -z "${pr_numbers:-}" ]]; then
+          echo "pr_numbers=$pr_number" >> $GITHUB_ENV
+        else
+          echo "pr_numbers=${pr_numbers},${pr_number}" >> $GITHUB_ENV
+        fi
       shell: bash
 
   post_process:
@@ -101,7 +106,7 @@ jobs:
       - name: Auto-Merge Created PRs using gh pr merge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.build.outputs.pr_number }}
+          PR_NUMBERS: ${{ needs.build.outputs.pr_numbers }}
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
@@ -112,10 +117,6 @@ jobs:
           # Debug: List all open PRs
           echo "Listing all open PRs:"
           gh pr list --state open
-
-          # Fetch PR numbers for specific user and debug
-          pr_list_user=$(gh pr list --state open --author github-actions[bot])
-          echo "Filtered PR list by user: $pr_list_user"
   
           # Fetch PR numbers for specific label and debug
           pr_list_label=$(gh pr list --state open --label "auto gh-package")
@@ -125,14 +126,12 @@ jobs:
           pr_list=$(gh pr list --state open --author github-actions[bot] --label "auto gh-package")
           echo "Filtered PR list by both conditions: $pr_list"
   
-          pr_numbers=$(echo "$pr_list" | awk '{print $1}')
-          echo "PR numbers to be merged: $pr_numbers"
+          IFS=',' read -ra pr_array <<< "$PR_NUMBERS"
   
-          # Perform the auto-merge
-          if [[ ! -z "$PR_NUMBER" ]]; then
-            gh pr merge $PR_NUMBER --auto || echo "Failed to merge PR #$PR_NUMBER"
-          fi
+          for pr in "${pr_array[@]}"; do
+            gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
+          done
   
           git push -u origin main || exit 1
         shell: bash
-  
+    
