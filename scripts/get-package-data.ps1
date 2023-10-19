@@ -663,11 +663,13 @@ function Set-AssetInfo {
                 IconUrl         = 'IconUrl';
                 CommandLineArgs = 'CommandLineArgs';
             }
-            Write-DebugLog "Version Info: " -ForegroundColor Magenta
+            Write-DebugLog "EXE Info: " -ForegroundColor Magenta
             # Iterate through the properties and set the metadata
             foreach ($property in $dataProperties.GetEnumerator()) {
                 # if the value is not null or empty, set the metadata
                 if (-not [string]::IsNullOrWhiteSpace($dataFromExe.$($property.Value))) {
+                    Write-DebugLog "    Setting metadata: " -NoNewline -ForegroundColor Yellow
+                    Write-DebugLog "$($property.Key): $($dataFromExe.$($property.Value))"
                     Set-Metadata -property $property.Key -value $dataFromExe.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
                 }
 
@@ -702,18 +704,7 @@ function Set-AssetInfo {
         }
     }
 
-    if ($packageMetadata -is [System.Collections.Hashtable]) {
-        Write-DebugLog "    Type of packageMetadata before return: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $($packageMetadata.GetType().Name)
-    }
-    else {
-        Write-DebugLog "    Type of packageMetadata before return: NOT Hashtable"
-    }
-    
-    Write-DebugLog "    Final Check of packageMetadata: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $($packageMetadata.GetType().Name)
     Write-LogFooter "Set-AssetInfo"
-    # Ensure that the package metadata is returned as a hashtable
     return $packageMetadata
 }
 function Initialize-PackageData {

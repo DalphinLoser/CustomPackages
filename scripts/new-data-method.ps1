@@ -105,9 +105,18 @@ Log=    $($logPath)
             # If iconMoved true add icon url to version info
             if ($iconMoved) {
                 $versionInfo.IconUrl = "https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/$($versionInfo.ProductName).ico"
+                Write-DebugLog "    Icon moved to icons directory" -ForegroundColor Green
             }
-            # Add version info to exeData object
-            $exeData += @{VersionInfo = $versionInfo}
+            else {
+                Write-Debug "    Failed to move icon to icons directory" -ForegroundColor Red
+            }
+            # Add the objects from version info to the exeData object
+            $exeData += $versionInfo
+
+            Write-DebugLog "    Version info added to exeData object" -ForegroundColor Green
+        }
+        else {
+            Write-DebugLog "    Version info not found" -ForegroundColor Red
         }
 
         # Find the path of the fime names MANIFEST*.txt in the metadata directory
@@ -137,6 +146,13 @@ Log=    $($logPath)
 
         # Clean up RH-Get directory
         Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+
+        # Print the content of the hashtable to the console
+        Write-DebugLog "    ExeData object: " -ForegroundColor Yellow
+        foreach ($key in $exeData.Keys) {
+            Write-DebugLog "    $($key): " -NoNewline -ForegroundColor Cyan
+            Write-DebugLog $exeData[$key]
+        }
         
         Write-LogFooter "Get-DataFromExe"
         return $exeData
@@ -170,14 +186,26 @@ function Move-IconToDirectory {
         Write-Error "Icon file not found in path: $IconPath"
         return
     }
+    else {
+        Write-DebugLog "    Icon file found: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $iconFile.FullName
+    }
 
     # Ensure the destination directory exists
     if (-not (Test-Path -Path $Destination -PathType Container)) {
         New-Item -Path $Destination -ItemType Directory -Force -ErrorAction Stop
+        Write-DebugLog "    Destination directory created: " -NoNewline -ForegroundColor Cyan
+        Write-DebugLog $Destination
+    }
+    else {
+        Write-DebugLog "    Destination directory already exists: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $Destination
     }
 
     # Move the icon to the destination directory and rename it to the product name
     Move-Item -Path $iconFile.FullName -Destination "$Destination\$($VersionInfo.ProductName).ico" -Force -ErrorAction Stop
+    Write-DebugLog "    Icon moved to destination directory: " -NoNewline -ForegroundColor Cyan
+    Write-DebugLog "$Destination\$($VersionInfo.ProductName).ico"
 
     Write-LogFooter "Move-IconToDirectory"
     return $true
