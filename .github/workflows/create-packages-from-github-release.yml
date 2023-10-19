@@ -82,7 +82,7 @@ jobs:
         git push --set-upstream origin $unique_branch --force || exit 1  # Push to remote
         gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by a github-actions[bot]." --base ${{ github.event.repository.default_branch }} --head $unique_branch --label "auto gh-package" || exit 1
       shell: bash
-    
+
   post_process:
     needs: build
     if: always()
@@ -90,6 +90,9 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+  
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
   
     - name: Auto-Merge Created PRs using gh pr merge
       env:
@@ -101,19 +104,17 @@ jobs:
         git fetch --all
         git branch -a
   
-        # List all PRs with some additional info
-        gh pr list --json number,title,author,labels -q '.[] | {number: .number, title: .title, author: .author.login, labels: [.labels.nodes[] | .name]}'
+        # Display PRs with their author and labels
+        pr_data=$(gh pr list --state open --json number,author,labels -q '.[] | "\(.number) \(.author.login) \(.labels.nodes[].name)"')
+        echo "$pr_data"
   
-        # Perform the auto-merge
-        pr_numbers=$(gh pr list --state open --author github-actions[bot] --label "auto gh-package" -q '.[].number')
-        for pr in $pr_numbers; do
-          gh pr merge $pr --auto || echo "Failed to merge PR #$pr"
-        done
+        pr_to_merge=$(echo "$pr_data" | grep "github-actions[bot]" | grep "auto gh-package" | awk '{print $1}')
+        if [ ! -z "$pr_to_merge" ]; then
+          echo "Merging PR number: $pr_to_merge"
+          gh pr merge $pr_to_merge --auto
+        else
+          echo "No matching PRs found to merge."
+        fi
   
         git push -u origin main || exit 1
       shell: bash
-      
-    
-
-
-    
