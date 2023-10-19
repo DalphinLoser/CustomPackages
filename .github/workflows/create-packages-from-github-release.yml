@@ -87,6 +87,11 @@ jobs:
         echo "Pushing changes to branch $unique_branch"
         git push --set-upstream origin $unique_branch --force || exit 1
         echo "Pushed changes to branch $unique_branch"
+        
+        # Create the PR
+        echo "Creating PR for branch $unique_branch"
+        pr_output=$(gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --head $unique_branch --label "auto gh-package" --fill)
+        echo "Created PR: $pr_output"
       shell: bash
 
   post_process:
@@ -101,63 +106,57 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            # Set Git user details
-            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
-            
-            # Fetch all branches and list them
-            git fetch --all
-            git branch -a
-            
-            # List all open PRs for debugging
-            echo "Listing all open PRs:"
-            gh pr list --state open
-            
-            # Fetch PR numbers with a specific label and convert to an array
-            pr_list_label=$(gh pr list --state open --label "auto gh-package" | awk -F'\t' '{print $1}')
-            pr_array_label=($(echo "$pr_list_label"))
-            echo "Debug: pr_array_label = ${pr_array_label[@]}"
-            
-            # Initialize an array to hold PRs that match both the label and the author
-            pr_array=()
-            
-            # Fetch and update the main branch
-            git checkout main
-            git pull origin main
-            
-            # Loop through PRs with the specific label to fetch the author and check conditions
-            for pr in "${pr_array_label[@]}"; do
-              pr_author=$(gh pr view $pr --json author -q '.author.login')
-              if [ "$pr_author" == "app/github-actions" ]; then
-                pr_array+=($pr)
-            
-                # Fetch PR branch details
-                pr_branch=$(gh pr view $pr --json headRefName -q '.headRefName')
-            
-                # Checkout the feature branch to get the commit hash
-                git checkout $pr_branch
-            
-                # Since there's only one commit, we can get the latest commit hash
-                commit_hash=$(git log -n 1 --pretty=format:"%H")
-            
-                # Checkout main and cherry-pick the commit
-                git checkout main
-                git cherry-pick $commit_hash
-            
-                # Check cherry-pick success and push
-                if [ $? -eq 0 ]; then
-                  echo "Debug: PR #$pr changes have been cherry-picked. Pushing to main."
-                  git push origin main
-                  
-                  # Delete the remote branch
-                  gh pr close $pr --delete-branch
-                  
-                  echo "Debug: Successfully deleted feature branch associated with PR #$pr."
-                else
-                  echo "Failed to cherry-pick changes for PR #$pr. Skipping."
-                  # Optionally: Reset to previous state to continue with the next PR
-                  git reset --hard HEAD
-                fi
+          # Set Git user details
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+          # Fetch all branches and list them
+          git fetch --all
+          git branch -a
+
+          # List all open PRs for debugging
+          echo "Listing all open PRs:"
+          gh pr list --state open
+
+          # Fetch PR numbers with a specific label and convert to an array
+          pr_list_label=$(gh pr list --state open --label "auto gh-package" | awk -F'\t' '{print $1}')
+          pr_array_label=($(echo "$pr_list_label"))
+          echo "Debug: pr_array_label = ${pr_array_label[@]}"
+
+          # Initialize an array to hold PRs that match both the label and the author
+          pr_array=()
+
+          # Fetch and update the main branch
+          git checkout main
+          git pull origin main
+
+          # Loop through PRs with the specific label to fetch the author and check conditions
+          for pr in "${pr_array_label[@]}"; do
+            pr_author=$(gh pr view $pr --json author -q '.author.login')
+            if [ "$pr_author" == "app/github-actions" ]; then
+              pr_array+=($pr)
+
+              # Fetch PR branch details
+              pr_branch=$(gh pr view $pr --json headRefName -q '.headRefName')
+
+              # Checkout the feature branch to get the commit hash
+              git checkout $pr_branch
+
+              # Since there's only one commit, we can get the latest commit hash
+              commit_hash=$(git log -n 1 --pretty=format:"%H")
+
+              # Checkout main and cherry-pick the commit
+              git checkout main
+              git cherry-pick $commit_hash
+
+              # Check cherry-pick success and push and close PR
+              if [ $? -eq 0 ]; then
+                echo "Debug: PR #$pr changes have been cherry-picked. Pushing to main."
+                git push origin main
+                gh pr close $pr --comment "This PR has been automatically closed as the changes have been cherry-picked to main."
+              else
+                echo "Failed to cherry-pick changes for PR #$pr. Skipping."
               fi
-            done
+            fi
+          done
         shell: bash
