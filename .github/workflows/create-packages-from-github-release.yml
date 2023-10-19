@@ -86,6 +86,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         gh pr list --state open --author "github-actions[bot]" --label "auto gh-package" | awk '{print $1}' | xargs -I % gh pr merge % --auto || exit 1
+        git push -u origin main || exit 1
       shell: bash
 
 
