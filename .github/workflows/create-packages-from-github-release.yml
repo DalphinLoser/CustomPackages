@@ -75,6 +75,9 @@ jobs:
           gh pr close "$pr_number" --comment "Closing PR as a new PR has been created for the same branch."
         fi
 
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+
         # Commit and push changes
         git add . || exit 1
         git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
@@ -103,10 +106,10 @@ jobs:
   
           # Debug: List all open PRs and their authors
           echo "Listing all open PRs and display their authors:"
-          gh pr list --state open | awk '{print "PR Number: " $1 ", Author: " $4}'
+          gh pr list --state open | awk -F '\t' '{print "PR Number: " $1 ", Title: " $2 ", Branches: " $3 ", Author: " $4 ", Status: " $5}'
 
           # Fetch PR numbers for specific user and debug
-          pr_list_user=$(gh pr list --state open --author github-actions)
+          pr_list_user=$(gh pr list --state open --author github-actions[bot])
           echo "Filtered PR list by user: $pr_list_user"
   
           # Fetch PR numbers for specific label and debug
@@ -114,7 +117,7 @@ jobs:
           echo "Filtered PR list by label: $pr_list_label"
   
           # Fetch PR numbers for specific conditions and debug
-          pr_list=$(gh pr list --state open --author github-actions --label "auto gh-package")
+          pr_list=$(gh pr list --state open --author github-actions[bot] --label "auto gh-package")
           echo "Filtered PR list by both conditions: $pr_list"
   
           pr_numbers=$(echo "$pr_list" | awk '{print $1}')
