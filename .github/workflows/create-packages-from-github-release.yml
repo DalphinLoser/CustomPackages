@@ -106,40 +106,39 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-        
-          git fetch --all
-          git branch -a
-        
-          # Debug: List all open PRs
-          echo "Listing all open PRs:"
-          gh pr list --state open
-        
-          # Fetch PR numbers for specific label and convert to array
-          pr_list_label=$(gh pr list --state open --label "auto gh-package" | awk -F'\t' '{print $1}')
-          pr_array_label=($(echo "$pr_list_label"))
-          echo "Debug: pr_array_label = ${pr_array_label[@]}"
-        
-          # Initialize an empty array to hold PRs that match both the label and the author
-          pr_array=()
-        
-          # Loop through the PRs with the specific label
-          for pr in "${pr_array_label[@]}"; do
-            # Fetch the author of the PR
-            pr_author=$(gh pr view $pr --json author -q '.author.login')
-            echo "Debug: Author of PR #$pr is $pr_author"
-        
-            # Check if the author matches the expected author
-            if [ "$pr_author" == "app/github-actions" ]; then
-              # Add the PR to the array of PRs to be merged
-              pr_array+=($pr)
-              echo "Debug: PR #$pr matches both label and author. Queuing for merge."
-            fi
-          done
-        
-          # Loop through the matched PR numbers and attempt to merge each
-          for pr in "${pr_array[@]}"; do
-            gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
-          done
+            # Set Git user details
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            
+            # Fetch all branches and list them
+            git fetch --all
+            git branch -a
+            
+            # List all open PRs for debugging
+            echo "Listing all open PRs:"
+            gh pr list --state open
+            
+            # Fetch PR numbers with a specific label and convert to an array
+            pr_list_label=$(gh pr list --state open --label "auto gh-package" | awk -F'\t' '{print $1}')
+            pr_array_label=($(echo "$pr_list_label"))
+            echo "Debug: pr_array_label = ${pr_array_label[@]}"
+            
+            # Initialize an array to hold PRs that match both the label and the author
+            pr_array=()
+            
+            # Loop through PRs with the specific label to fetch the author and check conditions
+            for pr in "${pr_array_label[@]}"; do
+              pr_author=$(gh pr view $pr --json author -q '.author.login')
+              echo "Debug: Author of PR #$pr is $pr_author"
+              
+              if [ "$pr_author" == "app/github-actions" ]; then
+                pr_array+=($pr)
+                echo "Debug: PR #$pr matches both label and author. Queuing for merge."
+              fi
+            done
+            
+            # Loop through the PRs to be merged and attempt to merge each
+            for pr in "${pr_array[@]}"; do
+              gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
+            done
         shell: bash
