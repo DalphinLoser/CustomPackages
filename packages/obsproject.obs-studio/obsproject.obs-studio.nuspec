@@ -178,9 +178,9 @@
 * Fixed an issue with the source rotation handle when source is flipped [cg2121]
 * Fixed a crash in Decklink Output when no Decklink device is available [jpark37]</releaseNotes>
     <licenseUrl>https://github.com/obsproject/obs-studio/blob/master/LICENSE</licenseUrl>
-    <tags>c c-plus-plus directshow facebook-live ffmpeg game-capture live-streaming screen-capture twitch-tv video-recording youtube-live</tags>
-    <description>OBS Studio - Free and open source software for live streaming and screen recording</description>
     <projectUrl>https://github.com/obsproject/obs-studio</projectUrl>
+    <tags>c c-plus-plus directshow facebook-live ffmpeg game-capture live-streaming screen-capture twitch-tv video-recording youtube-live</tags>
     <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/OBS Studio.ico</iconUrl>
+    <description>OBS Studio - Free and open source software for live streaming and screen recording</description>
   </metadata>
 </package>
