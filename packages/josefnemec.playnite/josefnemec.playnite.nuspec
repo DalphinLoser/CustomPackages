@@ -28,8 +28,8 @@ Fixed:
   * Localized strings not displaying properly under certain Windows language settings 
 </releaseNotes>
     <licenseUrl>https://github.com/JosefNemec/Playnite/blob/master/LICENSE</licenseUrl>
-    <tags>csharp gaming launcher wpf</tags>
     <description>Video game library manager with support for wide range of 3rd party libraries and game emulation support, providing one unified interface for your games.</description>
+    <tags>csharp gaming launcher wpf</tags>
     <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Playnite.ico</iconUrl>
     <projectUrl>https://github.com/JosefNemec/Playnite</projectUrl>
   </metadata>
