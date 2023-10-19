@@ -101,12 +101,11 @@ jobs:
           git fetch --all
           git branch -a
   
-          # Debug: List all PRs in simple format for debugging
+          # Debug: List all open PRs and their authors
           echo "Listing all PRs and display their authors:"
-          gh pr list --state open --format "%I %au"
-  
+
           # Fetch PR numbers for specific user and debug
-          pr_list_user=$(gh pr list --state open --author github-actions[bot])
+          pr_list_user=$(gh pr list --state open --author github-actions)
           echo "Filtered PR list by user: $pr_list_user"
   
           # Fetch PR numbers for specific label and debug
@@ -114,7 +113,7 @@ jobs:
           echo "Filtered PR list by label: $pr_list_label"
   
           # Fetch PR numbers for specific conditions and debug
-          pr_list=$(gh pr list --state open --author github-actions[bot] --label "auto gh-package")
+          pr_list=$(gh pr list --state open --author github-actions --label "auto gh-package")
           echo "Filtered PR list by both conditions: $pr_list"
   
           pr_numbers=$(echo "$pr_list" | awk '{print $1}')
