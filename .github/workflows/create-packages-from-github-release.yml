@@ -132,12 +132,7 @@ jobs:
               if [ "$pr_author" == "app/github-actions" ]; then
                 pr_array+=($pr)
                 echo "Debug: PR #($pr) matches both label and author. Queuing for merge."
+                gh pr merge $pr --squash --auto || echo "Failed to merge PR #$pr"
               fi
-            done
-            
-            # Loop through the PRs to be merged and attempt to merge each into the default branch
-            for pr in "${pr_array[@]}"; do
-              echo "Debug: Attempting to merge PR #($pr) into the default branch."
-              gh pr merge $pr --squash --auto || echo "Failed to merge PR #$pr"
             done
         shell: bash
