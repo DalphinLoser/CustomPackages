@@ -128,6 +128,21 @@ jobs:
           pr_list_author2=$(gh pr list --state open --author "github-actions[bot]" | awk -F'\t' '{print $1}')
           pr_array_author2=($(echo "$pr_list_author2"))
 
+          # Debug: Fetch PR numbers created by 'github-actions' and display them immediately
+          echo "Debug: Fetching and displaying PR numbers created by 'github-actions'."
+          gh pr list --state open --author "github-actions"
+          if [ $? -ne 0 ]; then
+              echo "Debug: Failed to fetch PRs by 'github-actions'"
+          fi
+
+          # Debug: Fetch PR numbers created by 'github-actions[bot]' and display them immediately
+          echo "Debug: Fetching and displaying PR numbers created by 'github-actions[bot]'."
+          gh pr list --state open --author "github-actions[bot]"
+          if [ $? -ne 0 ]; then
+              echo "Debug: Failed to fetch PRs by 'github-actions[bot]'"
+          fi
+
+
           # Debug output
           echo "Debug: pr_array_label = ${pr_array_label[@]}"
           echo "Debug: pr_array_author = ${pr_array_author[@]}"
