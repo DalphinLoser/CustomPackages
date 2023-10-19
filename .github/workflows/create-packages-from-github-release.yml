@@ -17,7 +17,7 @@ jobs:
       id: set-matrix
       run: |
         matrix=$(echo -n '['; echo ${{ github.event.inputs.repoUrls }} | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u | awk -vORS=',' '{ print "\""$0"\""}' | sed 's/,$//'; echo -n ']')
-        echo "matrix=$matrix" >> $GITHUB_OUTPUT
+        echo "matrix=$matrix" >> $GITHUB_ENV
       shell: bash
 
   build:
@@ -59,13 +59,14 @@ jobs:
         . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1" || exit 1
         Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}" || exit 1
       shell: pwsh
-      
-    - name: Commit changes
+
+    - name: Commit and Push Changes
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add . || exit 1
         git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
+        git push origin $unique_branch || exit 1
       shell: bash
 
   post_process:
@@ -73,16 +74,35 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Merge Unique Branches and Push to Default Branch
+    - name: Create Pull Requests, Enable Auto-Merge, and Cleanup
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        
         for unique_branch in $(git branch --list 'staging_*'); do
-          git merge --no-ff -m "Merging $unique_branch" $unique_branch || exit 1
-          git branch -d $unique_branch || exit 1
+          # Create pull request and capture PR_ID
+          PR_ID=$(curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls" \
+            -d "{\"title\": \"Automated PR: $unique_branch\", \"head\": \"$unique_branch\", \"base\": \"${{ github.event.repository.default_branch }}\"}" | jq '.id')
+          
+          # Enable auto-merge
+          curl -X PUT \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_ID/automerge" \
+            -d '{"merge_method": "merge"}'
+
+          # Delete the branch
+          curl -X DELETE \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/git/refs/heads/$unique_branch"
         done
-        git push origin ${{ github.event.repository.default_branch }} || exit 1
       shell: bash
