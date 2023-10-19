@@ -80,20 +80,9 @@ jobs:
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
         git push --set-upstream origin $unique_branch --force || exit 1
         
-        # Create the PR and capture its number
+        # Create the PR
         pr_output=$(gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --head $unique_branch --label "auto gh-package" --fill)
-        pr_number=$(echo "$pr_output" | grep -o -E '\/pull\/[0-9]+' | grep -o -E '[0-9]+')
-
-        # If pr_numbers is empty, set it; otherwise, append
-        if [[ -z "${pr_numbers:-}" ]]; then
-          echo "pr_numbers=$pr_number" >> $GITHUB_ENV
-        else
-          echo "pr_numbers=${pr_numbers},${pr_number}" >> $GITHUB_ENV
-        fi
       shell: bash
-    outputs:
-      pr_numbers: ${{ env.pr_numbers }}
-      
 
   post_process:
     needs: build  # Make sure to depend on the build job to get its outputs
@@ -106,7 +95,6 @@ jobs:
       - name: Auto-Merge Created PRs using gh pr merge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBERS: ${{ needs.build.outputs.pr_numbers }}  # Get the output variable from build job
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
@@ -118,32 +106,47 @@ jobs:
           echo "Listing all open PRs:"
           gh pr list --state open
   
-          # Debug: List all PRs with the "auto gh-package" label
-          echo "Listing all PRs with the 'auto gh-package' label:"
-          gh pr list --label "auto gh-package"
+          # Fetch PR numbers for specific label
+          pr_list_label=$(gh pr list --state open --label "auto gh-package")
+          # Convert to array
+          echo "Listing all PRs matching the label (auto gh-package):"
+          pr_array_label=($pr_list_label)
+          for pr in "${pr_array_label[@]}"; do
+            gh pr view $pr
+          done
+          
 
-          # Debug: List all PRs with the author "github-actions"
-          echo "Listing all PRs with the author 'github-actions':"
-          gh pr list --author "github-actions"
+          # Fetch PR numbers for author
+          pr_list_author=$(gh pr list --state open --author "github-actions")
+          # Convert to array
+          echo "Listing all PRs created by github-actions:"
+          pr_array_author=($pr_list_author)
+          for pr in "${pr_array_author[@]}"; do
+            gh pr view $pr
+          done
 
-          # Debug: List all PRs with the author "github-actions[bot]"
-          echo "Listing all PRs with the author 'github-actions[bot]':"
-          gh pr list --author "github-actions[bot]"
+          # Fetch PR numbers for author
+          pr_list_author2=$(gh pr list --state open --author "github-actions[bot]")
+          # Convert to array
+          echo "Listing all PRs created by github-actions[bot]:"
+          pr_array_author2=($pr_list_author2)
+          for pr in "${pr_array_author2[@]}"; do
+            gh pr view $pr
+          done
 
-          # Debug: List all PRs with the author "github-actions" and the "auto gh-package" label
-          echo "Listing all PRs with the author 'github-actions' and the 'auto gh-package' label:"
-          gh pr list --author "github-actions" --label "auto gh-package"
-
-          # Convert comma-separated PR numbers into an array
-          IFS=',' read -ra pr_array <<< "$PR_NUMBERS"
-
-          # Write the array to the console
-          echo "PR numbers to merge: ${pr_array[@]}"
-
-          # Iterate through the PR numbers and merge them
-          for pr_number in "${pr_array[@]}"; do
-            echo "Merging PR #$pr_number"
-            gh pr merge "$pr_number" --auto --merge
+          # List all found PRs matching label
+          echo "Listing all PRs matching both the label and author:"
+          pr_array=()
+          for pr in "${pr_array_label[@]}"; do
+            if [[ " ${pr_array_author[@]} " =~ " ${pr} " ]]; then
+              pr_array+=($pr)
+              gh pr view $pr
+            fi
+          done
+  
+          # Loop through PR numbers and attempt to merge each
+          for pr in "${pr_array[@]}"; do
+            gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
           done
   
         shell: bash
