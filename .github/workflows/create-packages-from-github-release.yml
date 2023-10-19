@@ -129,16 +129,15 @@ jobs:
             # Loop through PRs with the specific label to fetch the author and check conditions
             for pr in "${pr_array_label[@]}"; do
               pr_author=$(gh pr view $pr --json author -q '.author.login')
-              echo "Debug: Author of PR #$pr is $pr_author"
-              
               if [ "$pr_author" == "app/github-actions" ]; then
                 pr_array+=($pr)
-                echo "Debug: PR #$pr matches both label and author. Queuing for merge."
+                echo "Debug: PR #($pr) matches both label and author. Queuing for merge."
               fi
             done
             
-            # Loop through the PRs to be merged and attempt to merge each
+            # Loop through the PRs to be merged and attempt to merge each into the default branch
             for pr in "${pr_array[@]}"; do
-              gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
+              echo "Debug: Attempting to merge PR #($pr) into the default branch."
+              gh pr merge $pr --auto --squash
             done
         shell: bash
