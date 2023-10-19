@@ -122,13 +122,15 @@ jobs:
           # Fetch PR numbers for specific label and debug
           pr_list_label=$(gh pr list --state open --label "auto gh-package")
           echo "Filtered PR list by label: $pr_list_label"
-  
-          # Fetch PR numbers for specific conditions and debug
-          pr_list=$(gh pr list --state open --author github-actions[bot] --label "auto gh-package")
-          echo "Filtered PR list by both conditions: $pr_list"
 
           # Convert comma-separated PR numbers into an array
           IFS=',' read -ra pr_array <<< "$PR_NUMBERS"
+
+          # List all found PRs matching the PR numbers and label
+          echo "Listing all PRs matching both the PR numbers and label:"
+          for pr in "${pr_array[@]}"; do
+            gh pr view $pr
+          done
   
           # Loop through PR numbers and attempt to merge each
           for pr in "${pr_array[@]}"; do
