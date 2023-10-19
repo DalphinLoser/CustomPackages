@@ -9,8 +9,8 @@
     <releaseNotes>Catch error thrown when GitHub API ignores a request</releaseNotes>
     <licenseUrl>https://github.com/Ecks1337/RyuSAK/blob/main/LICENSE</licenseUrl>
     <tags>electron electron-forge material-ui react switch typescript</tags>
-    <iconUrl>https://avatars.githubusercontent.com/u/6690149?v=4</iconUrl>
     <description>This is a tool which allows you to download saves or mods for Nintendo Switch emulators using a compatible Emusak backend</description>
     <projectUrl>https://github.com/Ecks1337/RyuSAK</projectUrl>
+    <iconUrl>https://avatars.githubusercontent.com/u/6690149?v=4</iconUrl>
   </metadata>
 </package>
