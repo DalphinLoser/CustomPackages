@@ -8,10 +8,10 @@
     <packageSourceUrl>https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1053/test-ava-ryujinx-1.1.1053-win_x64.zip</packageSourceUrl>
     <releaseNotes>For more information about this release please check out the official [Changelog](https://github.com/Ryujinx/Ryujinx/wiki/Changelog).</releaseNotes>
     <licenseUrl>https://github.com/Ryujinx/release-channel-master/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Ryujinx/release-channel-master</projectUrl>
     <tags>
     </tags>
-    <projectUrl>https://github.com/Ryujinx/release-channel-master</projectUrl>
-    <description>Ryujinx's Release channel: master</description>
     <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Ryujinx.Ava.ico</iconUrl>
+    <description>Ryujinx's Release channel: master</description>
   </metadata>
 </package>
