@@ -106,17 +106,17 @@ jobs:
           gh pr list
   
           # Fetch PR numbers for specific user and debug
-          pr_list_user=$(gh pr list --state open --author github-actions[bot]
-          echo "Filtered PR list: $pr_list_user"
-
+          pr_list_user=$(gh pr list --state open --author github-actions[bot])
+          echo "Filtered PR list by user: $pr_list_user"
+  
           # Fetch PR numbers for specific label and debug
           pr_list_label=$(gh pr list --state open --label "auto gh-package")
-          echo "Filtered PR list: $pr_list_label"
-
+          echo "Filtered PR list by label: $pr_list_label"
+  
           # Fetch PR numbers for specific conditions and debug
           pr_list=$(gh pr list --state open --author github-actions[bot] --label "auto gh-package")
-          echo "Filtered PR list: $pr_list"
-
+          echo "Filtered PR list by both conditions: $pr_list"
+  
           pr_numbers=$(echo "$pr_list" | awk '{print $1}')
           echo "PR numbers to be merged: $pr_numbers"
   
@@ -127,3 +127,4 @@ jobs:
   
           git push -u origin main || exit 1
         shell: bash
+  
