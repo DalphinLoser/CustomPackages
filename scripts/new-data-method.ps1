@@ -105,20 +105,21 @@ Log=    $($logPath)
     
             # Get silent args based on installer type
             $installerArgs = Get-InstallerArgs -InstallerType $installerUsed
+            Write-DebugLog "    Silent args: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $installerArgs
+
             # Add silent args to version info
-            $versionInfo.CommandLineArgs = $installerArgs
-    
-            Write-DebugLog "    Silent args: " -ForegroundColor Yellow
+            $versionInfo += @{CommandLineArgs = $installerArgs}
+            Write-DebugLog "    Added Silent args: " -NoNewline -ForegroundColor Yellow
 
-            # Add installer type to version info
-            $versionInfo.InstallerUsed = $installerUsed
+            # Print the content of the hashtable to the console
+            foreach ($key in $versionInfo.CommandLineArgs.Keys) {
+                Write-DebugLog "    $($key): " -NoNewline -ForegroundColor Cyan
+                Write-DebugLog $versionInfo.CommandLineArgs[$key]
+            }
         }
 
-        # Print the content of the hashtable to the console
-        foreach ($key in $versionInfo.CommandLineArgs.Keys) {
-            Write-DebugLog "    $($key): " -NoNewline -ForegroundColor Cyan
-            Write-DebugLog $versionInfo.CommandLineArgs[$key]
-        }
+
 
         if (-not $versionInfo) {
             Write-DebugLog "    Version information not found" -ForegroundColor Red
