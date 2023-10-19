@@ -193,7 +193,7 @@ function Get-VersionInfo {
     try {
         # Check if the file exists
         if (-not (Test-Path -Path $FilePath -PathType Leaf)) {
-            Write-DebugLog "    Version Info File not found at path: $FilePath" -ForegroundColor Red
+            Write-DebugLog "    Version Info File not found at path: $FilePath" -ForegroundColor Yellow
             Write-LogFooter "Get-VersionInfo"
             return
         }
