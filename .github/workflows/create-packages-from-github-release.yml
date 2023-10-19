@@ -139,10 +139,8 @@ jobs:
                 # Fetch PR branch details
                 pr_branch=$(gh pr view $pr --json headRefName -q '.headRefName')
             
-                # Checkout and rebase the PR branch
+                # Checkout the PR branch
                 git checkout $pr_branch
-                git pull origin $pr_branch
-                git rebase main
             
                 # Check rebase success and merge
                 if [ $? -eq 0 ]; then
