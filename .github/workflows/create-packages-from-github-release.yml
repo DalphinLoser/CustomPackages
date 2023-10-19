@@ -80,7 +80,7 @@ jobs:
         git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
         git push --set-upstream origin $unique_branch --force || exit 1  # Push to remote
-        gh pr create --author github-actions[bot] --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --label "auto gh-package" --fill || exit 1
+        gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --label "auto gh-package" --fill || exit 1
       shell: bash
 
   post_process:
