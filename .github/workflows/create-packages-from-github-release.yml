@@ -119,16 +119,16 @@ jobs:
           # Fetch PR numbers for specific label and convert to array
           pr_list_label=$(gh pr list --state open --label "auto gh-package" | awk -F'\t' '{print $1}')
           echo "Debug: pr_list_label = $pr_list_label"
-          IFS=' ' read -ra pr_array_label <<< "$pr_list_label"
+          IFS=$'\n' read -ra  pr_array_label <<< "$pr_list_label"
           echo "Debug: pr_array_label = ${pr_array_label[@]}"
 
           # Fetch PR numbers for specific author and convert to array
           pr_list_author=$(gh pr list --state open --author "github-actions" | awk -F'\t' '{print $1}')
-          IFS=' ' read -ra pr_array_author <<< "$pr_list_author"
+          IFS=$'\n' read -ra pr_array_author <<< "$pr_list_author"
 
           # Fetch PR numbers for specific author (bot) and convert to array
           pr_list_author2=$(gh pr list --state open --author "github-actions[bot]" | awk -F'\t' '{print $1}')
-          IFS=' ' read -ra pr_array_author2 <<< "$pr_list_author2"
+          IFS=$'\n' read -ra pr_array_author2 <<< "$pr_list_author2"
 
           echo "Listing all PR Numbers matching the label (auto gh-package):"
           for pr in "${pr_array_label[@]}"; do
