@@ -98,12 +98,11 @@ jobs:
       run: |
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
-        
+
         git fetch --all
         git branch -a
         gh pr list
 
-        gh pr list --state open --author github-actions[bot] --label "auto gh-package" | awk '{print $1}' | xargs -I {} gh pr merge {} --auto || exit 1
         gh pr list --state open --author github-actions[bot] --label "auto gh-package" | awk '{print $1}' | xargs -I {} gh pr merge {} --auto || exit 1
         git push -u origin main || exit 1
       shell: bash
