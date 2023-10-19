@@ -4,7 +4,7 @@
     <id>josefnemec.playnite</id>
     <version>10.20</version>
     <title>Playnite</title>
-    <authors>Josef Nemec</authors>
+    <authors>JosefNemec</authors>
     <packageSourceUrl>https://github.com/JosefNemec/Playnite/releases/download/10.20/Playnite1020.exe</packageSourceUrl>
     <releaseNotes>New:
 
@@ -29,8 +29,8 @@ Fixed:
 </releaseNotes>
     <licenseUrl>https://github.com/JosefNemec/Playnite/blob/master/LICENSE</licenseUrl>
     <description>Video game library manager with support for wide range of 3rd party libraries and game emulation support, providing one unified interface for your games.</description>
+    <iconUrl>https://raw.githubusercontent.com/JosefNemec/Playnite/master/media/playnite-logo-white.svg</iconUrl>
     <tags>csharp gaming launcher wpf</tags>
     <projectUrl>https://github.com/JosefNemec/Playnite</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Playnite.ico</iconUrl>
   </metadata>
 </package>
