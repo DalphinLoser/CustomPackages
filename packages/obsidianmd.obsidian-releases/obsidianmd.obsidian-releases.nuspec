@@ -3,14 +3,14 @@
   <metadata>
     <id>obsidianmd.obsidian-releases</id>
     <version>1.4.16</version>
-    <title>Obsidian</title>
-    <authors>Obsidian, obsidianmd</authors>
-    <packageSourceUrl>https://github.com/obsidianmd/obsidian-releases/releases/download/v1.4.16/Obsidian.1.4.16-arm64.exe</packageSourceUrl>
+    <title>obsidian</title>
+    <authors>obsidianmd</authors>
+    <packageSourceUrl>https://github.com/obsidianmd/obsidian-releases/releases/download/v1.4.16/Obsidian.1.4.16-32.exe</packageSourceUrl>
     <releaseNotes>https://obsidian.md/changelog/2023-10-13-desktop-v1.4.16/</releaseNotes>
     <licenseUrl>https://github.com/obsidianmd/obsidian-releases/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/obsidianmd/obsidian-releases</projectUrl>
-    <tags>obsidian obsidian-md</tags>
+    <iconUrl>https://obsidian.md/favicon.svg</iconUrl>
     <description>Community plugins list, theme list, and releases of Obsidian.</description>
-    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Obsidian.ico</iconUrl>
+    <tags>obsidian obsidian-md</tags>
   </metadata>
 </package>
