@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>adguardteam.adguardforwindows</id>
-    <version>7.15.4385.0</version>
-    <title>AdGuard</title>
-    <authors>Adguard Software Limited, AdguardTeam</authors>
+    <version>7.15.0</version>
+    <title>Adguard</title>
+    <authors>AdguardTeam</authors>
     <packageSourceUrl>https://github.com/AdguardTeam/AdguardForWindows/releases/download/v7.15.0/AdGuard-7.15-.4385.exe</packageSourceUrl>
     <releaseNotes>&gt; **Disclaimer** AdGuard for Windows is not an open-source project. We use Github as an open bug tracker for users to see what developers are working on.
 
@@ -124,9 +124,9 @@ To top it all off, we have updated the WFP and TDI drivers, and as per our tradi
 
 [Nightly channel](https://agrd.io/windows_nightly)</releaseNotes>
     <licenseUrl>https://github.com/AdguardTeam/AdguardForWindows/blob/master/LICENSE</licenseUrl>
-    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/AdGuard.ico</iconUrl>
     <tags>adguard windows</tags>
-    <description>AdGuard for Windows open bug tracker</description>
     <projectUrl>https://github.com/AdguardTeam/AdguardForWindows</projectUrl>
+    <description>AdGuard for Windows open bug tracker</description>
+    <iconUrl>https://cdn.adguard.info/website/adguard.com/favicons/favicon.svg</iconUrl>
   </metadata>
 </package>
