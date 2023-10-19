@@ -63,9 +63,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "github-actions[bot]"
-
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+  
         # Identify existing pull requests for the branch
         existing_prs=$(gh pr list --state open --head "$unique_branch")
 
@@ -96,7 +96,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh pr list --state open --author "github-actions[bot]" --label "auto gh-package" | awk '{print $1}' | xargs -I % gh pr merge % --auto || exit 1
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        gh pr list --state open --author github-actions[bot] --label "auto gh-package" | awk '{print $1}' | xargs -I {} gh pr merge {} --auto || exit 1
         git push -u origin main || exit 1
       shell: bash
 
