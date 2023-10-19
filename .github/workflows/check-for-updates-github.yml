@@ -47,6 +47,6 @@ jobs:
         git add icons/ 
         git add packages/
         # Commit the updated packages and list of updated packages in the commit message
-        git commit -m "Automated Package Update: ${{ env.UPDATED_PACKAGES}}" || echo "No changes to commit"
+        git commit -m "Automatically Updated: ${{ env.UPDATED_PACKAGES}}" || echo "No changes to commit"
         git push origin ${{ github.ref }}
       shell: pwsh
