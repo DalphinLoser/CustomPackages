@@ -33,15 +33,18 @@ function Get-DataFromExe {
                     # Extract the zip file to the temporary directory
                     [System.IO.Compression.ZipFile]::ExtractToDirectory($downloadedFileZip, $tempDir)
                     # Get the list of .exe files
-                    $downloadedFilePaths = Get-ChildItem -Path $tempDir -Recurse -Filter "*.exe" | Select-Object -ExpandProperty FullName
-
+                    $downloadedFilePaths = Get-ChildItem -Path $tempDir -Recurse -Filter "*.exe"
+                    
                     # Output the list of .exe files
                     if ($downloadedFilePaths) {
-                        Write-DebugLog "    Exe files extracted from zip file: " -NoNewline -ForegroundColor Cyan
-                        Write-DebugLog "$downloadedFilePaths"
-                        $downloadedFilePath = $downloadedFilePaths[0]
-                        Write-DebugLog "    Downloaded file path: " -NoNewline -ForegroundColor Cyan
-                        Write-DebugLog "$downloadedFilePath"
+                        Write-DebugLog "    Exe files extracted from zip file: " -ForegroundColor Cyan
+                        foreach ($downloadedFilePath in $downloadedFilePaths) {
+                            Write-DebugLog "    File: " -NoNewline -ForegroundColor Cyan
+                            Write-DebugLog $downloadedFilePath.FullName
+                        }
+                        $downloadedFilePath = $downloadedFilePaths[0].FullName
+                        Write-DebugLog "    Using first exe file found: " -NoNewline -ForegroundColor Cyan
+                        Write-DebugLog $downloadedFilePath
                     }
                 }
                 catch {
@@ -122,8 +125,15 @@ Log=    $($logPath)
         # Find the path of the fime names MANIFEST*.txt in the metadata directory
         $manifestPath = Get-ChildItem -Path $metadataPath -Filter "MANIFEST*.txt" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
 
-        # Get the installer type from the manifest file
-        $installerUsed = Get-InstallerUsed -ManifestPath $manifestPath.FullName
+        # Get the installer type from the manifest file if it exists and is not empty
+        if ($manifestPath) {
+            Write-DebugLog "    Manifest file found: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $manifestPath.FullName
+            $installerUsed = Get-InstallerUsed -ManifestPath $manifestPath.FullName
+        }
+        else {
+            Write-DebugLog "    Manifest file not found" -ForegroundColor Red
+        }
 
         if ($installerUsed) {
             Write-DebugLog "    Installer used: " -NoNewline -ForegroundColor Yellow
