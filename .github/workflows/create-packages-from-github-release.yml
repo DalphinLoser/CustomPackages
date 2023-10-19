@@ -124,15 +124,35 @@ jobs:
             echo "Debug: pr_array_label = ${pr_array_label[@]}"
             
             # Initialize an array to hold PRs that match both the label and the author
+            # Initialize an array to hold PRs that match both the label and the author
             pr_array=()
-            
+
             # Loop through PRs with the specific label to fetch the author and check conditions
             for pr in "${pr_array_label[@]}"; do
               pr_author=$(gh pr view $pr --json author -q '.author.login')
               if [ "$pr_author" == "app/github-actions" ]; then
                 pr_array+=($pr)
                 echo "Debug: PR #($pr) matches both label and author. Queuing for merge."
-                gh pr merge $pr --squash --admin || echo "Failed to merge PR #$pr"
               fi
+            done
+
+            # Loop through the matched PR numbers and attempt to merge each, one at a time
+            for pr in "${pr_array[@]}"; do
+              # Sync the PR with the latest changes from the base branch
+              gh pr checkout $pr
+              git pull origin main
+              git push origin $pr
+
+              # Now attempt to merge
+              merged=false
+              while [ "$merged" = false ]; do
+                if gh pr merge $pr --squash --admin; then
+                  merged=true
+                  echo "Successfully merged PR #$pr"
+                else
+                  echo "Failed to merge PR #$pr. Retrying..."
+                  sleep 10  # Wait for 10 seconds before retrying
+                fi
+              done
             done
         shell: bash
