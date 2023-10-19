@@ -118,22 +118,32 @@ jobs:
           echo "Listing all open PRs:"
           gh pr list --state open
   
-          # Fetch PR numbers for specific label and debug
-          pr_list_label=$(gh pr list --state open --label "auto gh-package")
-          echo "Filtered PR list by label: $pr_list_label"
+          # Debug: List all PRs with the "auto gh-package" label
+          echo "Listing all PRs with the 'auto gh-package' label:"
+          gh pr list --label "auto gh-package"
+
+          # Debug: List all PRs with the author "github-actions"
+          echo "Listing all PRs with the author 'github-actions':"
+          gh pr list --author "github-actions"
+
+          # Debug: List all PRs with the author "github-actions[bot]"
+          echo "Listing all PRs with the author 'github-actions[bot]':"
+          gh pr list --author "github-actions[bot]"
+
+          # Debug: List all PRs with the author "github-actions" and the "auto gh-package" label
+          echo "Listing all PRs with the author 'github-actions' and the 'auto gh-package' label:"
+          gh pr list --author "github-actions" --label "auto gh-package"
 
           # Convert comma-separated PR numbers into an array
           IFS=',' read -ra pr_array <<< "$PR_NUMBERS"
 
-          # List all found PRs matching the PR numbers and label
-          echo "Listing all PRs matching both the PR numbers and label:"
-          for pr in "${pr_array[@]}"; do
-            gh pr view $pr
-          done
-  
-          # Loop through PR numbers and attempt to merge each
-          for pr in "${pr_array[@]}"; do
-            gh pr merge $pr --merge --auto || echo "Failed to merge PR #$pr"
+          # Write the array to the console
+          echo "PR numbers to merge: ${pr_array[@]}"
+
+          # Iterate through the PR numbers and merge them
+          for pr_number in "${pr_array[@]}"; do
+            echo "Merging PR #$pr_number"
+            gh pr merge "$pr_number" --auto --merge
           done
   
         shell: bash
