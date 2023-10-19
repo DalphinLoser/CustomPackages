@@ -102,7 +102,8 @@ jobs:
           git branch -a
   
           # Debug: List all open PRs and their authors
-          echo "Listing all PRs and display their authors:"
+          echo "Listing all open PRs and display their authors:"
+          gh pr list --state open | awk '{print "PR Number: " $1 ", Author: " $4}'
 
           # Fetch PR numbers for specific user and debug
           pr_list_user=$(gh pr list --state open --author github-actions)
