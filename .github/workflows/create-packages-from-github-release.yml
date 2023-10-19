@@ -118,17 +118,17 @@ jobs:
   
           # Fetch PR numbers for specific label and convert to array
           echo "Listing all PRs matching the label (auto gh-package):"
-          pr_list_label=$(gh pr list --state open --label "auto gh-package" | awk '{print $1}')
+          pr_list_label=$(gh pr list --state open --label auto gh-package | awk '{print $1}')
           IFS=' ' read -ra pr_array_label <<< "$pr_list_label"
 
           # Fetch PR numbers for specific author and convert to array
           echo "Listing all PRs created by github-actions:"
-          pr_list_author=$(gh pr list --state open --author "github-actions" | awk '{print $1}')
+          pr_list_author=$(gh pr list --state open --author github-actions | awk '{print $1}')
           IFS=' ' read -ra pr_array_author <<< "$pr_list_author"
 
           # Fetch PR numbers for specific author (bot) and convert to array
           echo "Listing all PRs created by github-actions[bot]:"
-          pr_list_author2=$(gh pr list --state open --author "github-actions[bot]" | awk '{print $1}')
+          pr_list_author2=$(gh pr list --state open --author github-actions[bot] | awk '{print $1}')
           IFS=' ' read -ra pr_array_author2 <<< "$pr_list_author2"
 
           # Identify PRs that match both the label and the author
