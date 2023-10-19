@@ -124,9 +124,9 @@ To top it all off, we have updated the WFP and TDI drivers, and as per our tradi
 
 [Nightly channel](https://agrd.io/windows_nightly)</releaseNotes>
     <licenseUrl>https://github.com/AdguardTeam/AdguardForWindows/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/AdguardTeam/AdguardForWindows</projectUrl>
     <description>AdGuard for Windows open bug tracker</description>
     <tags>adguard windows</tags>
-    <iconUrl>https://cdn.adguard.info/website/adguard.com/favicons/apple-touch-icon.png</iconUrl>
+    <iconUrl>https://cdn.adguard.info/website/adguard.com/favicons/favicon.svg</iconUrl>
+    <projectUrl>https://github.com/AdguardTeam/AdguardForWindows</projectUrl>
   </metadata>
 </package>
