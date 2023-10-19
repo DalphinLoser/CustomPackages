@@ -17,7 +17,7 @@ jobs:
       id: set-matrix
       run: |
         matrix=$(echo -n '['; echo "${{ github.event.inputs.repoUrls }}" | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u | awk -vORS=',' '{ print "\""$0"\""}' | sed 's/,$//'; echo -n ']')
-        echo "matrix=${matrix}" >> $GITHUB_OUTPUT  # Setting output variable according to new guidelines  
+        echo "matrix=${matrix}" >> $GITHUB_OUTPUT  # Updated according to new guidelines
 
   build:
     runs-on: windows-latest
@@ -65,9 +65,9 @@ jobs:
         git config --local user.name "GitHub Action"
         git add . || exit 1
         git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
+        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
         git push --set-upstream origin $unique_branch || exit 1
       shell: bash
-    
 
   post_process:
     needs: build
