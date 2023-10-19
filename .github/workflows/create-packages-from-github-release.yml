@@ -26,6 +26,8 @@ jobs:
       fail-fast: false
       matrix:
         repoUrl: ${{fromJson(needs.pre_process.outputs.matrix)}}
+    outputs:
+      pr_number: ${{ env.pr_number }}  # Output the PR number
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -80,7 +82,12 @@ jobs:
         git commit -m "Changes for ${{ matrix.repoUrl }}" || echo "No changes to commit"
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
         git push --set-upstream origin $unique_branch --force || exit 1  # Push to remote
-        gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --label "auto gh-package" --fill || exit 1
+        # Create the PR and capture its number
+        pr_output=$(gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --head $unique_branch --label "auto gh-package" --fill)
+        pr_number=$(echo "$pr_output" | grep -o -E '\/pull\/[0-9]+' | grep -o -E '[0-9]+')
+
+        # Set PR number as output variable
+        echo "pr_number=$pr_number" >> $GITHUB_ENV
       shell: bash
 
   post_process:
@@ -94,6 +101,7 @@ jobs:
       - name: Auto-Merge Created PRs using gh pr merge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.build.outputs.pr_number }}
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
@@ -121,9 +129,9 @@ jobs:
           echo "PR numbers to be merged: $pr_numbers"
   
           # Perform the auto-merge
-          for pr in $pr_numbers; do
-            gh pr merge $pr --auto || echo "Failed to merge PR #$pr"
-          done
+          if [[ ! -z "$PR_NUMBER" ]]; then
+            gh pr merge $PR_NUMBER --auto || echo "Failed to merge PR #$PR_NUMBER"
+          fi
   
           git push -u origin main || exit 1
         shell: bash
