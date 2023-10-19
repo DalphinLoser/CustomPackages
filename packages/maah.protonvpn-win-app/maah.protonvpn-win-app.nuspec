@@ -11,9 +11,9 @@
 - Minor UI and stability improvements.
 </releaseNotes>
     <licenseUrl>https://github.com/maah/ProtonVPN-win-app/blob/master/LICENSE</licenseUrl>
-    <tags>vpn windows</tags>
-    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Proton VPN.ico</iconUrl>
     <description>Official ProtonVPN Windows app</description>
     <projectUrl>https://github.com/maah/ProtonVPN-win-app</projectUrl>
+    <tags>vpn windows</tags>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Proton VPN.ico</iconUrl>
   </metadata>
 </package>
