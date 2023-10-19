@@ -91,10 +91,10 @@ jobs:
         else
           echo "pr_numbers=${pr_numbers},${pr_number}" >> $GITHUB_ENV
         fi
-        # Your shell script here
-        shell: bash
+      shell: bash
     outputs:
       pr_numbers: ${{ env.pr_numbers }}
+      
 
   post_process:
     needs: build  # Make sure to depend on the build job to get its outputs
