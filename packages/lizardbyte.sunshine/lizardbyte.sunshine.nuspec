@@ -106,9 +106,9 @@
 - (Cmake) Split CMakelists into modules
 - (Docs) Add Linux Headless/SSH Guide</releaseNotes>
     <licenseUrl>https://github.com/LizardByte/Sunshine/blob/nightly/LICENSE</licenseUrl>
-    <iconUrl>https://raw.githubusercontent.com/LizardByte/Sunshine/nightly/sunshine.svg</iconUrl>
     <description>Self-hosted game stream host for Moonlight.</description>
-    <tags>cpp docker game-stream game-streaming game-streaming-server geforce-experience moonlight python remote-desktop replicator-release-notifications</tags>
     <projectUrl>https://github.com/LizardByte/Sunshine</projectUrl>
+    <tags>cpp docker game-stream game-streaming game-streaming-server geforce-experience moonlight python remote-desktop replicator-release-notifications</tags>
+    <iconUrl>https://raw.githubusercontent.com/LizardByte/Sunshine/nightly/sunshine.svg</iconUrl>
   </metadata>
 </package>
