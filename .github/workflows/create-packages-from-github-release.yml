@@ -88,33 +88,31 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
   
-    - name: Install jq
-      run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Auto-Merge Created PRs using gh pr merge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
   
-    - name: Auto-Merge Created PRs using gh pr merge
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
+          git fetch --all
+          git branch -a
   
-        git fetch --all
-        git branch -a
+          # Debug: List all PRs in simple format for debugging
+          echo "Listing all PRs in simple format for debugging:"
+          gh pr list
   
-        # Display PRs with their author and labels
-        pr_data=$(gh pr list --state open --json number,author,labels -q '.[] | "\(.number) \(.author.login) \(.labels.nodes[].name)"')
-        echo "$pr_data"
+          # Fetch PR numbers for specific conditions
+          pr_numbers=$(gh pr list --state open --author github-actions[bot] --label "auto gh-package" | awk '{print $1}')
+          echo "PR numbers to be merged: $pr_numbers"
   
-        pr_to_merge=$(echo "$pr_data" | grep "github-actions[bot]" | grep "auto gh-package" | awk '{print $1}')
-        if [ ! -z "$pr_to_merge" ]; then
-          echo "Merging PR number: $pr_to_merge"
-          gh pr merge $pr_to_merge --auto
-        else
-          echo "No matching PRs found to merge."
-        fi
+          # Perform the auto-merge
+          for pr in $pr_numbers; do
+            gh pr merge $pr --auto || echo "Failed to merge PR #$pr"
+          done
   
-        git push -u origin main || exit 1
-      shell: bash
+          git push -u origin main || exit 1
+        shell: bash
