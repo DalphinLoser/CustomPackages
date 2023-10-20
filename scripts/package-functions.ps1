@@ -210,38 +210,32 @@ Install-ChocolateyPackage @packageArgs
 `$ErrorActionPreference = 'Stop';
 
 # Define variables
-`$packageName = "$($Metadata.PackageName)"
 `$softwareName = "$($Metadata.GithubRepoName)"
-`$installDir = "C:\Program Files\`$softwareName"
-`$url = "$($Metadata.Url)"
+`$installDir = Get-AppInstallLocation `$softwareName
 
-# Extract the executable name from the URL
-`$executableName = [System.IO.Path]::GetFileName(`$url)
-
-# Find the service name dynamically using the extracted executable name
-try {
-    `$serviceName = Get-CimInstance Win32_Service | Where-Object {`$_.PathName -like "*`$executableName"} | Select-Object -ExpandProperty Name
-} catch {
-    Write-Host "Could not find a service associated with `$executableName."
+# Use Get-AppInstallLocation to find the installation directory
+Write-Host "Method: Using Get-AppInstallLocation" -ForegroundColor Cyan
+`$installDir = Get-AppInstallLocation `$softwareName
+if (`$installDir) {
+    Write-Host "    Resolved Installation Directory: `$installDir"
+    # Find the name of the executable using chocolatey-core extensions
+    `$executableName = Get-ChildItem `$installDir | Where-Object {`$_.Extension -eq ".exe"} | Select-Object -ExpandProperty Name
+} else {
+    Write-Host "  Could not resolve installation directory"
 }
 
-# Custom logic or messages
-Write-Host "Preparing to modify `$packageName package..."
-
-# Check if the software is currently running and warn the user
-`$proc = Get-Process -name "`$executableName" -ErrorAction SilentlyContinue
-if (`$proc) {
-    Write-Host "`$softwareName is currently running. Please close it before proceeding."
-}
-
-# Stopping a Windows service before modifying the package
-if (`$serviceName) {
-    try {
-        Stop-Service -Name "`$serviceName" -Force
-        Write-Host "Stopped the `$serviceName service."
-    } catch {
-        Write-Host "Failed to stop the `$serviceName service."
+# Stop each executable that is running
+Write-Host "Method: Using Get-Process" -ForegroundColor Cyan
+`$processName = `$executableName -replace '\.exe$'
+`$process = Get-Process `$processName -ErrorAction SilentlyContinue
+if (`$process) {
+    # For each process name found, stop the process and log the result to the console
+    `$process | ForEach-Object {
+        Write-Host "    Stopping process `$(`$_.Name) with ID `$(`$_.Id)"
+        Stop-Process -Id `$_.Id -Force
     }
+} else {
+    Write-Host "    Could not find processes: `$processName"
 }
 "@
         # Write the before modify script to the tools directory
