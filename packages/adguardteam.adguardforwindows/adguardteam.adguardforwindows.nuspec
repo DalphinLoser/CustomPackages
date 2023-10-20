@@ -126,7 +126,7 @@ To top it all off, we have updated the WFP and TDI drivers, and as per our tradi
     <licenseUrl>https://github.com/AdguardTeam/AdguardForWindows/blob/master/LICENSE</licenseUrl>
     <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/AdGuard.ico</iconUrl>
     <tags>adguard windows</tags>
-    <projectUrl>https://github.com/AdguardTeam/AdguardForWindows</projectUrl>
     <description>AdGuard for Windows open bug tracker</description>
+    <projectUrl>https://github.com/AdguardTeam/AdguardForWindows</projectUrl>
   </metadata>
 </package>
