@@ -5,7 +5,7 @@ $packageArgs = @{
     fileType        = "exe"
     url             = "https://github.com/JosefNemec/Playnite/releases/download/10.20/Playnite1020.exe"
     softwareName    = "Playnite"
-    silentArgs      = "/VERYSILENT, /NORESTART"
+    silentArgs      = "/VERYSILENT /NORESTART"
     validExitCodes  = @(0)
 }
 
