@@ -41,9 +41,9 @@ Experimental versions - There may be bugs in the GUI
 
 </releaseNotes>
     <licenseUrl>https://github.com/horsicq/DIE-engine/blob/master/LICENSE</licenseUrl>
-    <description>DIE engine</description>
-    <projectUrl>https://github.com/horsicq/DIE-engine</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Detect It Easy.ico</iconUrl>
     <tags>binary-analysis disassembler elf entropy hacktoberfest hacktoberfest22 program-analysis reverse-engineering signature unpacker yara</tags>
+    <projectUrl>https://github.com/horsicq/DIE-engine</projectUrl>
+    <description>DIE engine</description>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Detect It Easy.ico</iconUrl>
   </metadata>
 </package>
