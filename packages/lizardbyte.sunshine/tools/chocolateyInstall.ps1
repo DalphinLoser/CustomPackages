@@ -5,7 +5,7 @@ $packageArgs = @{
     fileType        = "exe"
     url             = "https://github.com/LizardByte/Sunshine/releases/download/v0.21.0/sunshine-windows-installer.exe"
     softwareName    = "Sunshine"
-    silentArgs      = "/S /CLOSEAPPLICATIONS"
+    silentArgs      = "/S"
     validExitCodes  = @(0)
 }
 
