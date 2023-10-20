@@ -689,13 +689,8 @@ function Set-AssetInfo {
             }
             # If command line args are not null or empty, CommandLineArgs is a hashtable. Use the CompleteSilentInstall key
             if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CommandLineArgs)) {
-                # if StopRunningPrograms is not null or empty, set packageMetadata.SilentArgs to the value
-                if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CommandLineArgs.StopRunningPrograms)) {
-                    $packageMetadata.SilentArgs = "$($dataFromExe.CommandLineArgs.StopRunningPrograms)"
-                    Write-DebugLog "    Silent Args (StopRunningPrograms): " -NoNewline -ForegroundColor Yellow
-                    Write-DebugLog $packageMetadata.SilentArgs
-                }
-                else {
+                # if CompleteSilentInstall is not null or empty, set packageMetadata.SilentArgs to the value
+                if (-not [string]::IsNullOrWhiteSpace($dataFromExe.CommandLineArgs.CompleteSilentInstall)) {
                     $packageMetadata.SilentArgs = "$($dataFromExe.CommandLineArgs.CompleteSilentInstall)"
                     Write-DebugLog "    Silent Args (CompleteSilentInstall): " -NoNewline -ForegroundColor Yellow
                     Write-DebugLog $packageMetadata.SilentArgs
