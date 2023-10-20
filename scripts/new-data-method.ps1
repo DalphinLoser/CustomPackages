@@ -338,7 +338,7 @@ function Get-InstallerArgs {
             "ForceRemoveOld" = @("/S", "/REMOVE_OLD");
         };
         "InnoSetup" = @{
-            "CompleteSilentInstall" = @("/VERYSILENT, /NORESTART");
+            "CompleteSilentInstall" = @("/VERYSILENT", "/NORESTART");
             "SilentUninstall" = @("/VERYSILENT", "/uninstall");
             "CustomInstallPath" = @("/VERYSILENT", "/DIR={0}");
             "NoReboot" = @("/VERYSILENT", "/NORESTART");
