@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>obsproject.obs-studio.obs-studio</id>
+    <version>29.1.3</version>
+    <title>Studio</title>
+    <authors>obsproject</authors>
+    <packageSourceUrl>https://github.com/obsproject/obs-studio/releases/download/29.1.3/OBS-Studio-29.1.3.zip</packageSourceUrl>
+    <releaseNotes>29.1.3 Hotfix Changes
+---------------------
+* Fixed service selection resetting for services that are not shown by default [derrod]
+* Fixed crash when properties are deleted in callback, e.g. with the Source Record plugin [derrod]
+* Fixed keyboard shortcuts not being displayed for some context menu items [cg2121]
+* Fixed crash with Freetype 2 text sources with non-ASCII text [norihiro]
+* Fixed AMF encoder reconfiguration and dynamic bitrate not working [rhutsAMD]
+* Fixed AMF preset fallback not taking the GPUs reported throughput into account [rhutsAMD]
+* Fixed a bug preventing properties dialogs from being closed with the “Cancel” button [tuduweb]
+* Fixed window capture/game capture compatibility notices being displayed erroneously [notr1ch]
+* Fixed potential crash on exit with obs-websockets [tt2468]
+* Fixed a crash when unloading Lua scripts [xahon]
+* Fixed unnecessary undo/redo entries being created for text sources [exeldro]
+* Fixed macOS capture showing a white background on macOS 14 Beta [gxalpha]
+* Fixed macOS graphics thread timer accuracy [kc5nra]
+* Fixed a bug where the checkable "Source Toolbar" menu item in the View menu wouldn't update when you used the "Show Source Toolbar" and "Hide Source Toolbar" hotkeys [norihiro]
+* Fixed a bug where switching between "Fade" and "Fade to Black" for a quick transition would not work properly [norihiro]
+* Fixed a bug in audio settings where Audio Channels, Sample Rate, and Low Latency Audio Buffer Mode would sometimes not save properly [norihiro]
+* Fixed a bug where the placeholder text for "Group" when adding a new group wouldn't be properly localized [norihiro]
+
+29.1.2 Hotfix Changes
+---------------------
+* Adjusted GPU priority level when Hardware-Accelerated GPU Scheduling (HAGS) is enabled in Windows settings [derrod]
+  - This fixes OBS freezing and driver crashes that some users experienced when using NVIDIA Audio Effects filters
+  - We will continue to work with NVIDIA to determine the root cause of these issues and revisit this change at a later date
+* Fixed a possible crash when interrupting stingers [Lain]
+* Fixed a crash when double-clicking non-multiview projectors [notr1ch]
+* Fixed a crash on opening settings when a non-existent service was selected [derrod]
+* Fixed a crash when receiving multiple SIGINT signals [norihiro]
+* Fixed a crash when closing OBS while a background thread had not completed [norihiro]
+* Fixed the keyframe interval calculation for the VideoToolbox encoder [gxalpha]
+* Fixed an issue that sometimes caused the "Source Cleanup Error" to show when switching scene collections [derrod]
+* Fixed a reference leak with virtual camera when using source output mode [derrod]
+* Fixed the missing files dialog disappearing behind the main window on macOS [gxalpha]
+* Fixed an issue where selecting no audio tracks for streaming or recording could cause the output to fail to start [gxalpha]
+* Fixed an issue where sources could become permanently invisible until transform is reset [Lain-B]
+* Fixed audio monitoring when using PulseAudio [jp-bennett]
+* Fixed some translation texts missing [norihiro]
+* Fixed an issue with properties never being updated in some scenarios [gxalpha]
+* Fixed button colors when using the scene list grid mode [TianQiBuTian]
+* Fixed Lua script file names not being set [derrod]
+
+29.1.1 Hotfix Changes
+---------------------
+* Fixed some Elgato devices being blocked on Windows [notr1ch]
+* Fixed audio mixer warning about sources not assigned to any tracks while monitoring was set to "Monitor Only (mute output)" [derrod]
+* Fixed FLAC being erroneously shown as compatible with MOV [derrod]
+* Added an error message for NVENC AV1 to explain why it fails [notr1ch]
+* Fixed an issue where captured video could appear to have tearing on Intel Macs [jpark37]
+* Fixed a data corruption issue that could occur when switching scene collections [derrod]
+* Fixed a crash that could occur on macOS when connecting a service account [PatTheMav]
+
+29.1 New Features
+-----------------
+* Added support for streaming AV1/HEVC over Enhanced RTMP [YouTube/yuriy-chunak/derrod]
+  - Enhanced RTMP V1 extends the RTMP protocol to support newer video codecs and HDR. More info at: https://github.com/veovera/enhanced-rtmp
+  - Currently only supported by/enabled for YouTube as a beta feature
+  - HDR is not yet implemented
+* Added support for multiple audio tracks in Simple output recording [pkv]
+* Added a DLL blocking feature for Windows. This allows OBS to block problematic DLLs from attaching to OBS and causing freezing or crashes, for example 3rd party overlay hooks and outdated video capture devices. [notr1ch]
+  - This blocks old versions of popular VTubing software virtual cameras that are known to cause freezes when accessing video capture device properties. If you are affected, please update to the latest version of your VTubing software.
+* Added settings to select the audio encoder for streaming and recording [tytan652]
+* Added an option to preload media sources used in Stingers to memory, to avoid frame skips during transitions [Jim]
+* Added Update Channels on macOS and updated Sparkle for smaller and faster updates going forward [derrod]
+* Added compatibility notices in the Window and Game Capture sources for Windows [derrod]
+* Added the ability to zoom browser docks with Ctrl - and + and the right click menu [WizardCM]
+* Added a setting to record in fragmented MP4 and MOV formats [derrod]
+  - These offer greater compatibility than MKV while providing similar resilience against data loss due to crashes, running out of space, etc.
+  - Fragmented MP4 and MOV files can be remuxed to regular MP4/MOV in cases where the former may not be read correctly (e.g. in older editing software)
+* Added support for surround sound for AJA capture cards [paulh-aja]
+* Added ProRes 4444 (XQ) support for VideoToolbox encoder on macOS [jpark37]
+* Added lossless audio recording options (FLAC/ALAC/PCM including 32-bit float) [derrod]
+* Added indicator if an audio source is unmuted, but not assigned to any audio tracks [derrod]
+* Added AMD AV1 encoder to simple output mode [notr1ch]
+
+29.1 Changes
+------------
+* Increased the minimum macOS version to macOS 11.0 [PatTheMav]
+* Output rescaling is ignored if the scaled resolution matches the current video output resolution [notr1ch]
+* NVENC error messages now include more details [notr1ch]
+* Changed the default FFmpeg AAC encoder to twoloop which has higher quality [norihiro]
+* Allow symbolic links for VST paths [tuduweb]
+* Implemented QVBR for AMF encoders [flaeri]
+* Expanded support for subtitle tracks in VLC source (up to 1000) [jjm2473]
+* The Hotkeys tab in settings is no longer loaded until switched to, resulting in the Settings window opening much faster for large scene collections [derrod]
+* Switched various internal data structures to use hash tables for lookups, resulting in significant performance and loading/saving time improvements with large scene collections [derrod]
+* Exported scene collection JSON is now pretty-printed and sorted, allowing for easier tracking via git or other versioning mechanisms [derrod]
+* Added a "What's New" entry in the help menu to manually open the post-update changelog dialog [derrod]
+* Clicking the "Defaults" button in properties will now ask for confirmation before resetting [derrod]
+* Improved Windows OBS updater speed and reduced download size by using Zstandard compression [derrod]
+* Added platform-specific "What's New" notifications to better communicate changes or issues not affecting all operating systems [derrod]
+* Added option to force SDR Window Capture capture in Windows 10+ mode [jpark37]
+* Improved YouTube thumbnail preview by using bilinear scaling [derrod]
+* Incompatible audio/video encoders will now be disabled based on the selected format [derrod]
+* Added HEVC and HDR support to VA-API encoder [yuriy-chunak]
+* Added HDR capture support for DeckLink sources [jpark37]
+* Video-related items in the right click menu of audio sources in the Sources list will no longer appear [cg2121]
+* Native macOS dialogs now respect OBS being set to dark themes [gxalpha]
+* Significantly improve screen capture performance on Intel dedicated GPUs on Linux [kkartaltepe]
+* JACK inputs on Linux will now display "OBS Studio" in their name to clarify their origin. This may cause existing configured devices to stop working until updated by the user [univrsal]
+* The system color selection dialog is now used on macOS [gxalpha]
+* Various improvements to the t-bar for a more predictable user experience [gxalpha]
+* Plugins installed system-wide are no longer loaded when OBS is run in Portable Mode [gxalpha]
+* Hardware Decoding of Media Sources can now use CUDA [rjgtav]
+* Improved DeckLink performance [jpark37]
+* Python 3.11 is now supported in Scripting [RytoEX]
+* Added FDK AAC support on Flatpak [tytan652]
+* Browser docks now provide a "Copy page address" option [WizardCM]
+* Increased the maximum resolution of browser sources to 8192x8192 [fungiboletus]
+* OBS Websocket has been updated to 5.2 [RytoEX]
+* Changed Add Source menu to sort case-insensitively [gxalpha]
+* Improved default buffering behavior for most Elgato video capture devices on Windows [FBirth]
+* Added codec logging for the QSV encoder [RytoEX]
+* Made hotkey edit layout margins symmetrical [gxalpha]
+* Added logging if the active encoder is incompatible with dynamic bitrate [pkv]
+
+29.1 Bug Fixes
+--------------
+* Fixed output silently not starting when using multi-track audio at higher frame rates [kkartaltepe]
+* Fixed dynamic bitrate changes not working when using NVENC presets p6 or p7 [pkv]
+* Fixed encoder settings not being updated if the encoder is changed in settings [tytan652]
+* Fixed a crash that could occur when using a video source that frequently changed its resolution (e.g. a VLC playlist) [notr1ch]
+* Fixed a crash that could occur when using streams in the media source (introduced in v29) [notr1ch]
+* Fixed an issue with negative gain in upward compressor [pkv]
+* Fixed several bugs in FFmpeg custom output related to color conversion [flaeri]
+* Fixed UI unresponsiveness when searching for hotkeys and duplicate key assignments in large collections [derrod]
+* Fixed an issue with RTMP timeouts that could cause a server to think OBS has cleanly ended the connection instead of it disconnecting due to an error, and not activating features like "disconnect protection" [notr1ch]
+* Fixed properties being cut off until window is resized [derrod]
+* Fixed portable Windows versions not restarting in portable mode after an update [derrod]
+* Fixed updating of an install being blocked by unrelated OBS instances running [derrod]
+* Fixed excessive config reads when sources are selected in the preview [derrod]
+* Fixed audio track assignments of sources provided by third-party plugins being reset when the plugin could not be loaded [derrod]
+* Fixed invalid rescaled resolutions being allowed when they shouldn't be [tuduweb]
+* Fixed presets in the Expander filter not applying changes immediately [tuduweb]
+* Fixed the virtual camera on Windows reporting the incorrect resolution to external apps, resulting in stretched images [exeldro]
+* Fixed the ability to drag and drop scenes after clicking Rename and not changing the name of the Scene [cg2121]
+* Fixed a crash on macOS that would occur when an external display with an active Projector was disconnected [PatTheMav]
+* Fixed an issue where remuxing a .ts file would fail [tuduweb]
+* Fixed an issue with the VLC source where large videos (e.g. 4K) would get squashed horizontally [CoalZombik]
+* Fixed spacing helpers appearing incorrectly when a source is rotated and flipped [cg2121]
+* Fixed an issue where the preview would display incorrectly when zoomed too far in either direction [cg2121]
+* Fixed the macOS virtual camera potentially crashing external apps and recordings to be the wrong length [mac-cain13]
+* Various fixes for monitoring when using PulseAudio [kkartaltepe]
+* Fixed a crash on shutdown with virtual camera on Linux [kkartaltepe/norihiro]
+* Fixed an issue in the V4L2 source on Linux where a capture device's frame rate could be invalid, resulting in incredibly large log files [9p4]
+* Fixed the listing of PulseAudio monitoring devices incorrectly listing inputs [jp-bennett]
+* Fixed the preview having the ability to scroll infinitely out of view when scaled manually [cg2121]
+* Fixed the Async Filters list showing incompatible async filters for synchronous sources [gxalpha]
+* Fixed an issue where the cursor would not properly disappear in certain games on Wayland [rmngr]
+* Fixed an issue where certain filters would not properly update when clicking the Defaults button [gxalpha]
+* Fixed an issue with FFmpeg NVENC producing invalid DTS when using b-frames [RytoEX/flaeri/derrod/tt2468]
+* Fixed an issue where network sources in the Media Source could cause rendering/UI freezes when they reconnect [tt2468]
+* Fixed AAC encoding of 2.1 audio [pkv]
+* Fixed an issue where pressing Space would unexpectedly pause the active media source when the main window was focused [cg2121]
+* Fixed an issue where duplicating scenes would lose colour coding on sources [cg2121]
+* Browser dock Inspect will now remember settings and customizations [WizardCM]
+* Fixed a case where HDR -&gt; SDR might not tonemap correctly [jpark37]
+* Fixed simple mode replay buffer maximum not being set [derrod]
+* Fixed Windows-only RTMP options (e.g., Network Optimizations) causing issues if the profile was imported on non-Windows with those enabled [tytan652]
+* Fixed security software status logs showing as blank when running on non-English locales [notr1ch]
+* Fixed a bug where certain system localizations couldn't load Lua files on Windows [exeldro]
+* Fixed Screen Capture crashing in the Flatpak with old versions of PipeWire server [tytan652]
+* Fixed an issue where Push to Talk on Linux wouldn't work when assigned to secondary mouse buttons [KasinSparks]
+* Fixed CBR padding when using NVENC AV1/HEVC [derrod]
+* Fixed Auto Scene Switcher not saving settings correctly [PatTheMav]
+* Fixed AMF encoder crashing when streaming by temporarily disabling dynamic bitrate when it is in use [derrod]
+* Fixed recordings made with Apple VT Hardware encoders in CRF mode only having one initial keyframe [derrod]
+* Various improvements and fixes to Decklink performance [jpark37]
+* Fixed transparent windows capturing incorrectly on Wayland using PipeWire [asahilina]
+* Fixed an issue with the source rotation handle when source is flipped [cg2121]
+* Fixed a crash in Decklink Output when no Decklink device is available [jpark37]</releaseNotes>
+    <licenseUrl>https://github.com/obsproject/obs-studio/blob/master/LICENSE</licenseUrl>
+    <description>OBS Studio - Free and open source software for live streaming and screen recording</description>
+    <projectUrl>https://github.com/obsproject/obs-studio</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/obsproject/obs-studio/master/docs/sphinx/logo.svg</iconUrl>
+    <tags>c c-plus-plus directshow facebook-live ffmpeg game-capture live-streaming screen-capture twitch-tv video-recording youtube-live</tags>
+  </metadata>
+</package>
