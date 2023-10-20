@@ -204,12 +204,58 @@ if (Test-Path `$toolsDir) {
 
 Install-ChocolateyPackage @packageArgs
 "@
+
+        # Create BeforeModify Script
+        $beforeModifyScriptContent = @"
+`$ErrorActionPreference = 'Stop';
+
+# Define variables
+`$packageName = "$($Metadata.PackageName)"
+`$softwareName = "$($Metadata.GithubRepoName)"
+`$installDir = "C:\Program Files\`$softwareName"
+`$url = "$($Metadata.Url)"
+
+# Extract the executable name from the URL
+`$executableName = [System.IO.Path]::GetFileName(`$url)
+
+# Find the service name dynamically using the extracted executable name
+try {
+    `$serviceName = Get-CimInstance Win32_Service | Where-Object {`$_.PathName -like "*`$executableName"} | Select-Object -ExpandProperty Name
+} catch {
+    Write-Host "Could not find a service associated with `$executableName."
+}
+
+# Custom logic or messages
+Write-Host "Preparing to modify `$packageName package..."
+
+# Check if the software is currently running and warn the user
+`$proc = Get-Process -name "`$executableName" -ErrorAction SilentlyContinue
+if (`$proc) {
+    Write-Host "`$softwareName is currently running. Please close it before proceeding."
+}
+
+# Stopping a Windows service before modifying the package
+if (`$serviceName) {
+    try {
+        Stop-Service -Name "`$serviceName" -Force
+        Write-Host "Stopped the `$serviceName service."
+    } catch {
+        Write-Host "Failed to stop the `$serviceName service."
+    }
+}
+"@
+        # Write the before modify script to the tools directory
+        $beforeModifyScriptPath = Join-Path $ToolsDir "chocolateyBeforeModify.ps1"
+        Out-File -InputObject $beforeModifyScriptContent -FilePath $beforeModifyScriptPath -Encoding utf8
+        Write-DebugLog "    BeforeModify script created at: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog "$beforeModifyScriptPath"
     }
 
+    # Write the install script to the tools directory
     $installScriptPath = Join-Path $ToolsDir "chocolateyInstall.ps1"
     Out-File -InputObject $installScriptContent -FilePath $installScriptPath -Encoding utf8
     Write-DebugLog "    Install script created at: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $installScriptPath
+    Write-DebugLog "$installScriptPath"
 
 
 
