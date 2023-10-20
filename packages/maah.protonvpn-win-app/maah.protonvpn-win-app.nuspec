@@ -2,18 +2,19 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>maah.protonvpn-win-app</id>
-    <version>3.2.2</version>
+    <version>3.2.4</version>
     <title>Proton VPN</title>
     <authors>Proton AG, maah</authors>
-    <packageSourceUrl>https://github.com/maah/ProtonVPN-win-app/releases/download/3.2.2/ProtonVPN_v3.2.2.exe</packageSourceUrl>
+    <packageSourceUrl>https://github.com/maah/ProtonVPN-win-app/releases/download/3.2.4/ProtonVPN_v3.2.4.exe</packageSourceUrl>
     <releaseNotes>### Upstream
 
-- Minor UI and stability improvements.
-</releaseNotes>
+- Adds support for Georgian language.
+- Fixes an issue where the colour of the sidebar profiles was not visible for some users.
+- Fixes the duplicated taskbar icon issue.</releaseNotes>
     <licenseUrl>https://github.com/maah/ProtonVPN-win-app/blob/master/LICENSE</licenseUrl>
-    <description>Official ProtonVPN Windows app</description>
+    <projectUrl>https://github.com/maah/ProtonVPN-win-app</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Proton VPN.ico</iconUrl>
     <tags>vpn windows</tags>
-    <projectUrl>https://github.com/maah/ProtonVPN-win-app</projectUrl>
+    <description>Official ProtonVPN Windows app</description>
   </metadata>
 </package>
