@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop';
 
 # Define variables
-$softwareName = "Sunshine"
+$softwareName = "sne"
 $installDir = Get-AppInstallLocation $softwareName
 
 # Use Get-AppInstallLocation to find the installation directory
