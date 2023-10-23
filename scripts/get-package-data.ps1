@@ -215,7 +215,20 @@ function Get-FileType {
 
     return $extension
 }
-
+function Compare-VersionNumbers ($ver1, $ver2) {
+    $ver1Array = $ver1 -split "\."
+    $ver2Array = $ver2 -split "\."
+    
+    $minLength = [Math]::Min($ver1Array.Length, $ver2Array.Length)
+    
+    for ($i = 0; $i -lt $minLength; $i++) {
+        if ($ver1Array[$i] -ne $ver2Array[$i]) {
+            return $false
+        }
+    }
+    
+    return $true
+}
 function Get-SilentArgs {
     # This is admittedly not a great way to handle this.
     [CmdletBinding()]

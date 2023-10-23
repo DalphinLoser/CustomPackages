@@ -213,10 +213,12 @@ function Get-Updates {
             $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($packageSourceUrl), $latestReleaseUrl
             Write-DebugLog "    The latest version is:     " -NoNewline -ForegroundColor Yellow
             # tag_name without any alpha characters
-
             Write-DebugLog $latestVersion
-            # if the version from the nuget package is the same as the current version, update the version number
-            if ($currentVersion -eq $version) {
+
+            # Compare versions
+            $areVersionsSame = Compare-VersionNumbers $currentVersion $version
+
+            if ($areVersionsSame) {
                 $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($version), $latestVersion
             }
             else {
