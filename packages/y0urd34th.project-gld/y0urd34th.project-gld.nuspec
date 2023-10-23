@@ -12,9 +12,9 @@
 [copy and open download link drop down when right click in download button]
 [added option to start download externally]</releaseNotes>
     <licenseUrl>https://github.com/Y0URD34TH/Project-GLD/blob/main/LICENSE</licenseUrl>
-    <description>Project GLD is a Game Library Manager/ Game Search and Game Downloader, That Supports Community Plugins Based in LUA to Download Games</description>
-    <projectUrl>https://github.com/Y0URD34TH/Project-GLD</projectUrl>
     <iconUrl>https://gld.mynetserver.cf/gld-logo.png</iconUrl>
+    <description>Project GLD is a Game Library Manager/ Game Search and Game Downloader, That Supports Community Plugins Based in LUA to Download Games</description>
     <tags>downloader game games library lua lua-scripts</tags>
+    <projectUrl>https://github.com/Y0URD34TH/Project-GLD</projectUrl>
   </metadata>
 </package>
