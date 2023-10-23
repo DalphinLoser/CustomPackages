@@ -245,7 +245,9 @@ function Move-IconToDirectory {
 
     Write-LogHeader "Move-IconToDirectory"
 
-    $iconFile = Get-ChildItem -Path $IconPath -Filter "*.ico" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+    $iconFiles = Get-ChildItem -Path $IconPath -Filter "*.ico" -Recurse -ErrorAction SilentlyContinue
+    # Choose the largest icon file
+    $iconFile = $iconFiles | Sort-Object -Property Length -Descending | Select-Object -First 1
     if (-not $iconFile) {
         Write-Error "Icon file not found in path: $IconPath"
         return

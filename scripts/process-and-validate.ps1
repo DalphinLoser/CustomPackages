@@ -152,25 +152,21 @@ function Get-MostSimilarString {
         Write-DebugLog " and " -NoNewline -ForegroundColor Cyan
         Write-DebugLog "$str2"
     
-        #$str1 = $str1.ToLower()
-        #$str2 = $str2.ToLower()
-        
         $commonSegments = @()
         
         # Removing all non-alphanumeric characters
         $cleanStr1 = -join ($str1 -split '\W')
         $cleanStr2 = -join ($str2 -split '\W')
+    
+        # Create hashsets for faster look-up
+        $set1 = $cleanStr1.ToCharArray() | Group-Object | ForEach-Object { $_.Name }
+        $set2 = $cleanStr2.ToCharArray() | Group-Object | ForEach-Object { $_.Name }
         
-        $startIndex = 0
-        
-        # Find each segment of $cleanStr1 in $cleanStr2
+        # Find common characters and preserve original casing from str1
         foreach ($char in $cleanStr1.ToCharArray()) {
-            $segment = $cleanStr2.Substring($startIndex)
-            $index = $segment.IndexOf($char)
-            
-            if ($index -ge 0) {
-                $startIndex += ($index + 1)
-                $commonSegments += $char
+            if ($set2 -contains $char) {
+                $originalChar = $str1.Substring($cleanStr1.IndexOf($char), 1)
+                $commonSegments += $originalChar
             }
         }
     
@@ -181,6 +177,20 @@ function Get-MostSimilarString {
         
         return $finalString
     }
+    
+    # Helper function to write debug logs
+    function Write-DebugLog {
+        param (
+            [string]$message,
+            [switch]$NoNewline,
+            [ConsoleColor]$ForegroundColor = [ConsoleColor]::White
+        )
+        Write-Host $message -NoNewline:$NoNewline -ForegroundColor $ForegroundColor
+    }
+    
+    # Test the function
+    Get-CommonSegments -str1 "sunshine-windows-installer.exe" -str2 "Sunshine"
+    
     
     # Helper function to write debug logs
     function Write-DebugLog {

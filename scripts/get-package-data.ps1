@@ -154,17 +154,9 @@ function Get-BaseRepositoryObject {
         return $null
     }
 
-    # Check if the repository is a fork
-    if ($repoObj.fork -eq $true) {
-        # If it's a fork, recurse into its parent
-        $rootRepo = Get-BaseRepositoryObject -baseRepoApiUrl $repoObj.parent.url
-        return $rootRepo
-    }
-    else {
-        # If it's not a fork, return the current repository info
-        Write-LogFooter "base repository info"
-        return $repoObj
-    }
+    Write-LogFooter "base repository info"
+    return $repoObj
+    
 }
 function Get-RootRepositoryObject {
     param (
@@ -371,7 +363,7 @@ function Set-AssetInfo {
     # get the url from the latest release info and replace everything after the repo name with nothing
     $PackageData.baseRepoApiUrl = $retreivedLatestReleaseObj.url -replace '/releases/.*', ''
 
-    $myDefaultBranch = "$($PackageData.latestReleaseObj.default_branch)"
+    $myDefaultBranch = "$($PackageData.baseRepoObj.default_branch)"
     Write-DebugLog "    Default Branch: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog "    `"$myDefaultBranch`""
 
@@ -471,8 +463,8 @@ function Set-AssetInfo {
             $description = $PackageData.baseRepoObj.description
             break
         }
-        { -not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.description) } {
-            $description = $PackageData.latestReleaseObj.description
+        { -not [string]::IsNullOrWhiteSpace($PackageData.rootRepoObj.description) } {
+            $description = $PackageData.rootRepoObj.description
             break
         }
 
