@@ -371,8 +371,8 @@ function Set-AssetInfo {
     # get the url from the latest release info and replace everything after the repo name with nothing
     $PackageData.baseRepoApiUrl = $retreivedLatestReleaseObj.url -replace '/releases/.*', ''
 
-    $myDefaultBranch = "$($PackageData.baseRepoObj.default_branch)"
-    Write-DebugLog "    Default Branch (Root): " -NoNewline -ForegroundColor Yellow
+    $myDefaultBranch = "$($PackageData.latestReleaseObj.default_branch)"
+    Write-DebugLog "    Default Branch: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog "    `"$myDefaultBranch`""
 
     # Array table to store the tags. Uses the topics json result from the GitHub API
