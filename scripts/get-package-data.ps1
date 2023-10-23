@@ -625,7 +625,7 @@ function Set-AssetInfo {
     Write-DebugLog $tagString
 
     # $packageTitle = Get-MostSimilarString -key "ProtonVPN_v3.2.1.exe" -strings @("maah", "ProtonVPN-win-app", "ProtonVPN")
-    $packageTitle = Get-MostSimilarString -Key $selectedAsset.name -Strings @($PackageData.user, $PackageData.repoName, $PackageData.latestReleaseObj.name) -Substring $true
+    $packageTitle = Get-MostSimilarString -Key $selectedAsset.name -Strings @($PackageData.user, $PackageData.repoName, $PackageData.latestReleaseObj.name) #-Substring $true
 
     Write-DebugLog "    Package Title: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $packageTitle
