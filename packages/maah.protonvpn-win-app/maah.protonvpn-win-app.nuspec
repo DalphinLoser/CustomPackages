@@ -12,8 +12,8 @@
 - Fixes an issue where the colour of the sidebar profiles was not visible for some users.
 - Fixes the duplicated taskbar icon issue.</releaseNotes>
     <licenseUrl>https://github.com/maah/ProtonVPN-win-app/blob/master/LICENSE</licenseUrl>
-    <description>ProtonVPN Windows app with automatic qBittorrent port forwarding support and custom commands on port changes</description>
     <projectUrl>https://github.com/maah/ProtonVPN-win-app</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Proton VPN.ico</iconUrl>
+    <description>ProtonVPN Windows app with automatic qBittorrent port forwarding support and custom commands on port changes</description>
   </metadata>
 </package>
