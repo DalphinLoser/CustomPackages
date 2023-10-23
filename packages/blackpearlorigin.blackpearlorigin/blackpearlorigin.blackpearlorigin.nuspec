@@ -23,8 +23,8 @@
 2. If the ``Install Plugin`` button isn't working, just move the plugin folder to the `C:\{your_username}\AppData\Local\io.github.blackpearlorigin\plugins` directory.
 3. If you're interested in creating your own plugins, please follow [this guide](https://github.com/BlackPearlOrigin/blackpearlorigin/wiki/Creating-Plugins).</releaseNotes>
     <licenseUrl>https://github.com/BlackPearlOrigin/blackpearlorigin/blob/main/LICENSE</licenseUrl>
-    <description>BPO is a FOSS project with the goal to create a game library which not only provides a way to organize, manage, and obtain games from all mainstream sources (Steam, Epic Games, GOG...), but also offers support for games from any other, less known (and possibly discovered by sailing the high seas) source through built-in plugin support!</description>
     <projectUrl>https://github.com/BlackPearlOrigin/blackpearlorigin</projectUrl>
+    <description>BPO is a FOSS project with the goal to create a game library which not only provides a way to organize, manage, and obtain games from all mainstream sources (Steam, Epic Games, GOG...), but also offers support for games from any other, less known (and possibly discovered by sailing the high seas) source through built-in plugin support!</description>
     <iconUrl>https://raw.githubusercontent.com/BlackPearlOrigin/blackpearlorigin/main/src-tauri/icons/icon.ico</iconUrl>
   </metadata>
 </package>
