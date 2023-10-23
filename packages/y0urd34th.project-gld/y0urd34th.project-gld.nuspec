@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>y0urd34th.project-gld</id>
+    <version>2.02</version>
+    <title>Project-GLD</title>
+    <authors>Y0URD34TH</authors>
+    <packageSourceUrl>https://github.com/Y0URD34TH/Project-GLD/releases/download/Hotfix-V2.02/Project-GLD.exe</packageSourceUrl>
+    <releaseNotes>*Small hotfix Update
+*New small features added 
+*Some padding fix in ui
+[copy and open download link drop down when right click in download button]
+[added option to start download externally]</releaseNotes>
+    <licenseUrl>https://github.com/Y0URD34TH/Project-GLD/blob/main/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Y0URD34TH/Project-GLD</projectUrl>
+    <iconUrl>https://gld.mynetserver.cf/gld-logo.png</iconUrl>
+    <description>Project GLD is a Game Library Manager/ Game Search and Game Downloader, That Supports Community Plugins Based in LUA to Download Games</description>
+    <tags>downloader game games library lua lua-scripts</tags>
+  </metadata>
+</package>
