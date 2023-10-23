@@ -430,7 +430,7 @@ function Set-AssetInfo {
         }
     }
     # If the icon does not end in .svg, check if the repo has an svg icon
-    if ($null -ne $iconInfo -and $iconInfo.width -lt 900 -and $iconInfo.height -lt 900) {
+    if (-not $iconUrl -or ($null -ne $iconInfo -and $iconInfo.width -lt 900 -and $iconInfo.height -lt 900)) {
         $repoIconInfo = Find-IcoInRepo -owner $PackageData.user -repo $PackageData.repoName -defaultBranch $myDefaultBranch
         if ($null -ne $repoIconInfo) {
             # If the icon is larger than the current icon, use it instead
