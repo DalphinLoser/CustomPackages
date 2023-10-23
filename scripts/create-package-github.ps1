@@ -6,8 +6,6 @@
 . "$PSScriptRoot\new-data-method.ps1"
 
 # Global Variables
-# If acceptedExtensions is null, set it
-
 $Global:EnableDebugMode = $true
 # Variable that stores the location of the scripts directory regardless of where the script is run from
 $Global:scriptsDir = $PSScriptRoot
@@ -52,7 +50,7 @@ function Initialize-GithubPackage {
     # Create a hashtable to store the PackageTable
     $retrievedPackageTable = Initialize-PackageData -InputGithubUrl $InputUrl
     
-    #region Get Asset Info
+#region Get Asset Info
     # retrievedAssetTable
 
     $myMetadata = Set-AssetInfo -PackageData $retrievedPackageTable
@@ -69,35 +67,32 @@ function Initialize-GithubPackage {
     $toolsDir = Join-Path $thisPackageDir "tools"
     Confirm-DirectoryExists -DirectoryPath $toolsDir -DirectoryName 'tools'
 
-    #endregion
-    #region Create Nuspec File and Install Script
+#endregion
+#region Create Nuspec File and Install Script
 
     # Create the nuspec file and install script
-    New-NuspecFile -Metadata $myMetadata -PackageDir $thisPackageDir
+    Write-DebugLog "    Creating Nuspec File..." -NoNewline -ForegroundColor Yellow
+
+    $nuspecPath = New-NuspecFile -Metadata $myMetadata -PackageDir $thisPackageDir
+
     Write-DebugLog "    Nuspec File Created Successfully" -ForegroundColor Green
-    
+    Write-DebugLog "    Nuspec File Path: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog "$nuspecPath"
     Write-DebugLog "    Creating Instal Script..." -NoNewline -ForegroundColor Yellow
-    New-InstallScript -Metadata $myMetadata -ToolsDir $toolsDir
+
+    $installpath = New-InstallScript -Metadata $myMetadata -ToolsDir $toolsDir
+
     Write-DebugLog "    Install Script Created Successfully" -ForegroundColor Green
+    Write-DebugLog "    Install Script Path: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog "$installpath"
 
-    #endregion
-    #region Create Chocolatey Package
+#endregion
+#region Create Chocolatey Package
 
-    Write-DebugLog "Type of packageDir before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
-    Write-DebugLog $($packageDir.GetType().Name)
-
-    $nuspecPath = Join-Path $thisPackageDir "$($myMetadata.PackageName).nuspec"
-
-    # Check the nuspecPath System Object or string before passing it to New-ChocolateyPackage
-    Write-DebugLog "nuspecPath before New-ChocolateyPackage: " -NoNewline -ForegroundColor Magenta
-    Write-DebugLog $nuspecPath
-
-    #endregion
-
-    
     # Create the Chocolatey package
     New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir $thisPackageDir
 
-    #endregion
+#endregion
+
     Write-LogFooter "Initialize-GithubPackage"
 }

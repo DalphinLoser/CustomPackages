@@ -172,6 +172,68 @@ Log=    $($logPath)
         Write-Error "An error occurred: $_"
     }
 }
+function Get-DataFromMsi{
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$DownloadUrl
+    )
+    Write-LogHeader "Get-DataFromMsi"
+
+    # Create temporary directory for downloaded file
+    $tempDir = New-Item -Path $rootDir -Name "temp" -ItemType Directory -Force -ErrorAction Stop
+
+    # Download file using WebClient
+    $webClient = New-Object System.Net.WebClient
+
+    $downloadedFilePath = Join-Path $tempDir.FullName "downloadedFile.msi"
+    Write-DebugLog "    Downloaded file path: " -NoNewline -ForegroundColor Cyan
+    Write-DebugLog $downloadedFilePath
+    $webClient.DownloadFile($DownloadUrl, $downloadedFilePath)
+
+    
+    # Get the file name of the MSI file
+    $fileName = [System.IO.Path]::GetFileName($downloadedFilePath)
+
+    # Initialize the Shell.Application COM object
+    $shell = New-Object -COMObject Shell.Application
+
+    # Get the shell folder object for the parent directory
+    $shellFolder = $shell.NameSpace($tempDir.FullName)
+
+    # Get the shell item object for the MSI file
+    $shellFile = $shellFolder.ParseName($fileName)
+    
+    # Loop through a range of indices to get all possible details
+    for ($i = 0; $i -le 200; $i++) {
+        $propertyValue = $shellFolder.GetDetailsOf($shellFile, $i)
+        $propertyName = $shellFolder.GetDetailsOf($null, $i)
+    
+        # Only output the "Subject" property
+        if ($propertyName -eq "Subject") {
+            Write-Host "    $($propertyName): " -NoNewline -ForegroundColor Magenta
+            Write-Host $propertyValue
+            break  # Exit the loop once we've found what we're looking for
+        }
+        # Create a hashtable to store the extracted values
+        $versionInfo = @{}
+        # Save the Subject, Authros and Tags properties to the hashtable if they exist
+        foreach ($property in $propertyName) {
+            if ($property -eq "Subject" -or $property -eq "Authors" -or $property -eq "Tags") {
+                $versionInfo[$property] = $propertyValue
+            }
+        }
+        # Display elements and values of the hashtable
+        foreach ($key in $versionInfo.Keys) {
+            Write-Host "    $($key): " -NoNewline -ForegroundColor Magenta
+            Write-Host $versionInfo[$key]
+        }        
+    }
+
+    Remove-Item -Path $tempDir.FullName -Recurse -Force -ErrorAction Continue
+
+    Write-LogFooter "Get-DataFromMsi"
+    return $versionInfo    
+    }
 function Clear-Directory {
     param (
         [string]$DirectoryPath,

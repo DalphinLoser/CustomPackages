@@ -42,53 +42,29 @@ function New-NuspecFile {
 
     $namespaceUri = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
 
-    foreach ($elementName in $elementOrder) {
-        if (-not $elementMapping.PSObject.Properties.Name -contains $elementName) {
-            Write-DebugLog "Warning: $elementName not found in elementMapping" -ForegroundColor Yellow
-        }
+    # Combine the elements in the order specified with any elements not in the order specified
+    $allElementsInOrder = $elementOrder + ($elementMapping.Keys | Where-Object { $elementOrder -notcontains $_ })
 
-        $key = $elementMapping.$elementName
+    Write-DebugLog "Appending elements to metadata... " -ForegroundColor Yellow
 
-        if (-not $Metadata.PSObject.Properties.Name -contains $key) {
-            Write-DebugLog "Warning: $key not found in Metadata" -ForegroundColor Yellow
-        }
-
-        $value = $Metadata.$key
-
-        if (-not $value) {
-            Write-DebugLog "Warning: Value for $key is null" -ForegroundColor Yellow
-        }
-
-        Write-DebugLog "Creating element with " -NoNewline -ForegroundColor Green
-        Write-DebugLog "name: " -NoNewline -ForegroundColor Cyan
-        Write-DebugLog "$elementName" -NoNewline -ForegroundColor White
-        Write-DebugLog " value: " -NoNewline -ForegroundColor Cyan
-        Write-DebugLog "$value" -ForegroundColor White -NoNewline
-
-        $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
-        $elem.InnerText = $value
-        $null = $metadataElem.AppendChild($elem)
-    }
-
-    $remainingElements = $elementMapping.Keys | Where-Object { $elementOrder -notcontains $_ }
-    Write-DebugLog "Appending optional elements to metadata... " -ForegroundColor Yellow
-    foreach ($elementName in $remainingElements) {
-        Write-DebugLog "Creating element with " -NoNewline -ForegroundColor Green
-        Write-DebugLog "name: " -NoNewline -ForegroundColor Cyan
-        Write-DebugLog "$elementName" -NoNewline -ForegroundColor White
-        Write-DebugLog " value: " -NoNewline -ForegroundColor Cyan
-        Write-DebugLog "$value" -ForegroundColor White -NoNewline
-
+    foreach ($elementName in $allElementsInOrder) {
         $key = $elementMapping[$elementName]
         $value = $Metadata.$key
 
         if (-not $value) {
-            Write-DebugLog "Warning: Value for $key is null" -ForegroundColor Yellow
+            Write-DebugLog "Value for $key is null" -ForegroundColor Yellow
         }
+        else {
+            Write-DebugLog "    Creating element: " -ForegroundColor Magenta
+            Write-DebugLog "    name: " -NoNewline -ForegroundColor Cyan
+            Write-DebugLog "$elementName" -ForegroundColor White
+            Write-DebugLog "    value: " -NoNewline -ForegroundColor Cyan
+            Write-DebugLog "$value" -ForegroundColor White
 
-        $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
-        $elem.InnerText = $value
-        $null = $metadataElem.AppendChild($elem)
+            $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
+            $elem.InnerText = $value
+            $null = $metadataElem.AppendChild($elem)
+        }
     }
 
     $nuspecPath = Join-Path $PackageDir "$($Metadata.PackageName).nuspec"
@@ -96,6 +72,8 @@ function New-NuspecFile {
 
     Write-DebugLog "Nuspec file created at: $nuspecPath" -ForegroundColor Green
     Write-LogFooter "New-NuspecFile"
+
+    return $nuspecPath
 }
 function New-InstallScript {
     param (
@@ -264,9 +242,6 @@ function New-ChocolateyPackage {
         [string]$PackageDir
     )
     Write-LogHeader "New-ChocolateyPackage"
-    # Check the type of the nuspecPath
-    Write-DebugLog "    The type of NuspecPath is: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $NuspecPath.GetType().Name
     # Write the content of the nuspecPath
 
     # Check for Nuspec File
@@ -281,11 +256,11 @@ function New-ChocolateyPackage {
     }
     # Remove any existing packages in the package directory
     Write-DebugLog "    Removing existing packages from package directory..."
-    Remove-Item -Path "$PackageDir\*.nupkg" -Force -Verbose
+    Remove-Item -Path "$PackageDir\*.nupkg" -Force
     # Create Chocolatey package
     try {
         Write-DebugLog "    Creating Chocolatey package..."
-        choco pack $NuspecPath -Force -Verbose --out $PackageDir
+        choco pack $NuspecPath -Force --out $PackageDir
     }
     catch {
         Write-Error "Failed to create Chocolatey package."

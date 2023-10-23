@@ -373,7 +373,7 @@ function Set-AssetInfo {
 
     $myDefaultBranch = "$($PackageData.baseRepoObj.default_branch)"
     Write-DebugLog "    Default Branch (Root): " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog "`"$myDefaultBranch`""
+    Write-DebugLog "    `"$myDefaultBranch`""
 
     # Array table to store the tags. Uses the topics json result from the GitHub API
     $tags = @()
@@ -381,19 +381,19 @@ function Set-AssetInfo {
     if (-not [string]::IsNullOrWhiteSpace($PackageData.baseRepoObj.topics)) {
         $tags += $PackageData.baseRepoObj.topics
         Write-DebugLog "    Tags from base repo info: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog "$($PackageData.baseRepoObj.topics)"
+        Write-DebugLog "    $($PackageData.baseRepoObj.topics)"
     }
     elseif (-not [string]::IsNullOrWhiteSpace($PackageData.latestReleaseObj.topics)) {
         $tags += $PackageData.latestReleaseObj.topics
         Write-DebugLog "    Tags from root repo info: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog "$($PackageData.latestReleaseObj.topics)"
+        Write-DebugLog "    $($PackageData.latestReleaseObj.topics)"
     }
     else {
-        Write-DebugLog "No tags found."
+        Write-DebugLog "    No tags found."
     }
 
     Write-DebugLog "    Tags is of type: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $tags.GetType().Name
+    Write-DebugLog "    $($tags.GetType().Name)"
 
     # if the tags array is not null or empty, print the tags
     if ($null -ne $tags -and $tags.Count -gt 0) {
@@ -488,14 +488,7 @@ function Set-AssetInfo {
     Write-DebugLog "    Description: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $description
 
-    $originalTagName = $PackageData.tag
-    Write-DebugLog "    Original Tag Name: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $originalTagName
-
-    # Get the latest release version number
-    $latestTagName = $retreivedLatestReleaseObj.tag_name
-    Write-DebugLog "    Latest Tag Name: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $latestTagName
+    
 
     # If specifiedasset is not null or empty print it
     if (-not [string]::IsNullOrWhiteSpace($PackageData.specifiedAssetName)) {
@@ -510,18 +503,31 @@ function Set-AssetInfo {
         }
         Write-DebugLog "    Cleaned Specified Asset Name: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $cleanedSpecifiedAssetName
+
+        # Get the original tag name
+        $originalTagName = $PackageData.tag
+        Write-DebugLog "    Original Tag Name: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $originalTagName
     }
+
+    # Get the latest release tag name
+    $latestTagName = $retreivedLatestReleaseObj.tag_name
+    Write-DebugLog "    Latest Tag Name: " -NoNewline -ForegroundColor Yellow
+    Write-DebugLog $latestTagName
 
     # Set the package name
     $chocoPackageName = "$($PackageData.user).$($PackageData.repoName)"
+
     # If there is a specified asset, add it to the end of the package name
     if (-not [string]::IsNullOrWhiteSpace($cleanedSpecifiedAssetName)) {
         $chocoPackageName += ".$($cleanedSpecifiedAssetName)"
     }
+
     Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $chocoPackageName -NoNewline
     Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $latestTagName
+
     # If the name contains the tag exactly, remove the tag from the package name
     if ($chocoPackageName -match $latestTagName) {
         Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
@@ -529,37 +535,46 @@ function Set-AssetInfo {
         Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog "$latestTagName"
         $chocoPackageName = $chocoPackageName -replace $latestTagName, ''
+        Write-DebugLog "        Package name after removing tag: " -NoNewline -ForegroundColor Yellow
     }
+
+    # Remove all non-numeric characters from the tag name
     $tagNameNoAlpha = $latestTagName -replace '[^0-9.]', ''
     $originalTagNameNoAlpha = $PackageData.tag -replace '[^0-9.]', ''
+
     Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $chocoPackageName -NoNewline
+    Write-DebugLog "$chocoPackageName" -NoNewline
     Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $tagNameNoAlpha
+    Write-DebugLog "$tagNameNoAlpha"
+
     # If the name contains the latest tag without the alpha characters, remove the numeric tag from the package name
     if ($chocoPackageName -match $tagNameNoAlpha) {
         Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $chocoPackageName -NoNewline
+        Write-DebugLog "$chocoPackageName" -NoNewline
         Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $tagNameNoAlpha
+        Write-DebugLog "$tagNameNoAlpha"
         $chocoPackageName = $chocoPackageName -replace $tagNameNoAlpha, ''
     }
+
     Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $chocoPackageName -NoNewline
     Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
     Write-DebugLog $originalTagNameNoAlpha
+
     # If the name contains the original tag without the alpha characters, remove the numeric tag from the package name
     if ($chocoPackageName -match $originalTagNameNoAlpha) {
         Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $chocoPackageName -NoNewline
+        Write-DebugLog "$chocoPackageName" -NoNewline
         Write-DebugLog "contains tag: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $originalTagNameNoAlpha
+        Write-DebugLog "$originalTagNameNoAlpha"
         $chocoPackageName = $chocoPackageName -replace $originalTagNameNoAlpha, ''
     }
+
     Write-DebugLog "    Processed Package Name: " -NoNewline -ForegroundColor Yellow
-    Write-DebugLog $chocoPackageName
+    Write-DebugLog "$chocoPackageName"
     # Convert to valid package name
     $chocoPackageName = ConvertTo-ValidPackageName -PackageName $chocoPackageName
+
     # If the org name is not null or empty, use it as the repo name
     if (-not [string]::IsNullOrWhiteSpace($orgName)) {
         $githubRepoName = $orgName
@@ -710,6 +725,10 @@ function Set-AssetInfo {
                 }
             }
         }
+    }
+    # If the file type is msi, get the product name from the msi
+    if($fileType -eq 'msi'){
+        $dataFromMsi = Get-DataFromMsi -DownloadUrl $selectedAsset.browser_download_url
     }
 
     Write-LogFooter "Set-AssetInfo"

@@ -83,6 +83,12 @@ function Get-MostSimilarString {
         [bool]$Substring = $false
     )
 
+    # Print the input to the console
+    Write-DebugLog "Key: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog "$Key"
+    Write-DebugLog "Strings: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog "$Strings"
+
     # Helper function to calculate Jaccard similarity
     function Get-JaccardSimilarity {
         param (
@@ -102,6 +108,10 @@ function Get-MostSimilarString {
             [string]$str1,
             [string]$str2
         )
+        Write-DebugLog "Finding longest common substring between " -NoNewline -ForegroundColor Cyan
+        Write-DebugLog "$str1" -NoNewline
+        Write-DebugLog " and " -NoNewline -ForegroundColor Cyan
+        Write-DebugLog "$str2"
         $result = ""
         $str1Length = $str1.Length
         $str2Length = $str2.Length
@@ -126,21 +136,104 @@ function Get-MostSimilarString {
                 }
             }
         }
+        Write-DebugLog "Longest common substring: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog "$result"
         return $result
     }
+    # Helper function to find all common substrings
+    function Get-CommonSegments {
+        param (
+            [string]$str1,
+            [string]$str2
+        )
+        
+        Write-DebugLog "Finding all common segments between " -NoNewline -ForegroundColor Cyan
+        Write-DebugLog "$str1" -NoNewline
+        Write-DebugLog " and " -NoNewline -ForegroundColor Cyan
+        Write-DebugLog "$str2"
+    
+        #$str1 = $str1.ToLower()
+        #$str2 = $str2.ToLower()
+        
+        $commonSegments = @()
+        
+        # Removing all non-alphanumeric characters
+        $cleanStr1 = -join ($str1 -split '\W')
+        $cleanStr2 = -join ($str2 -split '\W')
+        
+        $startIndex = 0
+        
+        # Find each segment of $cleanStr1 in $cleanStr2
+        foreach ($char in $cleanStr1.ToCharArray()) {
+            $segment = $cleanStr2.Substring($startIndex)
+            $index = $segment.IndexOf($char)
+            
+            if ($index -ge 0) {
+                $startIndex += ($index + 1)
+                $commonSegments += $char
+            }
+        }
+    
+        $finalString = -join $commonSegments
+        
+        Write-DebugLog "Final String (Common Segments): " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog "$finalString"
+        
+        return $finalString
+    }
+    
+    # Helper function to write debug logs
+    function Write-DebugLog {
+        param (
+            [string]$message,
+            [switch]$NoNewline,
+            [ConsoleColor]$ForegroundColor = [ConsoleColor]::White
+        )
+        Write-Host $message -NoNewline:$NoNewline -ForegroundColor $ForegroundColor
+    }
+    
+    # Helper function to write debug logs
+    function Write-DebugLog {
+        param (
+            [string]$message,
+            [switch]$NoNewline,
+            [ConsoleColor]$ForegroundColor = [ConsoleColor]::White
+        )
+        Write-Host $message -NoNewline:$NoNewline -ForegroundColor $ForegroundColor
+    }
+
+    # Helper function to write debug logs
+    function Write-DebugLog {
+        param (
+            [string]$message,
+            [switch]$NoNewline,
+            [ConsoleColor]$ForegroundColor = [ConsoleColor]::White
+        )
+        Write-Host $message -NoNewline:$NoNewline -ForegroundColor $ForegroundColor
+    }
+    
 
     # Main logic of Get-MostSimilarString
     $maxSimilarity = 0
     $mostSimilarStrings = @()
 
     foreach ($string in $Strings) {
+        Write-DebugLog "Comparing " -NoNewline -ForegroundColor Magenta
+        Write-DebugLog "$Key" -NoNewline
+        Write-DebugLog " to " -NoNewline -ForegroundColor Magenta
+        Write-DebugLog "$string"
         $similarity = Get-JaccardSimilarity -str1 $Key -str2 $string
         if ($similarity -gt $maxSimilarity) {
             $maxSimilarity = $similarity
             $mostSimilarStrings = @($string)
+            Write-DebugLog "New Most Similar String: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$string"
+            
         }
         elseif ($similarity -eq $maxSimilarity) {
             $mostSimilarStrings += $string
+            Write-DebugLog "Most similar strings so far: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$mostSimilarStrings"
         }
     }
 
@@ -148,16 +241,23 @@ function Get-MostSimilarString {
     $finalString = ""
 
     foreach ($string in $mostSimilarStrings) {
+        Write-DebugLog "Finding longest common substring between " -NoNewline -ForegroundColor Cyan
+        Write-DebugLog "$Key" -NoNewline
+        Write-DebugLog " and " -NoNewline -ForegroundColor Cyan
+        Write-DebugLog "$string"
         $lcs = Get-LongestCommonSubstring -str1 $Key.ToLower() -str2 $string.ToLower()
         if ($lcs.Length -gt $maxLcsLength) {
             $maxLcsLength = $lcs.Length
             $finalString = $string
+            Write-DebugLog "New Final String: " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "$finalString"
         }
     }
 
     if($Substring){
-        $finalLcs = Get-LongestCommonSubstring -str1 $Key.ToLower() -str2 $finalString.ToLower()
-        $finalString = $finalString.Substring($finalString.ToLower().IndexOf($finalLcs), $finalLcs.Length)
+        $finalString = Get-CommonSegments -str1 $Key -str2 $finalString
+        Write-DebugLog "Final String (Common Segments): " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog "$finalString"
     }
     
     return $finalString
