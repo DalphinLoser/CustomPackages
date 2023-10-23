@@ -234,7 +234,7 @@ function Get-SilentArgs {
     
     switch ($FileType) {
         'exe' { 
-            $silentArgs = '/S /s /Q /q /SP- /VERYSILENT /NORESTART /quiet /silent'  # Silent installation
+            $silentArgs = '/S /s /Q /q /quiet /silent'  # Silent installation
         }
         'msi' { 
             $silentArgs = '/quiet /qn /norestart'  # Quiet mode, no user input, no restart
