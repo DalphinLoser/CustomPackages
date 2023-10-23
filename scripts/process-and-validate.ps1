@@ -147,35 +147,32 @@ function Get-MostSimilarString {
             [string]$str2
         )
         
-        Write-DebugLog "Finding all common segments between " -NoNewline -ForegroundColor Cyan
-        Write-DebugLog "$str1" -NoNewline
-        Write-DebugLog " and " -NoNewline -ForegroundColor Cyan
-        Write-DebugLog "$str2"
-    
-        $commonSegments = @()
+        # Initialize a string to hold the common segments
+        $commonSegments = ""
         
-        # Removing all non-alphanumeric characters
-        $cleanStr1 = -join ($str1 -split '\W')
-        $cleanStr2 = -join ($str2 -split '\W')
-    
-        # Create hashsets for faster look-up
-        $set1 = $cleanStr1.ToCharArray() | Group-Object | ForEach-Object { $_.Name }
-        $set2 = $cleanStr2.ToCharArray() | Group-Object | ForEach-Object { $_.Name }
+        # Use regex to split the strings into segments based on non-alphabetic characters
+        $segments1 = [regex]::Split($str1, '[^a-zA-Z]+') | Where-Object { $_ }
+        $segments2 = [regex]::Split($str2, '[^a-zA-Z]+') | Where-Object { $_ }
         
-        # Find common characters and preserve original casing from str1
-        foreach ($char in $cleanStr1.ToCharArray()) {
-            if ($set2 -contains $char) {
-                $originalChar = $str1.Substring($cleanStr1.IndexOf($char), 1)
-                $commonSegments += $originalChar
+        # Create a hashtable to map lowercase segments to their original casing
+        $map1 = @{}
+        foreach ($segment in $segments1) {
+            $map1[$segment.ToLower()] = $segment
+        }
+        
+        # Create a set for the second string for quick lookup
+        $set2 = $segments2 | ForEach-Object { $_.ToLower() }
+        
+        # Loop through each segment in the first set and check if it exists in the second set
+        foreach ($segment in $map1.Keys) {
+            if ($set2 -contains $segment) {
+                # Retrieve the original segment with the original casing from the first string
+                $originalSegment = $map1[$segment]
+                $commonSegments += $originalSegment
             }
         }
-    
-        $finalString = -join $commonSegments
         
-        Write-DebugLog "Final String (Common Segments): " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog "$finalString"
-        
-        return $finalString
+        return $commonSegments
     }
     
     # Helper function to write debug logs
@@ -187,10 +184,6 @@ function Get-MostSimilarString {
         )
         Write-Host $message -NoNewline:$NoNewline -ForegroundColor $ForegroundColor
     }
-    
-    # Test the function
-    Get-CommonSegments -str1 "sunshine-windows-installer.exe" -str2 "Sunshine"
-    
     
     # Helper function to write debug logs
     function Write-DebugLog {
@@ -265,7 +258,7 @@ function Get-MostSimilarString {
     }
 
     if($Substring){
-        $finalString = Get-CommonSegments -str1 $Key -str2 $finalString
+        $finalString = Get-CommonSegments -str1 $finalString -str2 $Key
         Write-DebugLog "Final String (Common Segments): " -NoNewline -ForegroundColor Yellow
         Write-DebugLog "$finalString"
     }
