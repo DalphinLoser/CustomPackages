@@ -662,26 +662,27 @@ function Set-AssetInfo {
         # ProjectSiteUrl      = $homepage
     }
 
+
+    Function Set-Metadata {
+        Param (
+            [Parameter(Mandatory = $true)][string]$property,
+            [Parameter(Mandatory = $true)][string]$value,
+            [Parameter(Mandatory = $true)][object]$metadataObject,
+            [Parameter(Mandatory = $true)][string]$logLabel
+        )
+        if (-not [string]::IsNullOrWhiteSpace($value)) {
+            $metadataObject.$logLabel = $value
+            Write-DebugLog "    $($logLabel): " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog $value
+        }
+    }
+
     # If the file type is an exe or zip, get the product version and company name from the exe
     if ($fileType -eq 'exe' -or $fileType -eq 'zip') {
         Write-DebugLog "    File type is: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $fileType
         Write-DebugLog "    Getting product version and company name from exe... " -ForegroundColor Magenta
         $dataFromExe = Get-DataFromExe -DownloadUrl $selectedAsset.browser_download_url
-        Function Set-Metadata {
-            Param (
-                [Parameter(Mandatory = $true)][string]$property,
-                [Parameter(Mandatory = $true)][string]$value,
-                [Parameter(Mandatory = $true)][object]$metadataObject,
-                [Parameter(Mandatory = $true)][string]$logLabel
-            )
-            if (-not [string]::IsNullOrWhiteSpace($value)) {
-                $metadataObject.$logLabel = $value
-                Write-DebugLog "    $($logLabel): " -NoNewline -ForegroundColor Yellow
-                Write-DebugLog $value
-            }
-        }
-        
 
         # If the data from the exe is not null or empty, set the metadata
         if ($null -ne $dataFromExe -and $dataFromExe.Count -gt 0) {
@@ -729,6 +730,31 @@ function Set-AssetInfo {
     # If the file type is msi, get the product name from the msi
     if($fileType -eq 'msi'){
         $dataFromMsi = Get-DataFromMsi -DownloadUrl $selectedAsset.browser_download_url
+        Write-DebugLog "    Data From MSI: " -ForegroundColor Magenta
+        # write the content of the hashtable to the log
+        $dataFromMsi.GetEnumerator() | ForEach-Object {
+            Write-DebugLog "    $($_.Key): $($_.Value)"
+        }
+        # If the data from the msi is not null or empty, set the metadata
+        if ($null -ne $dataFromMsi -and $dataFromMsi.Count -gt 0) {
+            $dataProperties = @{
+                GithubRepoName  = 'Subject';
+                #Tags        = 'Keywords';
+            }
+            Write-DebugLog "MSI Info: " -ForegroundColor Magenta
+            # Iterate through the properties and set the metadata
+            foreach ($property in $dataProperties.GetEnumerator()) {
+                # if the value is not null or empty, set the metadata
+                if (-not [string]::IsNullOrWhiteSpace($dataFromMsi.$($property.Value))) {
+                    Write-DebugLog "    Setting metadata: " -NoNewline -ForegroundColor Yellow
+                    Write-DebugLog "$($property.Key): $($dataFromMsi.$($property.Value))"
+                    Set-Metadata -property $property.Key -value $dataFromMsi.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
+                    Write-DebugLog "    Updated " -NoNewline -ForegroundColor Yellow
+                    Write-DebugLog "$($property.Key)"
+                }
+
+            }
+        }
     }
 
     Write-LogFooter "Set-AssetInfo"

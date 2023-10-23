@@ -202,33 +202,25 @@ function Get-DataFromMsi{
 
     # Get the shell item object for the MSI file
     $shellFile = $shellFolder.ParseName($fileName)
-    
+    $versionInfo = @{}
     # Loop through a range of indices to get all possible details
     for ($i = 0; $i -le 200; $i++) {
         $propertyValue = $shellFolder.GetDetailsOf($shellFile, $i)
         $propertyName = $shellFolder.GetDetailsOf($null, $i)
     
-        # Only output the "Subject" property
-        if ($propertyName -eq "Subject") {
-            Write-Host "    $($propertyName): " -NoNewline -ForegroundColor Magenta
-            Write-Host $propertyValue
-            break  # Exit the loop once we've found what we're looking for
-        }
-        # Create a hashtable to store the extracted values
-        $versionInfo = @{}
         # Save the Subject, Authros and Tags properties to the hashtable if they exist
         foreach ($property in $propertyName) {
             if ($property -eq "Subject" -or $property -eq "Authors" -or $property -eq "Tags") {
                 $versionInfo[$property] = $propertyValue
             }
         }
-        # Display elements and values of the hashtable
-        foreach ($key in $versionInfo.Keys) {
-            Write-Host "    $($key): " -NoNewline -ForegroundColor Magenta
-            Write-Host $versionInfo[$key]
-        }        
     }
-
+    # Display elements and values of the hashtable
+    Write-DebugLog "    Version Info (MSI): " -ForegroundColor Yellow
+    foreach ($key in $versionInfo.Keys) {
+        Write-Host "    $($key): " -NoNewline -ForegroundColor Magenta
+        Write-Host $versionInfo[$key]
+    }     
     Remove-Item -Path $tempDir.FullName -Recurse -Force -ErrorAction Continue
 
     Write-LogFooter "Get-DataFromMsi"
