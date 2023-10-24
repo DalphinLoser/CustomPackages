@@ -1,4 +1,4 @@
-name: Updates-Packages-Github
+name: Update-Packages-Github
 
 on:
   schedule:

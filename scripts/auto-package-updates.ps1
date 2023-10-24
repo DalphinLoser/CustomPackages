@@ -226,7 +226,7 @@ function Get-Updates {
                 Write-DebugLog $version
                 Write-DebugLog "    Version number from Tag:    " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog $currentVersion
-                Write-Error "    The version numbers is not the tag..."
+                Write-DebugLog "    The version number is not the tag..."
             }
 
             # Decode HTML entities in the release notes
