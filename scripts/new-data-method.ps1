@@ -111,7 +111,7 @@ Log=    $($logPath)
                 Write-DebugLog "    Icon moved to icons directory" -ForegroundColor Green
             }
             else {
-                Write-Debug "    Failed to move icon to icons directory" -ForegroundColor Red
+                Write-DebugLog "    Failed to move icon to icons directory" -ForegroundColor Red
             }
             # Add the objects from version info to the exeData object
             $exeData += $versionInfo
@@ -249,8 +249,8 @@ function Move-IconToDirectory {
     # Choose the largest icon file
     $iconFile = $iconFiles | Sort-Object -Property Length -Descending | Select-Object -First 1
     if (-not $iconFile) {
-        Write-Error "Icon file not found in path: $IconPath"
-        return
+        Write-DebugLog "Icon file not found in path: $IconPath"
+        return $null
     }
     else {
         Write-DebugLog "    Icon file found: " -NoNewline -ForegroundColor Yellow
