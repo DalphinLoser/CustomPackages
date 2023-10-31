@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>yuzu-emu.yuzu-mainline.yuzu-windows-msvc-20231031-a0398cff0</id>
-    <version>5.15.2.0</version>
-    <title>Qt5</title>
-    <authors>The Qt Company Ltd., yuzu-emu</authors>
+    <version>01606</version>
+    <title>yuzu-mainline</title>
+    <authors>yuzu-emu</authors>
     <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1606/yuzu-windows-msvc-20231031-a0398cff0.zip</packageSourceUrl>
     <releaseNotes>
 
