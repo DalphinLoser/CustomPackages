@@ -42,8 +42,9 @@ function Get-DataFromExe {
                             Write-DebugLog "    File: " -NoNewline -ForegroundColor Cyan
                             Write-DebugLog $downloadedFilePath.FullName
                         }
-                        $downloadedFilePath = $downloadedFilePaths[0].FullName
-                        Write-DebugLog "    Using first exe file found: " -NoNewline -ForegroundColor Cyan
+                        # Use the largest .exe file
+                        $downloadedFilePath = $downloadedFilePaths | Sort-Object -Property Length -Descending | Select-Object -First 1
+                        Write-DebugLog "    Using largest exe file found: " -NoNewline -ForegroundColor Cyan
                         Write-DebugLog $downloadedFilePath
                     }
                 }
