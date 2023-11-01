@@ -5,48 +5,33 @@
     <version>01606</version>
     <title>yuzu-mainline</title>
     <authors>yuzu-emu</authors>
-    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1606/yuzu-windows-msvc-20231031-a0398cff0.zip</packageSourceUrl>
+    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1607/yuzu-windows-msvc-20231101-b2cb711cb.zip</packageSourceUrl>
     <releaseNotes>
 
 ## Changes:
 
-* a0398cff0c70f6fd80e9581e831f423a1ff63d52 "Merge Tagged PR 11885"
-* 7e63d3d818b785c62687bd0cb7dfb08713b1096f "Merge Tagged PR 11892"
-* c60204e2551ebf42ea7202992dac3789305d2a4e Merge pull request #11922 from t895/simplify-card-layout
-* 5e69769356c7667fc5c66b60207c6c5b79e53ed3 Merge pull request #11903 from Macj0rdan/scrollable-volume-button
-* 22cac3a5e342e4a98d87c113b2d95b84cb5aa826 Merge pull request #11728 from liushuyu/update-deps
-* e867768316a337dd6b226a1ac14452bc1fdc725a android: Simplify game card layout
-* 07276cf62ad5a32ae7a9867029a05a4fbb141d5c Merge pull request #11908 from t895/log-spam
-* f04bc172ae4a24ae4431d65eabfedcc8667eb0bd android: FileUtil: Add option to suppress log for native exists() calls
-* 585b6e9d46b207a6b48a021ea35636fb8c92b405 android: Fix resolving android URIs in native code
-* a9e29a3972dc0d74a6bd42cb767e5ace86318937 android: Refactor game metadata collection to new file
-&lt;details&gt;&lt;summary&gt;&lt;b&gt;See More&lt;/b&gt;&lt;/summary&gt;
+* b2cb711cb7d6a329e5b6ebf672c849e3e55a8aa1 "Merge Tagged PR 11881"
+* 3e2c6340b306fb70e77693acf8d3057cdc852028 "Merge Tagged PR 11885"
+* bf16289d7775d62b6803326879c46c53da50ef2c Merge pull request #11934 from zhaobot/tx-update-20231101020822
+* 987b37798a311eb68ce601197b818846f3d30b3f Merge pull request #11932 from t895/translations-update
+* 1e468eac94e69bc1788a960cb8b5c696e5b89037 Update translations (2023-11-01)
+* 97b4ca1d01fef5fb350125d103e6aff89cd92108 android: Auto-generate locale config
+* 1d7ff850d6fe57540f838fa32c5f183139198d3e android: Update translations from transifex
+* 7e284809dea3134c7d57db602deb9893170ec2ca Merge pull request #11931 from t895/applet-launcher
+* 324c93e4aa63da9f4dcca7cc6c283185db86ff3a Merge pull request #11929 from dima-xd/swkbd-applet
+* 133788d0d4c12df7d7e39c4962cadadc781c596c android: Initialize filesystem components during application start
+<details><summary><b>See More</b></summary>
 
-* 1e61c3e1e733ceb49484cb199e5a41a6caf05b9c android: Use header for EmulationSession
-* 79d3cef8db5c6e43463434f966316caaa685488f Merge pull request #11920 from Termynat0r/master
-* 3e0da4f69807a3a85b923fdc3e012bc01e311322 Merge pull request #11916 from t895/focus-fix
-* 789c16305deae9f58567afb56560e0ac22caed7a Merge pull request #11915 from t895/startup-freeze
-* 1836e62d3354905817d73d8ccbd84ec6b97b4c48 Merge pull request #11910 from liamwhite/surface-lost-on-creation
-* 0bbbe80f75596c090f161ef32a980366e3a436d3 Fix macOS build
-* 2c1d850b462f39d2a7eb3d65ad7218ff5223db71 android: Release touch on input overlay when opening in-game menu
-* 25815900236c45a340feb7654b6d49792c10c4f4 android: Move game deserialization to another thread
-* 8427b9d49d2332c5a2b6a8d68c531a43f9cc3ad1 renderer_vulkan: ensure exception on surface loss
-* 0bb1c7c804a5dd8825acfe80f05b639c5752baf6 Implemented wheel event for volume control in VolumeButton
-* a065dcdcd92a9edbf37436199b0f3d062fc972bc externals/opus: use CMakeLists shipped with Opus itself
-* d6bd16b2c0ada1d08649b24598f4fd4b8fd65423 externals/libusb: remove the GUID override workaround ...
-* a49b146ccc90b96c024fe18953f08a936cf25f1a externals: update libusb to c060e9ce30ac2e3ffb49d94209c4dae77b6642f7 ...
-* fd9e1571840fa80d7e8cd5e85060749f6b54428a externals: update VulkanMemoryAllocator to 2f382df218d7e8516dee3b3caccb819a62b571a2
-* 6cbd4020e8ec0862c0c7803bc22551034fb56c8e externals: update Vulkan-Headers to 1.3.265
-* 3558b236cdf0fedf36721560a299854dea198d66 externals: update ffmpeg to 9c1294eaddb88cb0e044c675ccae059a85fc9c6c
-* 48e82c41388c1c42d798a39e5dbb4da07d106d96 externals: update vcpkg to ef2eef17340f3fbd679327d286fad06dd6e838ed
-* 9eb70aea1de72dfb93b47da17ded12346f13327f externals: update SDL to 2.28.4
-* 0460fbacc927f0fb3048b89367aa15d8ed16ccaa externals: update cpp-jwt to 10ef5735d842b31025f1257ae78899f50a40fb14
-* c73297e8408e0df79cb5b9b49b1ea5b01a58c97c externals: update cpp-httplib to 0.14.1
-* 633d869ff43b5747a99c23c96aaa4cb96b57f04e externals: update libusb to 1.0.26
-* e03f86cc54d3ff293a10192e2194158ccc874b2d externals: update inih to r57
-* a0a3566977428870b149351686fefd93ab0bd212 externals: update opus to 1.4
+* e8cb8b2668c86ddad527cb8ff7de7f992080dece android: Implement applet launcher
+* 361dbdddcc001937d4ece558ce3aa8701180d11f service: am: Add support for LLE Software Keyboard Applet
+* ab3e3c11af3003a3249a46c50d947f8b4c7882f5 Merge pull request #11925 from t895/controller-fix
+* db5c24eb66ad0b889d68eea2fe76f15d980c4444 Merge pull request #11892 from german77/pkm_screenshot
+* f7755df2af7942ddcec09110ff7489cd3792fbda android: Reorder controller indexes and only use controllers
+* 70be45c992218469f6884516f9f22e373cd0c3b1 android: InputHandler: Convert to object
+* 9b3c64f4a40872208bfd0e8c90174d724ee5e9e6 android: Removed unused ControllerMappingHelper
+* f26dddf3b59ace84626dc05e2699514579d4a5bc service: am: Implement ISelfController::SaveCurrentScreenshot
 
-This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24845&amp;view=logs).&lt;/details&gt;</releaseNotes>
+This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24864&view=logs).</details></releaseNotes>
     <licenseUrl>https://github.com/yuzu-emu/yuzu-mainline/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/yuzu-emu/yuzu-mainline</projectUrl>
     <description>Description could not be found.</description>
