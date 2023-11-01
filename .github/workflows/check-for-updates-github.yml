@@ -35,9 +35,13 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        . "${{ env.SCRIPTS_DIR}}\auto-package-updates.ps1"
-        $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR}}")
-        echo "UPDATED_PACKAGES=$updatedPackages" | Out-File -Append $env:GITHUB_ENV
+        . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
+        try {
+          $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
+          echo "UPDATED_PACKAGES=$updatedPackages" | Out-File -Append $env:GITHUB_ENV
+        } catch {
+          Write-Host "An error occurred: $_"
+        }
       shell: pwsh
 
     - name: Commit and Push to GitHub
