@@ -150,7 +150,7 @@ function Get-BaseRepositoryObject {
     }
     catch {
         # Detailed error message
-        Write-Error "Failed to fetch repository information. URL used: $baseRepoApiUrl $($Error[0].Exception.Message)" 
+        Write-DebugLog "Failed to fetch repository information. URL used: $baseRepoApiUrl $($Error[0].Exception.Message)" 
         return $null
     }
 
@@ -773,6 +773,12 @@ function Initialize-PackageData {
 
         # Get the base repository object and the latest release object
         $baseRepoObj = Get-BaseRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
+        # if the baseRepoObj is null, exit gracefully
+        if ($null -eq $baseRepoObj) {
+            Write-DebugLog "Failed to fetch base repository information. URL used: $baseRepoApiUrl"
+            Write-DebugLog "Does the repository still exist?"
+            exit 0
+        }
         $rootRepoObj = Get-RootRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
         $latestReleaseObj = Get-ReleaseObject -ReleaseApiUrl $latestReleaseApiUrl        
 
