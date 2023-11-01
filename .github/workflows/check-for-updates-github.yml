@@ -41,6 +41,7 @@ jobs:
           echo "UPDATED_PACKAGES=$updatedPackages" | Out-File -Append $env:GITHUB_ENV
         } catch {
           Write-Host "An error occurred: $_"
+          continue
         }
       shell: pwsh
 

@@ -48,7 +48,7 @@ function Get-Updates {
         # If the install file doesn't exist, skip this package
         if (-not $installFile) {
             Write-Error "No install file found in directory $($dirInfo.FullName)"
-            continue
+            exit 1
         }
 
         # Get the contents of the install file
@@ -129,7 +129,7 @@ function Get-Updates {
             if ($currentVersion -eq $latestVersion) {
                 Write-DebugLog "    No update available for: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog "$currentAssetName"
-                continue
+                return
             }
 
             Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
