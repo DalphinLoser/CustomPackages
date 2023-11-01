@@ -103,15 +103,14 @@ function Get-Updates {
 
         Write-DebugLog "    Current URL: $packageSourceUrl"
   
-        try {
-            $updateData = Initialize-PackageData -InputGithubUrl $packageSourceUrl
+        $updateData = Initialize-PackageData -InputGithubUrl $packageSourceUrl
+
+        # if the $updateData is null, skip this package
+        if (-not $updateData) {
+            Write-Error "No update data found for $package"
+            continue
         }
-        catch {
-            # return null if the packageSourceUrl is not a valid GitHub URL
-            Write-Error "The packageSourceUrl is not a valid GitHub URL: $packageSourceUrl"
-            return $null
-        }
-        
+
         $latestReleaseObj = $updateData.latestReleaseObj
 
         # if the $updateData.specifiedAssetName is not null or empty, use that to find the latest release
