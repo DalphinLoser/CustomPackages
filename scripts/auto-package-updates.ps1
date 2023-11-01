@@ -110,9 +110,8 @@ function Get-Updates {
             Write-DebugLog "Unable to get data for $package"
             continue
         }
-        else {
-            $latestReleaseObj = $updateData.latestReleaseObj
-        }
+
+        $latestReleaseObj = $updateData.latestReleaseObj
 
         # if the $updateData.specifiedAssetName is not null or empty, use that to find the latest release
         if (-not [string]::IsNullOrWhiteSpace($updateData.specifiedAssetName)) {

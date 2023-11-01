@@ -48,7 +48,6 @@ jobs:
         }
       shell: pwsh
       continue-on-error: true
-    
 
     - name: Commit and Push to GitHub
       run: |
