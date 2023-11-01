@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ravesheep.protonvpn-windows</id>
+    <version>3.2.4</version>
+    <title>Proton VPN</title>
+    <authors>Proton AG, ravesheep</authors>
+    <packageSourceUrl>https://github.com/ravesheep/ProtonVPN-windows/releases/download/3.2.4/ProtonVPN_v3.2.4.exe</packageSourceUrl>
+    <releaseNotes>- Adds support for Georgian language.
+- Fixes an issue where the colour of the sidebar profiles was not visible for some users.
+- Fixes the duplicated taskbar icon issue.</releaseNotes>
+    <licenseUrl>https://github.com/ravesheep/ProtonVPN-windows/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/ravesheep/ProtonVPN-windows</projectUrl>
+    <description>ProtonVPN Windows app with automatic qBittorrent port forwarding support and custom commands support on port change.</description>
+    <iconUrl>https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/Proton VPN.ico</iconUrl>
+  </metadata>
+</package>
