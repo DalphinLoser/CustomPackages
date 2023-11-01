@@ -240,13 +240,7 @@ function Get-Updates {
             $installFileContent | Set-Content -Path $installFile.FullName -Force
             Write-DebugLog "    Install file updated successfully." -ForegroundColor Green
 
-            try {
-                $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
-            }
-            catch {
-                Write-Error "Error creating package: $($_.Exception.Message)"
-                exit 1
-            }
+            $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
             
         }
         else {
