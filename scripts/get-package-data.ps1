@@ -170,8 +170,8 @@ function Get-RootRepositoryObject {
 
     # Fetch the repository information
     try {
-        Write-DebugLog "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
         $repoObj = (Invoke-WebRequest -Uri $baseRepoApiUrl) | ConvertFrom-Json
+        Write-DebugLog "    Repository information fetched successfully: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $repoObj.full_name
     }
     catch {

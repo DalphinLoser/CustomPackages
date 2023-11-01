@@ -107,7 +107,7 @@ function Get-Updates {
 
         # if the $updateData is null, skip this package
         if (-not $updateData) {
-            Write-Error "No update data found for $package"
+            Write-Error "Unable to get data for $package"
             continue
         }
 
