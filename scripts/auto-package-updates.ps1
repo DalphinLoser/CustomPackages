@@ -101,17 +101,18 @@ function Get-Updates {
         # Find the value of the packageSourceUrl field in the nuspec file
 
 
-        Write-DebugLog "    Current URL: $packageSourceUrl"
+        Write-DebugLog "    Current URL from nuspec: $packageSourceUrl"
   
         $updateData = Initialize-PackageData -InputGithubUrl $packageSourceUrl
 
         # if the $updateData is null, skip this package
         if (-not $updateData) {
-            Write-Error "Unable to get data for $package"
+            Write-DebugLog "Unable to get data for $package"
             continue
         }
-
-        $latestReleaseObj = $updateData.latestReleaseObj
+        else {
+            $latestReleaseObj = $updateData.latestReleaseObj
+        }
 
         # if the $updateData.specifiedAssetName is not null or empty, use that to find the latest release
         if (-not [string]::IsNullOrWhiteSpace($updateData.specifiedAssetName)) {
