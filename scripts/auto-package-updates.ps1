@@ -129,7 +129,7 @@ function Get-Updates {
             if ($currentVersion -eq $latestVersion) {
                 Write-DebugLog "    No update available for: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog "$currentAssetName"
-                return
+                continue
             }
 
             Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
