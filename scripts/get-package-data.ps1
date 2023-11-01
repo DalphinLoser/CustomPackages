@@ -777,7 +777,7 @@ function Initialize-PackageData {
         if ($null -eq $baseRepoObj) {
             Write-DebugLog "Failed to fetch base repository information. URL used: $baseRepoApiUrl"
             Write-DebugLog "Does the repository still exist?"
-            exit 0
+            exit 1
         }
         $rootRepoObj = Get-RootRepositoryObject -baseRepoApiUrl $baseRepoApiUrl
         $latestReleaseObj = Get-ReleaseObject -ReleaseApiUrl $latestReleaseApiUrl        
