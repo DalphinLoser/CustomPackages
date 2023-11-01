@@ -190,21 +190,6 @@ function Get-Updates {
             }
         }
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         # If the URLs are different, update the metadata for the package
         if ($latestReleaseUrl -ne $packageSourceUrl) {
             
