@@ -51,29 +51,52 @@ jobs:
       shell: pwsh
 
     - name: Create Package
-      id: create_package
-      run: |
-        nupkg_path=$(powershell "${{ env.SCRIPTS_DIR }}\create-package-github.ps1 -InputUrl '${{ env.REPO_URL }}'")
-        echo "nupkg_path=$nupkg_path" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Publish Package
-      run: dotnet nuget push "$nupkg_path" --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
-      shell: pwsh
       env:
-        nupkg_path: ${{ env.nupkg_path }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1" || exit 1
+        $packagePath = Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}" || exit 1
+        echo "packagePath=$packagePath" >> $GITHUB_ENV
+      shell: pwsh
 
     - name: Commit and Push Changes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
+  
+        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
+
+        # Identify existing pull requests for the branch
+        existing_prs=$(gh pr list --state open --head "$unique_branch")
+        echo "Listing all open PRs for the branch:"
+        echo "Existing PRs: $existing_prs"
+
+        # If an existing pull request is found, close it
+        IFS=$'\n' read -ra prs <<< "$existing_prs"
+        for pr_line in "${prs[@]}"; do
+          pr_number=$(echo "$pr_line" | awk '{print $1}')
+          gh pr close "$pr_number" --comment "Closing PR as a new PR has been created for the same branch."
+        done        
+
+        # Create package on default branch from the unique branch
+        echo "Creating package on default branch from the unique branch"
+        dotnet nuget push $packagePath --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+
+        # Stage only changes in the packages and icons directories
+        echo "Staging changes from packages and icons directories"
+        git add packages icons
+
+        # Commit and push only the changes
+        git commit -m "Automatically Created: ${{ matrix.repoUrl }}" || echo "No changes to commit"
+        git push origin $unique_branch || echo "No changes to push"
         
-        git add "$nupkg_path" || echo "No changes to commit"
-        git commit -m "Automatically Created: ${{ matrix.repoUrl }}"
-        git push --set-upstream origin $unique_branch
+        # Create the PR
+        echo "Creating PR for branch $unique_branch"
+        pr_output=$(gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --head $unique_branch --label "auto gh-package" --fill)
+        echo "Created PR: $pr_output"
       shell: bash
-      env:
-        nupkg_path: ${{ env.nupkg_path }}
 
   post_process:
     needs: build
