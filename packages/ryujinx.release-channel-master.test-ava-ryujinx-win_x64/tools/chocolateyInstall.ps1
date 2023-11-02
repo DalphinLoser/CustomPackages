@@ -17,26 +17,24 @@ $startMenuDir = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
 if (!(Test-Path -Path $desktopDir)) { New-Item -Path $desktopDir -ItemType Directory }
 if (!(Test-Path -Path $startMenuDir)) { New-Item -Path $startMenuDir -ItemType Directory }
 
-# Dynamically find all .exe files in the extracted directory and create shortcuts for them
-$exes = Get-ChildItem -Path $toolsDir -Recurse -Include *.exe
-foreach ($exe in $exes) {
-    $exeName = [System.IO.Path]::GetFileNameWithoutExtension($exe.Name)
-    
-    # Create Desktop Shortcut
-    $desktopShortcutPath = Join-Path $desktopDir "$exeName.lnk"
-    $WshShell = New-Object -comObject WScript.Shell
-    $DesktopShortcut = $WshShell.CreateShortcut($desktopShortcutPath)
-    $DesktopShortcut.TargetPath = $exe.FullName
-    $DesktopShortcut.Save()
-    
-    # Create Start Menu Shortcut
-    $startMenuShortcutPath = Join-Path $startMenuDir "$exeName.lnk"
-    $StartMenuShortcut = $WshShell.CreateShortcut($startMenuShortcutPath)
-    $DesktopShortcut.TargetPath = $exe.FullName
-    $StartMenuShortcut.Save()
-}
+# Dynamically find all .exe files in the extracted directory and create a shortcut for the largest one
+$exes = Get-ChildItem -Path $toolsDir -Recurse -Include *.exe | Sort-Object -Property Length -Descending
 
+# Select the largest exe file
+$largestExe = $exes[0]
 
+$exeName = [System.IO.Path]::GetFileNameWithoutExtension($largestExe.Name)
 
+# Create Desktop Shortcut
+$desktopShortcutPath = Join-Path $desktopDir "$exeName.lnk"
+$WshShell = New-Object -comObject WScript.Shell
+$DesktopShortcut = $WshShell.CreateShortcut($desktopShortcutPath)
+$DesktopShortcut.TargetPath = $largestExe.FullName
+$DesktopShortcut.Save()
 
+# Create Start Menu Shortcut
+$startMenuShortcutPath = Join-Path $startMenuDir "$exeName.lnk"
+$StartMenuShortcut = $WshShell.CreateShortcut($startMenuShortcutPath)
+$DesktopShortcut.TargetPath = $largestExe.FullName
+$StartMenuShortcut.Save()
 
