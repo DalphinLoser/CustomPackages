@@ -152,7 +152,19 @@ jobs:
 
               # Checkout main and cherry-pick the commit
               git checkout main
-              git cherry-pick $commit_hash --continue || git cherry-pick --abort
+              if ! git cherry-pick $commit_hash; then
+                # Cherry-pick failed, possibly due to a conflict
+                echo "Failed to cherry-pick changes for PR #$pr. Attempting to abort."
+                git cherry-pick --abort
+              
+                # Exit the loop iteration for this PR, move to the next one
+                continue
+              fi
+              
+              # Cherry-pick was successful, push changes to main
+              echo "Debug: PR #$pr changes have been cherry-picked. Pushing to main."
+              git push origin main
+              gh pr close $pr --comment "This PR has been automatically closed as the changes have been cherry-picked to main."              
 
               # Check cherry-pick success and push and close PR
               if [ $? -eq 0 ]; then
