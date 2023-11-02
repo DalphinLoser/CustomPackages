@@ -58,6 +58,21 @@ jobs:
         Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}" || exit 1
       shell: pwsh
 
+    - name: Authenticate to GitHub Packages
+      env:
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPOSITORY_OWNER: ${{ github.repository_owner }}
+      run: dotnet nuget add source --username $Env:GITHUB_ACTOR --password $Env:GITHUB_TOKEN --store-password-in-clear-text --name github "https://nuget.pkg.github.com/$Env:REPOSITORY_OWNER/index.json"
+      shell: pwsh
+    
+    - name: Publish to GitHub Packages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NUGET_PACKAGE_PATH: "path/to/your/package.nupkg"
+      run: dotnet nuget push "$Env:NUGET_PACKAGE_PATH" --api-key $Env:GITHUB_TOKEN --source "github"
+      shell: pwsh
+    
     - name: Commit and Push Changes
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
