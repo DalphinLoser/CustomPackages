@@ -508,7 +508,7 @@ function Set-AssetInfo {
     Write-DebugLog $latestTagName
 
     # Set the package name
-    $chocoPackageName = "$($PackageData.user).$($PackageData.repoName)"
+    $chocoPackageName = "$($PackageData.repoName).$($PackageData.user)"
 
     # If there is a specified asset, add it to the end of the package name
     if (-not [string]::IsNullOrWhiteSpace($cleanedSpecifiedAssetName)) {
