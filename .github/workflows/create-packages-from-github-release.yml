@@ -51,18 +51,14 @@ jobs:
       shell: pwsh
 
     - name: Create Package
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1" || exit 1
-        $packagePath = Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}" || exit 1
-        echo "Package Path: $packagePath"
+        packagePath = Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}" || exit 1
+        echo "Package Path (Action): $packagePath"
         echo "PACKAGE_PATH=$packagePath" >> $GITHUB_ENV
       shell: pwsh
 
     - name: Commit and Push Changes
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
