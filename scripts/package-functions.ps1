@@ -263,7 +263,15 @@ function New-ChocolateyPackage {
     # Create Chocolatey package
     try {
         Write-DebugLog "    Creating Chocolatey package..."
-        choco pack $NuspecPath -Force --out $PackageDir
+        $output = choco pack $NuspecPath -Force --out $PackageDir
+        $packagePath = $output -match "Successfully created package '(.+\.nupkg)'" | Out-Null
+        if ($packagePath) {
+            return $Matches[1]
+        }
+        else {
+            Write-Error "Failed to find the path of the created Chocolatey package."
+            exit 1
+        }
     }
     catch {
         Write-Error "Failed to create Chocolatey package."
