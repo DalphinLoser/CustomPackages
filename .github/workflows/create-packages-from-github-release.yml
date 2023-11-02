@@ -60,7 +60,7 @@ jobs:
         Write-Host "Package Path (Action): $packagePath"
         # Create package on default branch from the unique branch
         echo "Creating package on default branch from the unique branch"
-        dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+        dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
       shell: pwsh
 
 
