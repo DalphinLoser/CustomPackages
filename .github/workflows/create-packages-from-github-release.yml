@@ -58,7 +58,9 @@ jobs:
         $packagePath = Initialize-GithubPackage -InputUrl "${{ env.REPO_URL }}"
         if ($null -eq $packagePath) { exit 1 }
         Write-Host "Package Path (Action): $packagePath"
-        echo "PACKAGE_PATH=$packagePath" | Out-File -Append -FilePath $Env:GITHUB_ENV
+        # Create package on default branch from the unique branch
+        echo "Creating package on default branch from the unique branch"
+        dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
       shell: pwsh
 
 
@@ -82,10 +84,6 @@ jobs:
           pr_number=$(echo "$pr_line" | awk '{print $1}')
           gh pr close "$pr_number" --comment "Closing PR as a new PR has been created for the same branch."
         done        
-
-        # Create package on default branch from the unique branch
-        echo "Creating package on default branch from the unique branch"
-        dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
         # Stage only changes in the packages and icons directories
         echo "Staging changes from packages and icons directories"
