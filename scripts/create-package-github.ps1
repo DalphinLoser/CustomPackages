@@ -90,9 +90,15 @@ function Initialize-GithubPackage {
 #region Create Chocolatey Package
 
     # Create the Chocolatey package
-    New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir $thisPackageDir
+    #New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir $thisPackageDir
+    # Create the Chocolatey package and save the path as a variable
+    $chocolateyPackagePath = New-ChocolateyPackage -NuspecPath "$nuspecPath" -PackageDir $thisPackageDir
+    Write-DebugLog "    Chocolatey Package Created Successfully" -ForegroundColor Green
+    Write-DebugLog "    Chocolatey Package Path: " -NoNewline -ForegroundColor Magenta
+    Write-DebugLog "$chocolateyPackagePath"
 
 #endregion
 
-    Write-LogFooter "Initialize-GithubPackage"
+return $chocolateyPackagePath
+Write-LogFooter "Initialize-GithubPackage"
 }

@@ -13,11 +13,12 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-    - name: Generate Matrix
-      id: set-matrix
-      run: |
-        matrix=$(echo -n '['; echo "${{ github.event.inputs.repoUrls }}" | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u | awk -vORS=',' '{ print "\""$0"\""}' | sed 's/,$//'; echo -n ']')
-        echo "matrix=${matrix}" >> $GITHUB_OUTPUT  # Updated according to new guidelines  
+      - name: Generate Matrix
+        id: set-matrix
+        run: |
+          matrix=$(echo -n '['; echo "${{ github.event.inputs.repoUrls }}" | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u | awk -vORS=',' '{ print "\""$0"\""}' | sed 's/,$//'; echo -n ']')
+          echo "matrix=${matrix}" >> $GITHUB_ENV
+          
   build:
     runs-on: windows-latest
     needs: pre_process
@@ -26,91 +27,54 @@ jobs:
       matrix:
         repoUrl: ${{fromJson(needs.pre_process.outputs.matrix)}}
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Create and Checkout to Unique Local Branch
-      run: |
-        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
-        git checkout -b $unique_branch || exit 1
-      shell: bash
-
-    - name: Set Global Variables
-      run: |
-        echo "REPO_URL=${{ matrix.repoUrl }}" >> $GITHUB_ENV
-        echo "ROOT_DIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-        echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Install Chocolatey
-      run: |
-        if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) || exit 1
-        }
-      shell: pwsh
-
-    - name: Create Package
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1" || exit 1
-        Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}" || exit 1
-      shell: pwsh
-
-    - name: Authenticate to GitHub Packages
-      env:
-        GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        REPOSITORY_OWNER: ${{ github.repository_owner }}
-      run: dotnet nuget add source --username $Env:GITHUB_ACTOR --password $Env:GITHUB_TOKEN --store-password-in-clear-text --name github "https://nuget.pkg.github.com/$Env:REPOSITORY_OWNER/index.json"
-      shell: pwsh
-    
-    - name: Publish to GitHub Packages
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        NUGET_PACKAGE_PATH: "path/to/your/package.nupkg"
-      run: dotnet nuget push "$Env:NUGET_PACKAGE_PATH" --api-key $Env:GITHUB_TOKEN --source "github"
-      shell: pwsh
-    
-    - name: Commit and Push Changes
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
-  
-        unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
-
-        # Identify existing pull requests for the branch
-        existing_prs=$(gh pr list --state open --head "$unique_branch")
-        echo "Listing all open PRs for the branch:"
-        echo "Existing PRs: $existing_prs"
-
-        # If an existing pull request is found, close it
-        IFS=$'\n' read -ra prs <<< "$existing_prs"
-        for pr_line in "${prs[@]}"; do
-          pr_number=$(echo "$pr_line" | awk '{print $1}')
-          gh pr close "$pr_number" --comment "Closing PR as a new PR has been created for the same branch."
-        done        
-
-        # Stage only changes in the packages and icons directories
-        echo "Staging changes from packages and icons directories"
-        git add packages/ || echo "No changes in packages directory to add"
-        git add icons/ || echo "No changes in icons directory to add"
-
-        # Commit and push changes
-        echo "Committing and pushing changes to branch $unique_branch"
-        git commit -m "Automatically Created: ${{ matrix.repoUrl }}" || echo "No changes to commit"
-        echo "Pushing changes to branch $unique_branch"
-        git push --set-upstream origin $unique_branch --force || exit 1
-        echo "Pushed changes to branch $unique_branch"
+      - name: Checkout Code
+        uses: actions/checkout@v4
         
-        # Create the PR
-        echo "Creating PR for branch $unique_branch"
-        pr_output=$(gh pr create --title "Automated PR: $unique_branch" --body "This PR was automatically created by github-actions[bot]" --base ${{ github.event.repository.default_branch }} --head $unique_branch --label "auto gh-package" --fill)
-        echo "Created PR: $pr_output"
-      shell: bash
+      - name: Create and Checkout to Unique Local Branch
+        run: |
+          unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
+          git checkout -b $unique_branch || exit 1
+        shell: bash
+        env:
+          REPO_URL: ${{ matrix.repoUrl }}
+
+      - name: Set Global Variables
+        run: |
+          echo "ROOT_DIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
+
+      - name: Install Chocolatey
+        run: |
+          if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) || exit 1
+          }
+        shell: pwsh
+
+      - name: Create Package
+        id: create_package
+        run: |
+          nupkg_path=$(powershell "${{ env.SCRIPTS_DIR }}\create-package-github.ps1 -InputUrl '${{ env.REPO_URL }}'")
+          echo "nupkg_path=$nupkg_path" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Publish Package
+        run: dotnet nuget push "$nupkg_path" --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+        shell: pwsh
+        env:
+          nupkg_path: ${{ env.nupkg_path }}
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          
+          git add "$nupkg_path" || echo "No changes to commit"
+          git commit -m "Automatically Created: ${{ matrix.repoUrl }}"
+          git push --set-upstream origin $unique_branch
+        shell: bash
+        env:
+          nupkg_path: ${{ env.nupkg_path }}
 
   post_process:
     needs: build
