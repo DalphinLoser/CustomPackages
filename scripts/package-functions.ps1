@@ -254,28 +254,28 @@ function New-ChocolateyPackage {
         exit 1
     }
     else {
-        Write-DebugLog "    Nuspec file found at: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog "    Nuspec file found at: " -NoNewline -ForegroundColor Green
         Write-DebugLog $NuspecPath
     }
     # Remove any existing packages in the package directory
     Write-DebugLog "    Removing existing packages from package directory..."
     Remove-Item -Path "$PackageDir\*.nupkg" -Force
-    # Create Chocolatey package
+    # Create Chocolatey package and save the path
     try {
         Write-DebugLog "    Creating Chocolatey package..."
         $output = choco pack $NuspecPath -Force --out $PackageDir
-        $packagePath = $output -match "Successfully created package '(.+\.nupkg)'" | Out-Null
-        if ($packagePath) {
-            return $Matches[1]
-        }
-        else {
-            Write-Error "Failed to find the path of the created Chocolatey package."
-            exit 1
-        }
+        Write-DebugLog "    Output: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $output
+        # Set the package path to the nupkg file in PackageDir if it exists. Select the most recent package if multiple packages exist.
+        $packagePath = Get-ChildItem -Path $PackageDir -Filter "*.nupkg" | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
     }
     catch {
-        Write-Error "Failed to create Chocolatey package."
+        Write-Error "Failed to create Chocolatey package... Exception: $_"
         exit 1
     }
+    Write-DebugLog "    Chocolatey package created at: " -NoNewline -ForegroundColor Green
+    Write-DebugLog $packagePath
+    
     Write-LogFooter "New-ChocolateyPackage"
+    return $packagePath
 }
