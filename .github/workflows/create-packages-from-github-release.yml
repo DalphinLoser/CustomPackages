@@ -152,7 +152,7 @@ jobs:
 
               # Checkout main and cherry-pick the commit
               git checkout main
-              git cherry-pick $commit_hash
+              git cherry-pick --continue $commit_hash
 
               # Check cherry-pick success and push and close PR
               if [ $? -eq 0 ]; then
