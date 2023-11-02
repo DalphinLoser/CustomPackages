@@ -56,7 +56,7 @@ jobs:
       run: |
         . "${{ env.SCRIPTS_DIR}}\create-package-github.ps1" || exit 1
         $packagePath = Initialize-GithubPackage -InputUrl "${{ env.REPO_URL}}" || exit 1
-        echo "packagePath=$packagePath" >> $GITHUB_ENV
+        echo "PACKAGE_PATH=$packagePath" >> $GITHUB_ENV
       shell: pwsh
 
     - name: Commit and Push Changes
