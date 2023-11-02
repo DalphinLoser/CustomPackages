@@ -82,7 +82,7 @@ jobs:
 
         # Create package on default branch from the unique branch
         echo "Creating package on default branch from the unique branch"
-        dotnet nuget push $packagePath --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+        dotnet nuget push ${{ env.PACKAGE_PATH }} --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
 
         # Stage only changes in the packages and icons directories
         echo "Staging changes from packages and icons directories"
