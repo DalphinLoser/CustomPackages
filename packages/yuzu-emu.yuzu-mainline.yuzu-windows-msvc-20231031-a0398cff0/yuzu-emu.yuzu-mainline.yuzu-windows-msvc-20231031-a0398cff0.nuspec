@@ -5,36 +5,31 @@
     <version>01606</version>
     <title>yuzu-mainline</title>
     <authors>yuzu-emu</authors>
-    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1607/yuzu-windows-msvc-20231101-b2cb711cb.zip</packageSourceUrl>
+    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1608/yuzu-windows-msvc-20231102-c1496b69d.7z</packageSourceUrl>
     <releaseNotes>
 
 ## Changes:
 
-* b2cb711cb7d6a329e5b6ebf672c849e3e55a8aa1 "Merge Tagged PR 11881"
-* 3e2c6340b306fb70e77693acf8d3057cdc852028 "Merge Tagged PR 11885"
-* bf16289d7775d62b6803326879c46c53da50ef2c Merge pull request #11934 from zhaobot/tx-update-20231101020822
-* 987b37798a311eb68ce601197b818846f3d30b3f Merge pull request #11932 from t895/translations-update
-* 1e468eac94e69bc1788a960cb8b5c696e5b89037 Update translations (2023-11-01)
-* 97b4ca1d01fef5fb350125d103e6aff89cd92108 android: Auto-generate locale config
-* 1d7ff850d6fe57540f838fa32c5f183139198d3e android: Update translations from transifex
-* 7e284809dea3134c7d57db602deb9893170ec2ca Merge pull request #11931 from t895/applet-launcher
-* 324c93e4aa63da9f4dcca7cc6c283185db86ff3a Merge pull request #11929 from dima-xd/swkbd-applet
-* 133788d0d4c12df7d7e39c4962cadadc781c596c android: Initialize filesystem components during application start
+* c1496b69d26b7612db3d3c4dbab9787dc8611947 "Merge Tagged PR 11881"
+* 2e75e365d7903d6823d1c0c03b98b07e34380955 "Merge Tagged PR 11885"
+* 57c8dcfd77c02ba67280ceef89a5d98478f894e4 Merge pull request #11942 from t895/log-version
+* 398e8814288cbf71e2620ff22648d3002f7908b6 android: Adjust log lifecycle
+* 92418e909f7bb3d2c199b9392304f4bd1dea65bc android: Use yuzu logging system
+* 7b10ceda025c81171761b0de442f23030db6b95f Merge pull request #11940 from t895/controller-null-check
+* 344162db75bffd0de9b43d18d2d789c1fd564e57 android: Default to player number 0 if we get an input from an unrecognized controller
+* 48f913b6e7fdc83874d9ac7e5fb237cde85be5a2 Merge pull request #11937 from t895/reorganize-options
+* 0efda40b577284a92137b9adbcbd4d907be74fd6 Merge pull request #11933 from t895/android-ci-agony
+* 5872c7d420064a2831520aa3b31a4070c7a17484 android: Adjust driver manager source string
 <details><summary><b>See More</b></summary>
 
-* e8cb8b2668c86ddad527cb8ff7de7f992080dece android: Implement applet launcher
-* 361dbdddcc001937d4ece558ce3aa8701180d11f service: am: Add support for LLE Software Keyboard Applet
-* ab3e3c11af3003a3249a46c50d947f8b4c7882f5 Merge pull request #11925 from t895/controller-fix
-* db5c24eb66ad0b889d68eea2fe76f15d980c4444 Merge pull request #11892 from german77/pkm_screenshot
-* f7755df2af7942ddcec09110ff7489cd3792fbda android: Reorder controller indexes and only use controllers
-* 70be45c992218469f6884516f9f22e373cd0c3b1 android: InputHandler: Convert to object
-* 9b3c64f4a40872208bfd0e8c90174d724ee5e9e6 android: Removed unused ControllerMappingHelper
-* f26dddf3b59ace84626dc05e2699514579d4a5bc service: am: Implement ISelfController::SaveCurrentScreenshot
+* 2b6edd3efd1c3a88ed47249b77e7b12951d8a13d android: Reorganize settings tab
+* 135b645b3d666f541d5955aaa82af4c480643fde ci: android: Use signing key if available
 
-This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24864&view=logs).</details></releaseNotes>
+This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24875&view=logs).</details></releaseNotes>
     <licenseUrl>https://github.com/yuzu-emu/yuzu-mainline/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/yuzu-emu/yuzu-mainline</projectUrl>
     <description>Description could not be found.</description>
     <iconUrl>https://raw.githubusercontent.com/yuzu-emu/yuzu-mainline/master/dist/yuzu.svg</iconUrl>
   </metadata>
 </package>
+

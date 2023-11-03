@@ -3,7 +3,7 @@ $toolsDir   = "C:\AutoPackages\yuzu-emu.yuzu-mainline.yuzu-windows-msvc-20231031
 
 $packageArgs = @{
     packageName     = "yuzu-emu.yuzu-mainline.yuzu-windows-msvc-20231031-a0398cff0"
-    url             = "https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1607/yuzu-windows-msvc-20231101-b2cb711cb.zip"
+    url             = "https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1608/yuzu-windows-msvc-20231102-c1496b69d.7z"
     unzipLocation   = $toolsDir
 }
 
@@ -37,5 +37,6 @@ $startMenuShortcutPath = Join-Path $startMenuDir "$exeName.lnk"
 $StartMenuShortcut = $WshShell.CreateShortcut($startMenuShortcutPath)
 $DesktopShortcut.TargetPath = $largestExe.FullName
 $StartMenuShortcut.Save()
+
 
 
