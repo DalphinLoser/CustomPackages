@@ -5,31 +5,22 @@
     <version>01606</version>
     <title>yuzu-mainline</title>
     <authors>yuzu-emu</authors>
-    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1608/yuzu-windows-msvc-20231102-c1496b69d.7z</packageSourceUrl>
+    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1609/yuzu-windows-msvc-20231103-0bd7bfb9f.7z</packageSourceUrl>
     <releaseNotes>
 
 ## Changes:
 
-* c1496b69d26b7612db3d3c4dbab9787dc8611947 "Merge Tagged PR 11881"
-* 2e75e365d7903d6823d1c0c03b98b07e34380955 "Merge Tagged PR 11885"
-* 57c8dcfd77c02ba67280ceef89a5d98478f894e4 Merge pull request #11942 from t895/log-version
-* 398e8814288cbf71e2620ff22648d3002f7908b6 android: Adjust log lifecycle
-* 92418e909f7bb3d2c199b9392304f4bd1dea65bc android: Use yuzu logging system
-* 7b10ceda025c81171761b0de442f23030db6b95f Merge pull request #11940 from t895/controller-null-check
-* 344162db75bffd0de9b43d18d2d789c1fd564e57 android: Default to player number 0 if we get an input from an unrecognized controller
-* 48f913b6e7fdc83874d9ac7e5fb237cde85be5a2 Merge pull request #11937 from t895/reorganize-options
-* 0efda40b577284a92137b9adbcbd4d907be74fd6 Merge pull request #11933 from t895/android-ci-agony
-* 5872c7d420064a2831520aa3b31a4070c7a17484 android: Adjust driver manager source string
-<details><summary><b>See More</b></summary>
+* 0bd7bfb9f79973e31e1e7282025a530fec7e4a9c "Merge Tagged PR 11873"
+* c7efb5dacb41afe6512f1c09a24d35ff9a1325b3 "Merge Tagged PR 11881"
+* cba2fc657a0c7d020af08d022e99dbbee9f09493 "Merge Tagged PR 11885"
+* f1f7d450a73704623ec8c054e03ad8c63098e2ad "Merge Tagged PR 11943"
 
-* 2b6edd3efd1c3a88ed47249b77e7b12951d8a13d android: Reorganize settings tab
-* 135b645b3d666f541d5955aaa82af4c480643fde ci: android: Use signing key if available
-
-This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24875&view=logs).</details></releaseNotes>
+This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24877&view=logs).</releaseNotes>
     <licenseUrl>https://github.com/yuzu-emu/yuzu-mainline/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/yuzu-emu/yuzu-mainline</projectUrl>
     <description>Description could not be found.</description>
     <iconUrl>https://raw.githubusercontent.com/yuzu-emu/yuzu-mainline/master/dist/yuzu.svg</iconUrl>
   </metadata>
 </package>
+
 
