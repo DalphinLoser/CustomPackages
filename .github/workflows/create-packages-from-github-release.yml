@@ -60,16 +60,7 @@ jobs:
         Write-Host "Package Path (Action): $packagePath"
         # Create package on default branch from the unique branch
         echo "Creating package on default branch from the unique branch"
-        $nuspecPath = Get-ChildItem -Path (Split-Path -Parent "$packagePath") -Filter *.nuspec
-        if ($nuspecPath -eq $null -or $nuspecPath.Length -eq 0) {
-            Write-Host "No .nuspec file found in the package directory."
-            continue
-        } else {
-            # Assuming there's only one nuspec file in the directory
-            $nuspecPath = $nuspecPath[0].FullName
-            Write-Host "Nuspec Path: $nuspecPath"
-        }
-        dotnet nuget push "$packagePath" -p:NuspecFile="$nuspecPath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
+        dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
       shell: pwsh
 
 
