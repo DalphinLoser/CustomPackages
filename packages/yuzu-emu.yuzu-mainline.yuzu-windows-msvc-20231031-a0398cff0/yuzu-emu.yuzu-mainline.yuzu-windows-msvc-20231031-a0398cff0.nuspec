@@ -5,43 +5,42 @@
     <version>01606</version>
     <title>yuzu-mainline</title>
     <authors>yuzu-emu</authors>
-    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1610/yuzu-windows-msvc-20231104-a1ef67221.7z</packageSourceUrl>
+    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1611/yuzu-windows-msvc-20231105-c23287ca1.7z</packageSourceUrl>
     <releaseNotes>
 
 ## Changes:
 
-* a1ef67221b4d2477c1b0c267e5ce14943ad403fc "Merge Tagged PR 11873"
-* 4756e9dfeabe237dc33bd16881d54db27202c5db "Merge Tagged PR 11881"
-* 47cb176458f29cb0d790a174b937b5a6d4df5cfc "Merge Tagged PR 11885"
-* 10b1843f3e4fd661cbf8d161c620d7e0f7802134 "Merge Tagged PR 11894"
-* 5b1ebf660820ad4cada6275080a8e9ee9471aeff "Merge Tagged PR 11896"
-* 3a863426b0d9f758cc2de80a58cda4d9ea4502dc "Merge Tagged PR 11952"
-* 83e0e983003f52ddfa1b81213459a8544c987fd0 "Merge Tagged PR 11957"
-* a80e0e7da506d6fdebf908d669749ce7d22db467 Merge pull request #11954 from t895/log-hardware
-* 9631dedea9d85518af674be449f6beb6e39038d1 Merge pull request #11955 from t895/cntfrq-fix
-* 4b321c003caed15a23d6f221da871980ceed72c2 arm: NativeClock: Special handling for bad system counter clock frequency reporting
+* c23287ca1a651da1b4614e52f6458f60ddb7601d "Merge Tagged PR 11873"
+* d6d01d435c40de3af1fe7374ad3739c1ad1551d1 "Merge Tagged PR 11894"
+* 98af7d4a06004825c6ca0b3f1358794eb719c601 "Merge Tagged PR 11896"
+* 94002ebcb6675251d84948011dae44f51d0c1264 "Merge Tagged PR 11957"
+* b7c340c58b06c910776af39a045a49f9e3dcd4f1 "Merge Tagged PR 11961"
+* 770d4b0b721be88bea327c8164b1f62ffbcc1d90 Merge pull request #11965 from german77/color
+* e5fed310092e27dee043d93bba4d9b1a9dbca500 Merge pull request #11963 from Kelebek1/eol_lf
+* f07484bc64e6c6f178f4891f1c86ebb23d14dbe7 core: hid: Signal color updates
+* 78b9956a04be1b84788cecfa9e160900f3435360 Skip git blame
+* 90aa937593e53a5d5e070fb623b228578b0b225f Convert files to LF eol
 <details><summary><b>See More</b></summary>
 
-* 0a83047368b2e0e72535c0239db806d6c229d7e9 android: Log more system information during startup
-* 9bb8ac7cb6ac87fe5c0b82cd563ba62483761b4e android: Fix fetching system memory size from MemoryUtil
-* d6e6ab11b1699c1de4ca7225f9aecbf3780836cf Merge pull request #11953 from t895/surface-tweak
-* b3a1f793c3792dce9fb38c764d0ee9ee38d66783 android: Update surface parameters on emulation start
-* eda403388af14b55d56753b4f887fadec129522c Merge pull request #11948 from german77/hard_ring
-* 3032980478e6d633ceee758fa10e194378c1a531 Merge pull request #11947 from german77/battery
-* 7f96f4db3fb03d2a74607d71da2018d932a162cc Merge pull request #11943 from liamwhite/silence-logspam
-* a0f9a3ab5b591ec32a2c550fd681a29f2e4c3447 Merge pull request #11936 from liamwhite/romfs-nonsense
-* b36fec486e063fc16c50346179bd8e1cb26ee177 service: hid: Ensure GetNextEntryIndex can't fail
-* 57cf830862bac1d68d660c120014e7d5021b72e8 core: hid: Fix wrong battery values
-* 41701052d3ebbd2ed746beef342e1bdeaa9374e6 renderer_vulkan: minimize transform feedback support log
-* b0c6bf497a1eabec14c116b710dcc757e77455bf romfs: fix extraction of single-directory root
+* 940618a64dc048790291e240dca6a085a4f1c27c Merge pull request #11952 from liamwhite/opus_stereo_count
+* 409fa5dda27b0927bcdf7fe0fd74b6ab04a9b119 Merge pull request #11960 from german77/silence
+* 211b67668d6ea7d96448deec096baeec4391f3fc Merge pull request #11959 from t895/firmware-reload-fix
+* f0cd02b9bda051c3d13e21d38771d4c115f812e6 Merge pull request #11881 from liamwhite/sockets-safe-access
+* 34101d8c5e8f8b3ce3027ba8ed40fb8666a21a0e Merge pull request #11885 from liamwhite/stop-nagging-me
+* bf8d7bc0da2a2e49f883c9360908ec8901d7e01c service: hid: Silence EnableUnintendedHomeButtonInputProtection
+* 036d2686af47c9c52e121c96266cfa47fb865742 android: Don't reload log/system after loading firmware/backup
+* a294beb116026ba15ed90299308ea47e4775c1e5 Allow 0 stereo count
+* 6a7123826a426ed195257da24d75170bfc56f670 qt: remove duplicate exit confirmation setting
+* ca75c58f4391fcd20d325333c802f9e225ff9c47 sockets: use safe access helpers
 
-This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24895&view=logs).</details></releaseNotes>
+This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24914&view=logs).</details></releaseNotes>
     <licenseUrl>https://github.com/yuzu-emu/yuzu-mainline/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/yuzu-emu/yuzu-mainline</projectUrl>
     <description>Description could not be found.</description>
     <iconUrl>https://raw.githubusercontent.com/yuzu-emu/yuzu-mainline/master/dist/yuzu.svg</iconUrl>
   </metadata>
 </package>
+
 
 
 
