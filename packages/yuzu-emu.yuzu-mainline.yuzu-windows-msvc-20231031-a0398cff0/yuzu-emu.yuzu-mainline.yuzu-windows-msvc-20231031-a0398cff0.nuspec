@@ -5,41 +5,34 @@
     <version>01606</version>
     <title>yuzu-mainline</title>
     <authors>yuzu-emu</authors>
-    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1611/yuzu-windows-msvc-20231105-c23287ca1.7z</packageSourceUrl>
+    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1612/yuzu-windows-msvc-20231106-f9e200c4b.7z</packageSourceUrl>
     <releaseNotes>
 
 ## Changes:
 
-* c23287ca1a651da1b4614e52f6458f60ddb7601d "Merge Tagged PR 11873"
-* d6d01d435c40de3af1fe7374ad3739c1ad1551d1 "Merge Tagged PR 11894"
-* 98af7d4a06004825c6ca0b3f1358794eb719c601 "Merge Tagged PR 11896"
-* 94002ebcb6675251d84948011dae44f51d0c1264 "Merge Tagged PR 11957"
-* b7c340c58b06c910776af39a045a49f9e3dcd4f1 "Merge Tagged PR 11961"
-* 770d4b0b721be88bea327c8164b1f62ffbcc1d90 Merge pull request #11965 from german77/color
-* e5fed310092e27dee043d93bba4d9b1a9dbca500 Merge pull request #11963 from Kelebek1/eol_lf
-* f07484bc64e6c6f178f4891f1c86ebb23d14dbe7 core: hid: Signal color updates
-* 78b9956a04be1b84788cecfa9e160900f3435360 Skip git blame
-* 90aa937593e53a5d5e070fb623b228578b0b225f Convert files to LF eol
+* f9e200c4ba055990dacefed59dabc65bb0de0742 "Merge Tagged PR 11873"
+* c979d35fed1bd7bcefaf599ad94d4397c1fed7dd "Merge Tagged PR 11896"
+* 0023f9bf4a6fc644532ed32b56ee855251967bce "Merge Tagged PR 11914"
+* dfbc22c2916f68d407d00898fbc712c3cbcedd86 Merge pull request #11971 from german77/recent
+* a5a3167eba175a3d52ceaef125e7cbc753cfe4f1 service: am: Set the correct album program id
+* a423e0f9e0f7d759f22474e93a18cedeb8ab418c renderer_vulkan: render on bottom of surface clip when flipped (#11894)
+* 511c1f0c8b688a14b53fb15bb47a1aff7d9622dd Merge pull request #11957 from liamwhite/null2
+* 8369fcd71ab46df07ca6eebcdf08761a9d52ede7 Merge pull request #11969 from german77/profile
+* 626916e9a48a9bbc5f09968d89d378891ffb3809 Merge pull request #11961 from german77/recent
+* 507f360a81f6938a06643eab0df4dc24f3e89307 yuzu: Only store games in the recently played list
 <details><summary><b>See More</b></summary>
 
-* 940618a64dc048790291e240dca6a085a4f1c27c Merge pull request #11952 from liamwhite/opus_stereo_count
-* 409fa5dda27b0927bcdf7fe0fd74b6ab04a9b119 Merge pull request #11960 from german77/silence
-* 211b67668d6ea7d96448deec096baeec4391f3fc Merge pull request #11959 from t895/firmware-reload-fix
-* f0cd02b9bda051c3d13e21d38771d4c115f812e6 Merge pull request #11881 from liamwhite/sockets-safe-access
-* 34101d8c5e8f8b3ce3027ba8ed40fb8666a21a0e Merge pull request #11885 from liamwhite/stop-nagging-me
-* bf8d7bc0da2a2e49f883c9360908ec8901d7e01c service: hid: Silence EnableUnintendedHomeButtonInputProtection
-* 036d2686af47c9c52e121c96266cfa47fb865742 android: Don't reload log/system after loading firmware/backup
-* a294beb116026ba15ed90299308ea47e4775c1e5 Allow 0 stereo count
-* 6a7123826a426ed195257da24d75170bfc56f670 qt: remove duplicate exit confirmation setting
-* ca75c58f4391fcd20d325333c802f9e225ff9c47 sockets: use safe access helpers
+* 5323d9f6b3cba683522d90fbd9f28b6e11b9348b service: acc: Ensure proper profile size
+* 75de0cadcfaa483393a832fc804d80382f61d885 renderer_null: fix
 
-This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24914&view=logs).</details></releaseNotes>
+This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24928&view=logs).</details></releaseNotes>
     <licenseUrl>https://github.com/yuzu-emu/yuzu-mainline/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/yuzu-emu/yuzu-mainline</projectUrl>
     <description>Description could not be found.</description>
     <iconUrl>https://raw.githubusercontent.com/yuzu-emu/yuzu-mainline/master/dist/yuzu.svg</iconUrl>
   </metadata>
 </package>
+
 
 
 
