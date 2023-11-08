@@ -5,33 +5,44 @@
     <version>01606</version>
     <title>yuzu-mainline</title>
     <authors>yuzu-emu</authors>
-    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1612/yuzu-windows-msvc-20231106-f9e200c4b.7z</packageSourceUrl>
+    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1613/yuzu-windows-msvc-20231107-4a1c10848.7z</packageSourceUrl>
     <releaseNotes>
 
 ## Changes:
 
-* f9e200c4ba055990dacefed59dabc65bb0de0742 "Merge Tagged PR 11873"
-* c979d35fed1bd7bcefaf599ad94d4397c1fed7dd "Merge Tagged PR 11896"
-* 0023f9bf4a6fc644532ed32b56ee855251967bce "Merge Tagged PR 11914"
-* dfbc22c2916f68d407d00898fbc712c3cbcedd86 Merge pull request #11971 from german77/recent
-* a5a3167eba175a3d52ceaef125e7cbc753cfe4f1 service: am: Set the correct album program id
-* a423e0f9e0f7d759f22474e93a18cedeb8ab418c renderer_vulkan: render on bottom of surface clip when flipped (#11894)
-* 511c1f0c8b688a14b53fb15bb47a1aff7d9622dd Merge pull request #11957 from liamwhite/null2
-* 8369fcd71ab46df07ca6eebcdf08761a9d52ede7 Merge pull request #11969 from german77/profile
-* 626916e9a48a9bbc5f09968d89d378891ffb3809 Merge pull request #11961 from german77/recent
-* 507f360a81f6938a06643eab0df4dc24f3e89307 yuzu: Only store games in the recently played list
+* 4a1c1084888627f0728aa43efc499cbe143ed66d "Merge Tagged PR 11914"
+* f75363177ebca1e4ccf447e0bfb8894ad0136f20 Merge pull request #11977 from SamayXD/patch-1
+* 4c6217f09bbf404072d1e7ebf2205a4f221c4771 Update CMakeLists.txt
+* c95f35ea853fa1fd116e3be29232e12ada1ae1c7 Update CMakeLists.txt
+* 40357098a247dcbff3b97e0af22126dd12255a75 Merge pull request #11896 from liamwhite/crop
+* e7f41107913871a5a750761128b7ffd34f8fe5a6 Merge pull request #11873 from liamwhite/buffer-control
+* ca1dd1862b89957b3c521904919aa7231ab8de5d Merge pull request #11972 from t895/fps-counter-adjustments
+* 737d1cea62dc31d7653859a1f1c33a197745292a Merge pull request #11974 from t895/ci-fix-again
+* 2f8e237ab7317fb377c3c23a283ed0024b41935b ci: android: Declare secrets during build step
+* 5191465b0aa7b0cf1edde2c29f0c42a96a09a2ae android: Simplify FPS counter padding
 <details><summary><b>See More</b></summary>
 
-* 5323d9f6b3cba683522d90fbd9f28b6e11b9348b service: acc: Ensure proper profile size
-* 75de0cadcfaa483393a832fc804d80382f61d885 renderer_null: fix
+* 50c604f37fc34ca6aaa874f1d51c9bcdec90f570 android: Color the FPS counter white
+* 9543adf072a7d116e49b2d54359cd7e5b374e594 android: Always update FPS counter
+* 6513a356f07e64aacd66e792cf88e4cedc62cbcb renderer_vulkan: fix FSR cropping
+* 65d4a16afd7d84742751d3f9b3b0976738cac136 renderer_vulkan: fix cropping for presentation
+* 723df0f3685f01ce5a0330d567932136a9de7a8f nvdrv: rework to remove memcpy
+* 94b7ac50bb5283caf20989341e27d77ec2c57bef nvdrv: fix up remaining copy calls
+* 18450ebd7877d1832307545ee7b9225bb00e7884 nvdrv: convert nvmap
+* efdb2e8f3dfc1106ee601a2e0cc479c35aa83698 nvdrv: convert codec devices
+* 7a84a1a9748d01961e91ad612ed338abf9ec844c nvdrv: convert nvhost_gpu
+* 789d9c8af931490efd8647f286e136faaf062989 nvdrv: convert nvhost_ctrl
+* 4df063209bebeb8737cbefd47a8958977aff9c2d nvdrv: convert nvhost_ctrl_gpu
+* 6256e3ca8e74d7f97e4dabc3e9b24de1a0d8df3c nvdrv: add ioctl command serialization, convert nvhost_as_gpu
 
-This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24928&view=logs).</details></releaseNotes>
+This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24940&view=logs).</details></releaseNotes>
     <licenseUrl>https://github.com/yuzu-emu/yuzu-mainline/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/yuzu-emu/yuzu-mainline</projectUrl>
     <description>Description could not be found.</description>
     <iconUrl>https://raw.githubusercontent.com/yuzu-emu/yuzu-mainline/master/dist/yuzu.svg</iconUrl>
   </metadata>
 </package>
+
 
 
 

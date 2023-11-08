@@ -3,7 +3,7 @@ $toolsDir   = "C:\AutoPackages\ryujinx.release-channel-master.test-ava-ryujinx-w
 
 $packageArgs = @{
     packageName     = "ryujinx.release-channel-master.test-ava-ryujinx-win_x64"
-    url             = "https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1071/test-ava-ryujinx-1.1.1071-win_x64.zip"
+    url             = "https://github.com/Ryujinx/release-channel-master/releases/download/1.1.1072/test-ava-ryujinx-1.1.1072-win_x64.zip"
     unzipLocation   = $toolsDir
 }
 
@@ -37,6 +37,7 @@ $startMenuShortcutPath = Join-Path $startMenuDir "$exeName.lnk"
 $StartMenuShortcut = $WshShell.CreateShortcut($startMenuShortcutPath)
 $DesktopShortcut.TargetPath = $largestExe.FullName
 $StartMenuShortcut.Save()
+
 
 
 
