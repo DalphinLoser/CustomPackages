@@ -63,7 +63,8 @@ function New-NuspecFile {
 
     # Add <icon> element
     #$iconElem = $xmlDoc.CreateElement('icon', $namespaceUri)
-    #$iconElem.InnerText = 'icon.png'
+    #$iconElem.InnerText = 'icon.ico'
+    #$metadataElem.AppendChild($iconElem) | Out-Null
 
     $nuspecPath = Join-Path $PackageDir "$($Metadata.PackageName).nuspec"
     $xmlDoc.Save($nuspecPath)

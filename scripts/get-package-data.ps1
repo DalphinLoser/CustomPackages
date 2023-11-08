@@ -683,6 +683,7 @@ function Set-AssetInfo {
                 GithubRepoName  = 'ProductName';
                 IconUrl         = 'IconUrl';
                 CommandLineArgs = 'CommandLineArgs';
+                IconPath        = 'IconPath';
             }
             Write-DebugLog "EXE Info: " -ForegroundColor Magenta
             # Iterate through the properties and set the metadata

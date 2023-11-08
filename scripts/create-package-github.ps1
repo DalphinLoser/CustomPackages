@@ -70,6 +70,21 @@ function Initialize-GithubPackage {
 #endregion
 #region Create Nuspec File and Install Script
 
+    # Copy the icon from the resources directory to the package directory
+    Write-DebugLog "    Copying Icon..." -NoNewline -ForegroundColor Yellow
+    if($myMetadata.IconPath){
+        # Create "\content\images\" directory under the package directory
+        $iconDir = Join-Path $thisPackageDir "content\images"
+        if (-not (Test-Path $iconDir)) {
+            New-Item -Path $iconDir -ItemType Directory -Force | Out-Null
+        }
+        # Copy the icon to the "\content\images\" directory
+        Copy-Item -Path $myMetadata.IconPath -Destination $iconDir -Force
+    }
+
+    # Clean up RH-Get directory
+    Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+
     # Create the nuspec file and install script
     Write-DebugLog "    Creating Nuspec File..." -NoNewline -ForegroundColor Yellow
 

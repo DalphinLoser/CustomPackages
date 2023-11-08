@@ -45,7 +45,9 @@ function Get-DataFromExe {
                         # Use the largest .exe file
                         $downloadedFilePath = $downloadedFilePaths | Sort-Object -Property Length -Descending | Select-Object -First 1
                         Write-DebugLog "    Using largest exe file found: " -NoNewline -ForegroundColor Cyan
-                        Write-DebugLog $downloadedFilePath
+                        Write-DebugLog $downloadedFilePath.FullName
+                        # Rename the file to downloadedFile.exe
+                        $downloadedFilePath = Rename-Item -Path $downloadedFilePath.FullName -NewName "downloadedFile.exe" -PassThru -ErrorAction Stop
                     }
                 }
                 catch {
@@ -105,11 +107,14 @@ Log=    $($logPath)
             Write-DebugLog "    Version info: " -NoNewline -ForegroundColor Yellow
             Write-DebugLog $versionInfo
 
-            $iconMoved = Move-IconToDirectory -IconPath $iconPath -VersionInfo $versionInfo -Destination "$rootDir\icons"
-            # If iconMoved true add icon url to version info
-            if ($iconMoved) {
+            $iconNewPath = Move-IconToDirectory -IconPath $iconPath -VersionInfo $versionInfo -Destination "$rootDir\icons"
+            # If iconNewPath true add icon url to version info
+            if ($iconNewPath) {
                 $versionInfo.IconUrl = "https://raw.githubusercontent.com/DalphinLoser/CustomPackages/main/icons/$($versionInfo.ProductName).ico"
                 Write-DebugLog "    Icon moved to icons directory" -ForegroundColor Green
+                $versionInfo.IconPath = $iconNewPath
+                Write-DebugLog "    Icon path: " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog $versionInfo.IconPath
             }
             else {
                 Write-DebugLog "    Failed to move icon to icons directory" -ForegroundColor Red
@@ -156,7 +161,7 @@ Log=    $($logPath)
         }
 
         # Clean up RH-Get directory
-        Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
+        #Clear-Directory -DirectoryPath "$($rootDir)\resources\RH-Get" -Exclude "resource_hacker"
 
         # Print the content of the hashtable to the console
         Write-DebugLog "    ExeData object: " -ForegroundColor Yellow
@@ -269,13 +274,16 @@ function Move-IconToDirectory {
         Write-DebugLog $Destination
     }
 
-    # Move the icon to the destination directory and rename it to the product name
-    Move-Item -Path $iconFile.FullName -Destination "$Destination\$($VersionInfo.ProductName).ico" -Force -ErrorAction Stop
+    # Copy the icon to the destination directory and rename it to the product name
+    Copy-Item -Path $iconFile.FullName -Destination "$Destination\$($VersionInfo.ProductName).ico" -Force -ErrorAction Stop
     Write-DebugLog "    Icon moved to destination directory: " -NoNewline -ForegroundColor Cyan
     Write-DebugLog "$Destination\$($VersionInfo.ProductName).ico"
 
+    # Save the path to the icon
+    $iconPath = "$Destination\$($VersionInfo.ProductName).ico"
+
     Write-LogFooter "Move-IconToDirectory"
-    return $true
+    return $iconPath
 }
 function Get-VersionInfo {
     param (
