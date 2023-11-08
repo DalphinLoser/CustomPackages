@@ -1,10 +1,14 @@
 . "$PSScriptRoot\logging-functions.ps1"
 
 function New-NuspecFile {
+    [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
+        [ValidateNotNull()]
         [System.Object]$Metadata,
-        [Parameter(Mandatory = $true)]
+
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
         [string]$PackageDir
     )
 
@@ -25,50 +29,44 @@ function New-NuspecFile {
     }
 
     Write-DebugLog "Element Mapping:" -ForegroundColor Yellow
-    $null = $elementMapping.GetEnumerator() | ForEach-Object {
-        Write-DebugLog "    $($_.Key) -> $($_.Value)"
+    foreach ($mapping in $elementMapping.GetEnumerator()) {
+        Write-DebugLog "    $($mapping.Key) -> $($mapping.Value)"
     }
 
-    $elementOrder = @('id', 'version', 'title', 'authors', 'packageSourceUrl', 'releaseNotes', 'licenseUrl')
+    $elementOrder = @('id', 'version', 'authors', 'title', 'description', 'packageSourceUrl', 'licenseUrl', 'iconUrl' ,'tags', 'releaseNotes')
 
     $xmlDoc = New-Object System.Xml.XmlDocument
 
-    $null = $xmlDoc.LoadXml('<?xml version="1.0"?><package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"><metadata></metadata></package>')
-    $nsManager = New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable)
-    $null = $nsManager.AddNamespace('ns', 'http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd')
-    $metadataElem = $xmlDoc.SelectSingleNode('/ns:package/ns:metadata', $nsManager)
-
-    Write-DebugLog "Appending required elements to metadata: " -ForegroundColor Yellow
-
     $namespaceUri = "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
+    $xmlDoc.LoadXml('<?xml version="1.0"?><package xmlns="' + $namespaceUri + '"><metadata></metadata></package>')
 
-    # Combine the elements in the order specified with any elements not in the order specified
-    $allElementsInOrder = $elementOrder + ($elementMapping.Keys | Where-Object { $elementOrder -notcontains $_ })
+    # Create the XmlNamespaceManager and add the namespace used in the .nuspec file
+    $nsManager = New-Object System.Xml.XmlNamespaceManager($xmlDoc.NameTable)
+    $nsManager.AddNamespace('ns', $namespaceUri)
 
-    Write-DebugLog "Appending elements to metadata... " -ForegroundColor Yellow
+    # Select the <metadata> element using the namespace manager
+    $metadataElem = $xmlDoc.SelectSingleNode('ns:package/ns:metadata', $nsManager)
 
-    foreach ($elementName in $allElementsInOrder) {
+    # Create each element in the order specified in $elementOrder
+    foreach ($elementName in $elementOrder) {
         $key = $elementMapping[$elementName]
         $value = $Metadata.$key
 
-        if (-not $value) {
-            Write-DebugLog "Value for $key is null" -ForegroundColor Yellow
-        }
-        else {
-            Write-DebugLog "    Creating element: " -ForegroundColor Magenta
-            Write-DebugLog "    name: " -NoNewline -ForegroundColor Cyan
-            Write-DebugLog "$elementName" -ForegroundColor White
-            Write-DebugLog "    value: " -NoNewline -ForegroundColor Cyan
-            Write-DebugLog "$value" -ForegroundColor White
-
+        if ($value) {
             $elem = $xmlDoc.CreateElement($elementName, $namespaceUri)
             $elem.InnerText = $value
-            $null = $metadataElem.AppendChild($elem)
+            $metadataElem.AppendChild($elem) | Out-Null
+        } else {
+            Write-DebugLog "Value for $key is null or empty" -ForegroundColor Yellow
         }
     }
 
+    # Add <icon> element
+    #$iconElem = $xmlDoc.CreateElement('icon', $namespaceUri)
+    #$iconElem.InnerText = 'icon.png'
+
     $nuspecPath = Join-Path $PackageDir "$($Metadata.PackageName).nuspec"
-    $null = $xmlDoc.Save($nuspecPath)
+    $xmlDoc.Save($nuspecPath)
 
     Write-DebugLog "Nuspec file created at: $nuspecPath" -ForegroundColor Green
     Write-LogFooter "New-NuspecFile"
