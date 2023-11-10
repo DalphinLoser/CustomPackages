@@ -154,8 +154,8 @@ jobs:
               git checkout main
               if ! git cherry-pick $commit_hash; then
                 # Cherry-pick failed, possibly due to a conflict
-                echo "Failed to cherry-pick changes for PR #$pr. Attempting to abort."
-                git cherry-pick --continue
+                echo "Failed to cherry-pick changes for PR #$pr. Attempting to resolve conflicts."
+                git cherry-pick --continue || git cherry-pick --abort
               
                 # Exit the loop iteration for this PR, move to the next one
                 continue
