@@ -70,27 +70,40 @@ jobs:
       run: |
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
-  
+    
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
-
+    
+        # Check if the remote branch exists
+        git fetch origin
+        if git branch -r | grep -qw "origin/$unique_branch"; then
+          echo "Remote branch exists, pulling changes..."
+          git checkout $unique_branch
+          git pull origin $unique_branch --rebase || echo "Failed to pull changes from $unique_branch"
+        else
+          echo "Remote branch does not exist, creating a new one..."
+          git checkout -b $unique_branch
+        fi
+        
         # Identify existing pull requests for the branch
         existing_prs=$(gh pr list --state open --head "$unique_branch")
         echo "Listing all open PRs for the branch:"
         echo "Existing PRs: $existing_prs"
-
+    
         # If an existing pull request is found, close it
         IFS=$'\n' read -ra prs <<< "$existing_prs"
         for pr_line in "${prs[@]}"; do
           pr_number=$(echo "$pr_line" | awk '{print $1}')
           gh pr close "$pr_number" --comment "Closing PR as a new PR has been created for the same branch."
         done        
-
+    
         # Stage only changes in the packages and icons directories
         echo "Staging changes from packages and icons directories"
         git add packages icons
-
-        # Commit and push only the changes
+    
+        # Commit the changes
         git commit -m "Automatically Created: ${{ matrix.repoUrl }}" || echo "No changes to commit"
+    
+        # Push the changes
         git push origin $unique_branch || echo "No changes to push"
         
         # Create the PR
