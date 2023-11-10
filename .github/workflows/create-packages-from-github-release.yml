@@ -96,9 +96,11 @@ jobs:
           gh pr close "$pr_number" --comment "Closing PR as a new PR has been created for the same branch."
         done        
     
-        # Stage only changes in the packages and icons directories
-        echo "Staging changes from packages and icons directories"
-        git add packages icons
+        echo "Staging .nupkg files from packages directory"
+        git add packages/*.nupkg
+
+        echo "Staging changes from icons directory"
+        git add icons/
     
         # Commit the changes
         git commit -m "Automatically Created: ${{ matrix.repoUrl }}" || echo "No changes to commit"
