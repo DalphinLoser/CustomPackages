@@ -636,7 +636,8 @@ function Set-AssetInfo {
 
     # Create package metadata object as a hashtable
     $packageMetadata = @{
-        PackageName        = $chocoPackageName
+        #PackageName        = $chocoPackageName
+        PackageName        = ConvertTo-ValidPackageName -PackageName $packageTitle
         Version            = $latestTagName -replace '[^0-9.]', ''
         Author             = $PackageData.user
         Description        = $description
@@ -718,6 +719,12 @@ function Set-AssetInfo {
                     Write-DebugLog $packageMetadata.SilentArgs
                 }
             }
+            # If product name is not null or empty, set the package name to the product name
+            if (-not [string]::IsNullOrWhiteSpace($dataFromExe.ProductName)) {
+                $packageMetadata.PackageName = $dataFromExe.ProductName.ToLower()
+                Write-DebugLog "    Package Name (ProductName): " -NoNewline -ForegroundColor Yellow
+                Write-DebugLog $packageMetadata.GithubRepoName
+            }
         }
     }
     # If the file type is msi, get the product name from the msi
@@ -744,6 +751,12 @@ function Set-AssetInfo {
                     Set-Metadata -property $property.Key -value $dataFromMsi.($property.Value) -metadataObject $packageMetadata -logLabel $property.Key
                     Write-DebugLog "    Updated " -NoNewline -ForegroundColor Yellow
                     Write-DebugLog "$($property.Key)"
+                }
+                # If Subject is not null or empty, set the package name to the subject
+                if (-not [string]::IsNullOrWhiteSpace($dataFromMsi.Subject)) {
+                    $packageMetadata.PackageName = $dataFromMsi.Subject.ToLower()
+                    Write-DebugLog "    Package Name (Subject): " -NoNewline -ForegroundColor Yellow
+                    Write-DebugLog $packageMetadata.GithubRepoName
                 }
 
             }

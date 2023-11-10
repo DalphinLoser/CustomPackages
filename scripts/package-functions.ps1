@@ -33,7 +33,7 @@ function New-NuspecFile {
         Write-DebugLog "    $($mapping.Key) -> $($mapping.Value)"
     }
 
-    $elementOrder = @('id', 'version', 'authors', 'title', 'description', 'packageSourceUrl', 'licenseUrl', 'iconUrl' ,'tags', 'releaseNotes')
+    $elementOrder = @('id', 'title', 'version', 'authors', 'description', 'packageSourceUrl', 'projectUrl', 'licenseUrl', 'iconUrl' ,'tags', 'releaseNotes')
 
     $xmlDoc = New-Object System.Xml.XmlDocument
 
