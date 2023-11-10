@@ -73,15 +73,17 @@ jobs:
     
         unique_branch="staging_$(echo "${{ matrix.repoUrl }}" | sed 's/[~^: /@*?]//g')"
     
-        # Check if the remote branch exists
-        git fetch origin
-        if git branch -r | grep -qw "origin/$unique_branch"; then
-          echo "Remote branch exists, pulling changes..."
-          git checkout $unique_branch
-          git pull origin $unique_branch --rebase || echo "Failed to pull changes from $unique_branch"
+        # Check if the branch exists locally or on the remote
+        if git rev-parse --verify "$unique_branch"; then
+          echo "Branch $unique_branch exists locally, checking out..."
+          git checkout "$unique_branch"
+        elif git branch -r | grep -qw "origin/$unique_branch"; then
+          echo "Remote branch $unique_branch exists, checking out and pulling changes..."
+          git checkout -t "origin/$unique_branch"
+          git pull origin "$unique_branch" --rebase || echo "Failed to pull changes from $unique_branch"
         else
-          echo "Remote branch does not exist, creating a new one..."
-          git checkout -b $unique_branch
+          echo "Branch $unique_branch does not exist, creating a new one..."
+          git checkout -b "$unique_branch"
         fi
         
         # Identify existing pull requests for the branch
