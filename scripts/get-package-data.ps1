@@ -721,7 +721,7 @@ function Set-AssetInfo {
             }
             # If product name is not null or empty, set the package name to the product name
             if (-not [string]::IsNullOrWhiteSpace($dataFromExe.ProductName)) {
-                $packageMetadata.PackageName = $dataFromExe.ProductName.ToLower()
+                $packageMetadata.PackageName = ConvertTo-ValidPackageName -PackageName $dataFromExe.ProductName
                 Write-DebugLog "    Package Name (ProductName): " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog $packageMetadata.GithubRepoName
             }
@@ -754,7 +754,7 @@ function Set-AssetInfo {
                 }
                 # If Subject is not null or empty, set the package name to the subject
                 if (-not [string]::IsNullOrWhiteSpace($dataFromMsi.Subject)) {
-                    $packageMetadata.PackageName = $dataFromMsi.Subject.ToLower()
+                    $packageMetadata.PackageName = ConvertTo-ValidPackageName -PackageName $dataFromMsi.Subject
                     Write-DebugLog "    Package Name (Subject): " -NoNewline -ForegroundColor Yellow
                     Write-DebugLog $packageMetadata.GithubRepoName
                 }
