@@ -5,20 +5,21 @@
     <version>01606</version>
     <title>yuzu-mainline</title>
     <authors>yuzu-emu</authors>
-    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1614/yuzu-windows-msvc-20231108-ecdd38633.7z</packageSourceUrl>
+    <packageSourceUrl>https://github.com/yuzu-emu/yuzu-mainline/releases/download/mainline-0-1615/yuzu-windows-msvc-20231109-5f6b7d8dd.7z</packageSourceUrl>
     <releaseNotes>
 
 ## Changes:
 
-* ecdd386336bd0b95dd610695f8b4dab46d5d3bb5 "Merge Tagged PR 11914"
+* 5f6b7d8dd9c4d133ee3adeec558f4f863368b092 "Merge Tagged PR 11914"
 
-This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24944&view=logs).</releaseNotes>
+This list of changes was [auto generated](https://dev.azure.com/yuzu-emu/yuzu/_build/results?buildId=24946&view=logs).</releaseNotes>
     <licenseUrl>https://github.com/yuzu-emu/yuzu-mainline/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/yuzu-emu/yuzu-mainline</projectUrl>
     <description>Description could not be found.</description>
     <iconUrl>https://raw.githubusercontent.com/yuzu-emu/yuzu-mainline/master/dist/yuzu.svg</iconUrl>
   </metadata>
 </package>
+
 
 
 
