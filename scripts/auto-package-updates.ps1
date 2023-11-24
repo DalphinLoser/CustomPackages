@@ -275,7 +275,9 @@ function Get-Updates {
         }
     }
 
+    # return the list of packages that were updated as a comma-separated string
+    $output = $updatedPackages -join ', '
+
     Write-LogFooter "Get-Updates"
-    # Return the list of updated packages as a comma-separated string
-    return $updatedPackages -join ','
+    return ("$output")
 }

@@ -36,15 +36,14 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
+        $updatedPackages = ""
         try {
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
         } catch {
           Write-Host "An error occurred while getting updates: $_"
         }
-        try {
+        if ($updatedPackages -ne "") {
           echo "UPDATED_PACKAGES=$updatedPackages" >> $GITHUB_ENV
-        } catch {
-          Write-Host "An error occurred while writing to the environment file: $_"
         }
       shell: pwsh
       continue-on-error: true
