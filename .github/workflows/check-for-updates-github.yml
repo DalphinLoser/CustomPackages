@@ -42,12 +42,14 @@ jobs:
         } catch {
           Write-Host "An error occurred while getting updates: $_"
         }
-        # Set the value of the UPDATED_PACKAGES environment variable
-        echo "UPDATED_PACKAGES=$updatedPackages" >> $GITHUB_ENV
-        
-        Write-Host "Updated packages (PowerShell): $updatedPackages"
+        $updatedPackagesString = $updatedPackages -join ', '  # Cast to string
+        if ($updatedPackagesString -ne "") {
+          echo "UPDATED_PACKAGES=$updatedPackagesString" >> $GITHUB_ENV
+        }
+        Write-Host "Updated packages (PowerShell): $updatedPackagesString"
       shell: pwsh
       continue-on-error: true
+    
     
     # Debug step to print the value of UPDATED_PACKAGES
     - name: Debug UPDATED_PACKAGES (GitHub Actions Variable)
