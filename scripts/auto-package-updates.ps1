@@ -255,7 +255,7 @@ function Get-Updates {
             $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
 
             # Append the path to the new nupkg file to the list of updated packages
-            [void]($updatedPackages += $newPkg.FullName)
+            [void]($updatedPackages += $newPkg)
             
             # Clean up the temporary directory after your operations are complete
             Remove-Item -Path $tempExtractPath -Recurse
