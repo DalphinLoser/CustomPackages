@@ -245,9 +245,6 @@ function Get-Updates {
             # Update the install file with the new URL
             $installFileContent = $installFileContent -replace [regex]::Escape($url), $latestReleaseUrl
 
-
-            [void]($updatedPackages += $latestAsset.name)
-
             # Save the updated nuspec file
             $nuspecFileContent | Set-Content -Path $nuspecFile.FullName -Force
             Write-DebugLog "    Nuspec file updated successfully." -ForegroundColor Green
@@ -256,6 +253,9 @@ function Get-Updates {
             Write-DebugLog "    Install file updated successfully." -ForegroundColor Green
 
             $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
+
+            # Append the path to the new nupkg file to the list of updated packages
+            [void]($updatedPackages.Add($newPkg.FullName))
             
             # Clean up the temporary directory after your operations are complete
             Remove-Item -Path $tempExtractPath -Recurse
@@ -275,9 +275,6 @@ function Get-Updates {
         }
     }
 
-    # return the list of packages that were updated as a comma-separated string
-    $output = $updatedPackages -join ', '
-
     Write-LogFooter "Get-Updates"
-    return ("$output")
+    return $updatedPackages
 }
