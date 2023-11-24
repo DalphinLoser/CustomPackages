@@ -14,7 +14,7 @@ function Get-Updates {
     Write-LogHeader "Get-Updates"
     
     # Initialize variable to hold messages displaying if a package was updated or not
-    $updatedPackages = New-Object System.Collections.ArrayList
+    $updatedPackages = @()
 
     if (-not (Test-Path $PackagesDir)) {
         Write-Error "Path is not valid: $PackagesDir"
@@ -255,7 +255,7 @@ function Get-Updates {
             $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
 
             # Append the path to the new nupkg file to the list of updated packages
-            [void]($updatedPackages.Add($newPkg.FullName))
+            [void]($updatedPackages += $newPkg.FullName)
             
             # Clean up the temporary directory after your operations are complete
             Remove-Item -Path $tempExtractPath -Recurse
