@@ -60,7 +60,7 @@ function Get-Updates {
   
         # If the install file doesn't exist, skip this package
         if (-not $installFile) {
-            Write-Error "No install file found in directory $($dirInfo.FullName)"
+            Write-Error "No install file found in directory $($tempExtractPath)\tools"
             exit 1
         }
 
@@ -79,9 +79,12 @@ function Get-Updates {
             exit 1
         }
 
+        # Find the .nuspec file
+        $nuspecFile = Get-ChildItem -Path "$tempExtractPath" -Filter "*.nuspec" -File | Select-Object -First 1
+
         # If the nuspec file doesn't exist, skip this package
         if (-not $nuspecFile) {
-            Write-Error "No .nuspec file found in directory $($dirInfo.FullName)"
+            Write-Error "No .nuspec file found in directory $($tempExtractPath)"
             continue
         }
 
