@@ -46,6 +46,8 @@ jobs:
     
         # Push packages to GitHub Packages if there are updates
         if ($updatedPackages.Count -gt 0) {
+          $updatedPackagesString = $updatedPackages -join ', '
+          echo "UPDATED_PACKAGES=$updatedPackagesString" | Out-File -Append -FilePath $Env:GITHUB_ENV
           foreach ($packagePath in $updatedPackages) {
             if (Test-Path $packagePath) {
               Write-Host "Pushing package: $packagePath"
@@ -57,6 +59,7 @@ jobs:
         } else {
           Write-Host "No updated packages to push."
         }
+
       shell: pwsh
     
 
