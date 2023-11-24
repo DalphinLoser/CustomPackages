@@ -41,13 +41,12 @@ jobs:
         } catch {
           Write-Host "An error occurred while getting updates: $_"
         }
-        try {
-          echo "UPDATED_PACKAGES=$updatedPackages" >> $GITHUB_ENV
-        } catch {
-          Write-Host "An error occurred while writing to the environment file: $_"
+        if ($updatedPackages -ne "") {
+          echo "UPDATED_PACKAGES=$updatedPackages" | Out-File -Append -FilePath $Env:GITHUB_ENV
         }
       shell: pwsh
       continue-on-error: true
+    
 
     - name: Commit and Push to GitHub
       run: |
