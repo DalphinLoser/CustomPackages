@@ -36,15 +36,28 @@ function Get-Updates {
             Write-Error "dirInfo is null or empty"
             exit 1
         }
-
+    
         Write-DebugLog "Checking for updates for: $($dirInfo.Name)" -ForegroundColor Magenta
         $package = $dirInfo.Name
-
-        $nuspecFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nuspec" -File | Select-Object -First 1
-
-        # Get the install file for the package. Located under the tools directory within the package directory. File will be named chocolateyInstall.ps1
-        $installFile = Get-ChildItem -Path "$($dirInfo.FullName)\tools" -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
-
+    
+        # Find the .nupkg file
+        $nupkgFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nupkg" -File | Select-Object -First 1
+    
+        if ($null -eq $nupkgFile) {
+            Write-Warning "No .nupkg file found in $($dirInfo.FullName)"
+            continue
+        }
+    
+        # Temporary directory to extract the contents of the .nupkg file
+        $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath ([System.IO.Path]::GetRandomFileName())
+        New-Item -ItemType Directory -Path $tempExtractPath | Out-Null
+    
+        # Extract the .nupkg file
+        Expand-Archive -LiteralPath $nupkgFile.FullName -DestinationPath $tempExtractPath
+    
+        # Find the chocolateyInstall.ps1 file within the extracted directory
+        $installFile = Get-ChildItem -Path "$tempExtractPath\tools" -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
+  
         # If the install file doesn't exist, skip this package
         if (-not $installFile) {
             Write-Error "No install file found in directory $($dirInfo.FullName)"
@@ -240,6 +253,9 @@ function Get-Updates {
             Write-DebugLog "    Install file updated successfully." -ForegroundColor Green
 
             $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
+            
+            # Clean up the temporary directory after your operations are complete
+            Remove-Item -Path $tempExtractPath -Recurse
             
         }
         else {

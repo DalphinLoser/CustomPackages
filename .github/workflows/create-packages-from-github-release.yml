@@ -17,9 +17,9 @@ jobs:
       id: set-matrix
       run: |
         matrix=$(echo -n '['; echo "${{ github.event.inputs.repoUrls }}" | tr ', ' '\n' | tr ',' '\n' | tr ' ' '\n' | sed '/^$/d' | sort -u | awk -vORS=',' '{ print "\""$0"\""}' | sed 's/,$//'; echo -n ']')
-        echo "matrix=${matrix}" >> $GITHUB_OUTPUT  # Updated according to new guidelines  
+        echo "matrix=${matrix}" >> $GITHUB_OUTPUT 
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: pre_process
     strategy:
       fail-fast: false
