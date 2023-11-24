@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Set Global Variables
@@ -36,40 +36,26 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
-        $updatedPackages = ""
         try {
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
         } catch {
           Write-Host "An error occurred while getting updates: $_"
         }
-        $updatedPackagesString = $updatedPackages -join ', '  # Cast to string
-        if ($updatedPackagesString -ne "") {
-          echo "UPDATED_PACKAGES=$updatedPackagesString" >> $GITHUB_ENV
+        try {
+          echo "UPDATED_PACKAGES=$updatedPackages" >> $GITHUB_ENV
+        } catch {
+          Write-Host "An error occurred while writing to the environment file: $_"
         }
-        Write-Host "Updated packages (PowerShell): $updatedPackagesString"
       shell: pwsh
       continue-on-error: true
-    
-    
-    # Debug step to print the value of UPDATED_PACKAGES
-    - name: Debug UPDATED_PACKAGES (GitHub Actions Variable)
-      run: |
-        echo "UPDATED_PACKAGES (GitHub Actions env var) = ${{ env.UPDATED_PACKAGES }}"
-      shell: bash
-    
-    # Check the contents of the GITHUB_ENV file
-    - name: Check GITHUB_ENV File Contents
-      run: |
-        cat $GITHUB_ENV
-      shell: bash
-    
+
     - name: Commit and Push to GitHub
       run: |
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
         git add icons/ 
         git add packages/*.nupkg
+        # Commit the updated packages and list of updated packages in the commit message
         git commit -m "Automatically Updated: ${{ env.UPDATED_PACKAGES}}" || echo "No changes to commit"
         git push origin ${{ github.ref }}
       shell: pwsh
-    
