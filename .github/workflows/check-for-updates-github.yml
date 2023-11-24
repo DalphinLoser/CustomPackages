@@ -42,9 +42,9 @@ jobs:
         } catch {
           Write-Host "An error occurred while getting updates: $_"
         }
-        if ($updatedPackages -ne "") {
-          echo "UPDATED_PACKAGES=$updatedPackages" >> $GITHUB_ENV
-        }
+        # Set the value of the UPDATED_PACKAGES environment variable
+        echo "UPDATED_PACKAGES=$updatedPackages" >> $GITHUB_ENV
+        
         Write-Host "Updated packages (PowerShell): $updatedPackages"
       shell: pwsh
       continue-on-error: true
@@ -59,12 +59,6 @@ jobs:
     - name: Check GITHUB_ENV File Contents
       run: |
         cat $GITHUB_ENV
-      shell: bash
-    
-    # Check the current environment variables
-    - name: List Current Environment Variables
-      run: |
-        printenv
       shell: bash
     
     - name: Commit and Push to GitHub
