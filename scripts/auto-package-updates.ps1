@@ -14,7 +14,7 @@ function Get-Updates {
     Write-LogHeader "Get-Updates"
     
     # Initialize variable to hold messages displaying if a package was updated or not
-    $updatedPackages = @()
+    $updatedPackages = New-Object System.Collections.ArrayList
 
     if (-not (Test-Path $PackagesDir)) {
         Write-Error "Path is not valid: $PackagesDir"
