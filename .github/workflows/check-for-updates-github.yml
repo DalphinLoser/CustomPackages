@@ -31,38 +31,34 @@ jobs:
         }
       shell: pwsh
 
-    - name: Update Packages
+    - name: Update and Push Packages
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        # Update packages
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
         try {
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
         } catch {
           Write-Host "An error occurred while getting updates: $_"
+          exit 1
         }
-        if ($updatedPackages.Count -gt 0) {
-          $updatedPackagesString = $updatedPackages -join ', '
-          echo "UPDATED_PACKAGES=$updatedPackagesString" | Out-File -Append -FilePath $Env:GITHUB_ENV
-        }
-      shell: pwsh
-      continue-on-error: true
     
-    - name: Push Updated Packages to GitHub Packages
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        $updatedPackages = "${{ env.UPDATED_PACKAGES }}".Split(',')
-        foreach ($packagePath in $updatedPackages) {
-          if (Test-Path $packagePath) {
-            Write-Host "Pushing package: $packagePath"
-            dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
-          } else {
-            Write-Host "Package path $packagePath not found."
+        # Push packages to GitHub Packages if there are updates
+        if ($updatedPackages.Count -gt 0) {
+          foreach ($packagePath in $updatedPackages) {
+            if (Test-Path $packagePath) {
+              Write-Host "Pushing package: $packagePath"
+              dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
+            } else {
+              Write-Host "Package path $packagePath not found."
+            }
           }
+        } else {
+          Write-Host "No updated packages to push."
         }
       shell: pwsh
-      if: env.UPDATED_PACKAGES != ''
+    
 
     - name: Commit and Push to GitHub
       run: |
