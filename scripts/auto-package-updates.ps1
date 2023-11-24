@@ -274,10 +274,8 @@ function Get-Updates {
             Write-DebugLog "    $_"
         }
     }
-    $output = $updatedPackages | ForEach-Object {
-        "$_ "
-    }
+
     Write-LogFooter "Get-Updates"
     # Return the list of updated packages as a comma-separated string
-    return $output
+    return $updatedPackages -join ','
 }
