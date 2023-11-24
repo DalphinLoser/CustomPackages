@@ -279,5 +279,5 @@ function Get-Updates {
     }
     Write-LogFooter "Get-Updates"
     # Return the list of updated packages as a comma-separated string
-    return ("$output")
+    return $output
 }
