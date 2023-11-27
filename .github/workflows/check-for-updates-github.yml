@@ -21,12 +21,12 @@ jobs:
 
     - name: Install Dependencies (Chocolatey)
       run: |
+        $logFile = "$Env:GITHUB_WORKSPACE\logs\update-log.txt"
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
           Write-Host "Chocolatey is not installed. Installing now..."
           Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
           if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-            Write-Error "Failed to install Chocolatey. Aborting."
-            exit 1
+            "Failed to install Chocolatey" | Out-File -Append -FilePath $logFile
           }
         }
       shell: pwsh
@@ -35,41 +35,38 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Update packages
+        $logFile = "$Env:GITHUB_WORKSPACE\logs\update-log.txt"
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
         try {
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
-        } catch {
-          Write-Host "An error occurred while getting updates: $_"
-          exit 1
-        }
-    
-        # Push packages to GitHub Packages if there are updates
-        if ($updatedPackages.Count -gt 0) {
-          $updatedPackagesString = $updatedPackages -join ', '
-          echo "UPDATED_PACKAGES=$updatedPackagesString" | Out-File -Append -FilePath $Env:GITHUB_ENV
-          foreach ($packagePath in $updatedPackages) {
-            if (Test-Path $packagePath) {
-              Write-Host "Pushing package: $packagePath"
-              dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
-            } else {
-              Write-Host "Package path $packagePath not found."
+          if ($updatedPackages.Count -gt 0) {
+            foreach ($packagePath in $updatedPackages) {
+              if (Test-Path $packagePath) {
+                try {
+                  dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
+                  "Successfully updated $packagePath" | Out-File -Append -FilePath $logFile
+                } catch {
+                  "Failed to push package: $packagePath" | Out-File -Append -FilePath $logFile
+                }
+              } else {
+                "Package path $packagePath not found." | Out-File -Append -FilePath $logFile
+              }
             }
+          } else {
+            "No updated packages to push." | Out-File -Append -FilePath $logFile
           }
-        } else {
-          Write-Host "No updated packages to push."
+        } catch {
+          "An error occurred while getting updates: $_" | Out-File -Append -FilePath $logFile
         }
-
       shell: pwsh
-    
 
     - name: Commit and Push to GitHub
       run: |
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
+        git add $Env:GITHUB_WORKSPACE\logs\update-log.txt
         git add icons/ 
         git add packages/*.nupkg
-        # Commit the updated packages and list of updated packages in the commit message
-        git commit -m "Automatically Updated: ${{ env.UPDATED_PACKAGES}}" || echo "No changes to commit"
+        git commit -m "Update packages and log" -a || echo "No changes to commit"
         git push origin ${{ github.ref }}
       shell: pwsh

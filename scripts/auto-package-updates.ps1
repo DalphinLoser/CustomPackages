@@ -4,7 +4,7 @@
 . "$PSScriptRoot\package-functions.ps1"
 
 # Global Variables
-$Global:EnableDebugMode = $true
+$Global:EnableDebugMode = $false
 
 function Get-Updates {
     param (
