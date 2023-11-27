@@ -26,7 +26,10 @@ jobs:
           Write-Host "Chocolatey is not installed. Installing now..."
           Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
           if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-            "Failed to install Chocolatey" | Out-File -Append -FilePath $logFile
+            Write-Host "Chocolatey failed to install. Exiting..."
+            # log that chocolatey failed to install
+            "Chocolatey failed to install." | Out-File -Append -FilePath $logFile
+            exit 1
           }
         }
       shell: pwsh
