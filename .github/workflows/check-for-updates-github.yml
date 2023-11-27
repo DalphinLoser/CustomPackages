@@ -67,7 +67,7 @@ jobs:
       run: |
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
-        git add $Env:GITHUB_WORKSPACE\logs\update-log.txt
+        git add logs/
         git add icons/ 
         git add packages/*.nupkg
         git commit -m "Update packages and log" -a || echo "No changes to commit"
