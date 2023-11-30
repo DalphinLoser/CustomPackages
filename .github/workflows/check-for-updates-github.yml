@@ -38,30 +38,52 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        function Log-Message {
+          param (
+            [string]$Message,
+            [string]$Type = "INFO", # Default type is INFO
+            [System.Exception]$Exception
+          )
+          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+          $logEntry = "$timestamp [$Type] $Message"
+    
+          if ($Exception) {
+            $logEntry += " Exception: $($Exception.Message), StackTrace: $($Exception.StackTrace)"
+          }
+    
+          $logEntry | Out-File -Append -FilePath $Env:GITHUB_WORKSPACE\logs\update-log.txt
+        }
+    
         $logFile = "$Env:GITHUB_WORKSPACE\logs\update-log.txt"
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
+        
         try {
+          Log-Message "Starting package updates"
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
+          
           if ($updatedPackages.Count -gt 0) {
             foreach ($packagePath in $updatedPackages) {
               if (Test-Path $packagePath) {
                 try {
                   dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
-                  "Successfully updated $packagePath" | Out-File -Append -FilePath $logFile
+                  Log-Message "Successfully updated $packagePath"
                 } catch {
-                  "Failed to push package: $packagePath" | Out-File -Append -FilePath $logFile
+                  Log-Message "Failed to push package: $packagePath" -Type "ERROR" -Exception $_
                 }
               } else {
-                "Package path $packagePath not found." | Out-File -Append -FilePath $logFile
+                Log-Message "Package path $packagePath not found." -Type "WARNING"
               }
             }
           } else {
-            "No updated packages to push." | Out-File -Append -FilePath $logFile
+            Log-Message "No updated packages to push."
           }
+    
+          Log-Message "Completed package updates"
         } catch {
-          "An error occurred while getting updates: $_" | Out-File -Append -FilePath $logFile
+          Log-Message "An error occurred while getting updates: $_" -Type "ERROR" -Exception $_
         }
       shell: pwsh
+    
 
     - name: Commit and Push to GitHub
       run: |
