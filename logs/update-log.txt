@@ -8,3 +8,6 @@ An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\App
 An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\ofog4g25.sqs\_rels\.rels' because it does not exist.
 An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\prabdh51.ahz\_rels\.rels' because it does not exist.
 An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\zyqvgzzm.1ig\_rels\.rels' because it does not exist.
+An error occurred while getting updates: Failed to fetch repository information.
+Successfully updated D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.7.nupkg
+Successfully updated D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1093.nupkg
