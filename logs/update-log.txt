@@ -11,3 +11,7 @@ An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\App
 An error occurred while getting updates: Failed to fetch repository information.
 Successfully updated D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.7.nupkg
 Successfully updated D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1093.nupkg
+2023-11-30 15:59:33 [INFO] Starting package updates
+2023-11-30 16:00:26 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.7.nupkg
+2023-11-30 16:00:27 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1093.nupkg
+2023-11-30 16:00:27 [INFO] Completed package updates
