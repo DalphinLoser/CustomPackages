@@ -5,3 +5,5 @@ An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\App
 An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\fjmjwybh.0vk\_rels\.rels' because it does not exist.
 An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\i3f0zjvj.afr\_rels\.rels' because it does not exist.
 An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\ehecc3c2.rje\_rels\.rels' because it does not exist.
+An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\ofog4g25.sqs\_rels\.rels' because it does not exist.
+An error occurred while getting updates: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\prabdh51.ahz\_rels\.rels' because it does not exist.
