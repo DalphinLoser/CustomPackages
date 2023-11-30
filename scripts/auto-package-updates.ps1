@@ -49,7 +49,13 @@ function Get-Updates {
         }
     
         # Temporary directory to extract the contents of the .nupkg file
-        $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath ([System.IO.Path]::GetRandomFileName())
+        try {
+            $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath ([System.IO.Path]::GetRandomFileName())
+        }
+        catch {
+            Write-DebugLog "Unable to create temporary directory: $tempExtractPath"
+            Write-DebugLog "Variables: $env:TEMP, $([System.IO.Path]::GetRandomFileName())"
+        }
         New-Item -ItemType Directory -Path $tempExtractPath | Out-Null
     
         # Extract the .nupkg file
@@ -65,7 +71,13 @@ function Get-Updates {
         }
 
         # Get the contents of the install file
-        $installFileContent = Get-Content -Path $installFile.FullName -Raw
+        try {
+            $installFileContent = Get-Content -Path $installFile.FullName -Raw
+        }
+        catch {
+            Write-Error "Unable to get contents of install file: $($installFile.FullName)"
+            exit 1
+        }
 
         # Find the value of the url field in the install file
         if ($installFileContent -match 'url\s*=\s*["''](.*)["'']') {
@@ -80,7 +92,13 @@ function Get-Updates {
         }
 
         # Find the .nuspec file
-        $nuspecFile = Get-ChildItem -Path "$tempExtractPath" -Filter "*.nuspec" -File | Select-Object -First 1
+        try {
+            $nuspecFile = Get-ChildItem -Path "$tempExtractPath" -Filter "*.nuspec" -File | Select-Object -First 1
+        }
+        catch {
+            Write-Error "Unable to get .nuspec file from directory: $tempExtractPath"
+            exit 1
+        }
 
         # If the nuspec file doesn't exist, skip this package
         if (-not $nuspecFile) {
@@ -258,7 +276,13 @@ function Get-Updates {
             [void]($updatedPackages += $newPkg)
             
             # Clean up the temporary directory after your operations are complete
-            Remove-Item -Path $tempExtractPath -Recurse
+            try {
+                Remove-Item -Path $tempExtractPath -Recurse
+            }
+            catch {
+                Write-Error "Unable to remove temporary directory: $tempExtractPath"
+                continue
+            }
             
         }
         else {
