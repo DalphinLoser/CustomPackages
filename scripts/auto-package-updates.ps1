@@ -56,10 +56,20 @@ function Get-Updates {
             Write-DebugLog "Unable to create temporary directory: $tempExtractPath"
             Write-DebugLog "Variables: $env:TEMP, $([System.IO.Path]::GetRandomFileName())"
         }
-        New-Item -ItemType Directory -Path $tempExtractPath | Out-Null
-    
-        # Extract the .nupkg file
-        Expand-Archive -LiteralPath $nupkgFile.FullName -DestinationPath $tempExtractPath
+        
+        # Create the temporary directory overwriting any existing directory with the same name
+        New-Item -ItemType Directory -Path $tempExtractPath -Force | Out-Null
+
+        # Copy the .nupkg file to the temporary directory, changing the extension to .zip. Then extract the contents of the .zip file
+        try {
+            Copy-Item -Path $nupkgFile.FullName -Destination "$tempExtractPath\$($nupkgFile.Name -replace '.nupkg', '.zip')" -Force
+            Expand-Archive -Path "$tempExtractPath\$($nupkgFile.Name -replace '.nupkg', '.zip')" -DestinationPath $tempExtractPath -Force
+        }
+        catch {
+            Write-Error "Unable to extract contents of $($nupkgFile.FullName) to $tempExtractPath"
+            exit 1
+        }
+
     
         # Find the chocolateyInstall.ps1 file within the extracted directory
         $installFile = Get-ChildItem -Path "$tempExtractPath\tools" -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
