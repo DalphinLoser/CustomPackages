@@ -40,8 +40,8 @@ function Get-Updates {
         Write-DebugLog "Checking for updates for: $($dirInfo.Name)" -ForegroundColor Magenta
         $package = $dirInfo.Name
     
-        # Find the .nupkg file
-        $nupkgFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nupkg" -File | Select-Object -First 1
+        # Find the most recent .nupkg file
+        $nupkgFile = Get-ChildItem -Path "$($dirInfo.FullName)" -Filter "*.nupkg" -File | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
     
         if ($null -eq $nupkgFile) {
             Write-Warning "No .nupkg file found in $($dirInfo.FullName)"
