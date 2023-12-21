@@ -52,7 +52,8 @@ function Get-Updates {
         try {
             $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath ([System.IO.Path]::GetRandomFileName())
             # Ensure the directory is created
-            New-Item -ItemType Directory -Path $tempExtractPath -Force | Out-Null
+            New-Item -ItemType Directory -Path $tempExtractPath -Force
+            Write-DebugLog "Created Temp Name: $($tempExtractPath)"
         }
         catch {
             Write-Error "Unable to create temporary directory at $env:TEMP with random name. Error: $_"
