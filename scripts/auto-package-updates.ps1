@@ -18,7 +18,7 @@ function Get-Updates {
 
     if (-not (Test-Path $PackagesDir)) {
         Write-Error "Path is not valid: $PackagesDir"
-        exit 1
+        continue
     }
     Write-DebugLog "Path is valid: $PackagesDir" -ForegroundColor Green
 
@@ -34,7 +34,7 @@ function Get-Updates {
     foreach ($dirInfo in $packageDirNames) {
         if ([string]::IsNullOrWhiteSpace($dirInfo)) {
             Write-Error "dirInfo is null or empty"
-            exit 1
+            continue
         }
     
         Write-DebugLog "Checking for updates for: $($dirInfo.Name)" -ForegroundColor Magenta
@@ -51,24 +51,31 @@ function Get-Updates {
         # Temporary directory to extract the contents of the .nupkg file
         try {
             $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath ([System.IO.Path]::GetRandomFileName())
+            # Ensure the directory is created
+            New-Item -ItemType Directory -Path $tempExtractPath -Force | Out-Null
         }
         catch {
-            Write-DebugLog "Unable to create temporary directory: $tempExtractPath"
-            Write-DebugLog "Variables: $env:TEMP, $([System.IO.Path]::GetRandomFileName())"
+            Write-Error "Unable to create temporary directory at $env:TEMP with random name. Error: $_"
+            continue
         }
         
-        # Create the temporary directory overwriting any existing directory with the same name
-        New-Item -ItemType Directory -Path $tempExtractPath -Force | Out-Null
+        # Check if .nupkg file exists
+        if (-not (Test-Path -Path $nupkgFile.FullName)) {
+            Write-Error "NuGet package file not found: $($nupkgFile.FullName)"
+            continue
+        } else {
+            # Proceed with copying and expanding
+            try {
+                $zipFilePath = "$tempExtractPath\$($nupkgFile.Name -replace '.nupkg', '.zip')"
+                Copy-Item -Path $nupkgFile.FullName -Destination $zipFilePath -Force
+                Expand-Archive -Path $zipFilePath -DestinationPath $tempExtractPath -Force
+            }
+            catch {
+                Write-Error "Unable to extract contents of $($nupkgFile.FullName) to $tempExtractPath. Error: $_"
+                continue
+            }
+        }
 
-        # Copy the .nupkg file to the temporary directory, changing the extension to .zip. Then extract the contents of the .zip file
-        try {
-            Copy-Item -Path $nupkgFile.FullName -Destination "$tempExtractPath\$($nupkgFile.Name -replace '.nupkg', '.zip')" -Force
-            Expand-Archive -Path "$tempExtractPath\$($nupkgFile.Name -replace '.nupkg', '.zip')" -DestinationPath $tempExtractPath -Force
-        }
-        catch {
-            Write-Error "Unable to extract contents of $($nupkgFile.FullName) to $tempExtractPath"
-            exit 1
-        }
 
     
         # Find the chocolateyInstall.ps1 file within the extracted directory
@@ -77,7 +84,7 @@ function Get-Updates {
         # If the install file doesn't exist, skip this package
         if (-not $installFile) {
             Write-Error "No install file found in directory $($tempExtractPath)\tools"
-            exit 1
+            continue
         }
 
         # Get the contents of the install file
@@ -86,7 +93,7 @@ function Get-Updates {
         }
         catch {
             Write-Error "Unable to get contents of install file: $($installFile.FullName)"
-            exit 1
+            continue
         }
 
         # Find the value of the url field in the install file
@@ -98,7 +105,7 @@ function Get-Updates {
         }
         else {
             Write-Error "No url found."
-            exit 1
+            continue
         }
 
         # Find the .nuspec file
@@ -107,7 +114,7 @@ function Get-Updates {
         }
         catch {
             Write-Error "Unable to get .nuspec file from directory: $tempExtractPath"
-            exit 1
+            continue
         }
 
         # If the nuspec file doesn't exist, skip this package
@@ -123,7 +130,7 @@ function Get-Updates {
         }
         else {
             Write-Error "No <packageSourceUrl> tag found."
-            exit 1
+            continue
         }
         # Find the version number in the nuspec file
         if ($nuspecFileContent -match '<version>(.*?)<\/version>') {
@@ -131,7 +138,7 @@ function Get-Updates {
         }
         else {
             Write-Error "No <version> tag found."
-            exit 1
+            continue
         }
         # Find the release notes in the nuspec file
         if ($nuspecFileContent -match '<releaseNotes>((.|\n|\r)*)<\/releaseNotes>') {
@@ -139,7 +146,7 @@ function Get-Updates {
         }
         else {
             Write-Error "No <releaseNotes> tag found in $($nuspecFile.FullName)"
-            exit 1
+            continue
         }
         
         # Find the value of the packageSourceUrl field in the nuspec file
