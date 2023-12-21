@@ -250,7 +250,7 @@ function New-ChocolateyPackage {
     Write-DebugLog "    Checking for nuspec file..."
     if (-not (Test-Path $NuspecPath)) {
         Write-Error "Nuspec file not found at: $NuspecPath"
-        exit 1
+        continue
     }
     else {
         Write-DebugLog "    Nuspec file found at: " -NoNewline -ForegroundColor Green
@@ -270,7 +270,7 @@ function New-ChocolateyPackage {
     }
     catch {
         Write-Error "Failed to create Chocolatey package... Exception: $_"
-        exit 1
+        continue
     }
     Write-DebugLog "    Chocolatey package created at: " -NoNewline -ForegroundColor Green
     Write-DebugLog $packagePath
