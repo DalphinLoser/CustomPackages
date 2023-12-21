@@ -65,15 +65,35 @@ function Get-Updates {
             continue
         } else {
             # Proceed with copying and expanding
+            # Step 1: Construct the Zip file path from the NuGet package
+            $zipFilePath = Join-Path -Path $tempExtractPath -ChildPath ($nupkgFile.Name -replace '.nupkg', '.zip')
+            
+            # Checking if NuGet package exists
+            if (-not (Test-Path -Path $nupkgFile.FullName)) {
+                Write-Error "NuGet package file not found: $($nupkgFile.FullName)"
+                continue
+            }
+            
+            # Step 2: Copy the NuGet package, changing the extension to Zip
             try {
-                $zipFilePath = "$tempExtractPath\$($nupkgFile.Name -replace '.nupkg', '.zip')"
+                Write-DebugLog "Copying NuGet package to Zip format: $($nupkgFile.FullName) to $zipFilePath"
                 Copy-Item -Path $nupkgFile.FullName -Destination $zipFilePath -Force
+            }
+            catch {
+                Write-Error "Failed to copy NuGet package to Zip: $($nupkgFile.FullName) to $zipFilePath. Error: $_"
+                continue # Skip to the next package if copying fails
+            }
+            
+            # Step 3: Expand the Zip file into the temporary directory
+            try {
+                Write-DebugLog "Expanding Zip file: $zipFilePath into $tempExtractPath"
                 Expand-Archive -Path $zipFilePath -DestinationPath $tempExtractPath -Force
             }
             catch {
-                Write-Error "Unable to extract contents of $($nupkgFile.FullName) to $tempExtractPath. Error: $_"
-                continue
+                Write-Error "Failed to expand Zip file: $zipFilePath into $tempExtractPath. Error: $_"
+                continue # Skip to the next package if expansion fails
             }
+
         }
 
 
