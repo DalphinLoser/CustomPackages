@@ -155,3 +155,5 @@
 2023-12-21 23:23:38 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\nouopmt3.o2m
 2023-12-21 23:23:38 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg
 2023-12-21 23:23:38 [INFO] Completed package updates
+2023-12-21 23:27:11 [INFO] Starting package updates
+2023-12-21 23:27:16 [ERROR] An error occurred while getting updates: Failed to expand Zip file: C:\Users\RUNNER~1\AppData\Local\Temp\gxs4drzz.ke0\project-gld.2.7.0.zip into C:\Users\RUNNER~1\AppData\Local\Temp\gxs4drzz.ke0. Error: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\gxs4drzz.ke0\_rels\.rels' because it does not exist. ErrorRecord: Failed to expand Zip file: C:\Users\RUNNER~1\AppData\Local\Temp\gxs4drzz.ke0\project-gld.2.7.0.zip into C:\Users\RUNNER~1\AppData\Local\Temp\gxs4drzz.ke0. Error: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\gxs4drzz.ke0\_rels\.rels' because it does not exist., Category: NotSpecified: (:) [Write-Error], WriteErrorException, ErrorID: Microsoft.PowerShell.Commands.WriteErrorException,Get-Updates
