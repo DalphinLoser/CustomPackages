@@ -255,7 +255,7 @@ function Get-SilentArgs {
         #>
         default { 
             Write-Error "   Unsupported file type: $FileType"
-            exit 1
+            continue
         }
     }
 
@@ -323,14 +323,14 @@ function Get-ReleaseObject {
     
     if (-not $releaseObj) {
         Write-Error "   Received data is null. URL used: $ReleaseApiUrl"
-        exit 1
+        continue
     }
 
     # Make sure the assets field is not null or empty
     $assetCount = ($releaseObj.assets | Measure-Object).Count
     if (-not $releaseObj.assets -or $assetCount -eq 0) {
         Write-Error "   No assets found for the latest release. URL used: $ReleaseApiUrl"
-        exit 1
+        continue
     }
 
     Write-LogFooter "Get-ReleaseObject"
@@ -822,7 +822,7 @@ function Initialize-PackageData {
     }
     else {
         Write-Error "Please provide a valid GitHub repository URL. URL provided: $InputGithubUrl does not match the pattern of a GitHub repository URL. GithubUser/GithubRepoName is required. Current User: $githubUser, Current Repo Name: $githubRepoName "
-        exit 1
+        continue
     }
 
     # hash table to store the PackageTable and information
@@ -853,12 +853,12 @@ function Initialize-PackageData {
             # Key exists, check if its value is null or empty
             if ([string]::IsNullOrWhiteSpace($packageTable[$key])) {
                 Write-Error "The value for '$key' is null or empty in the hash table."
-                exit 1
+                continue
             }
         }
         else {
             Write-Error "The key '$key' does not exist in the hash table."
-            exit 1
+            continue
         }
     }
 
