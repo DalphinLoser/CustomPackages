@@ -19,7 +19,7 @@ function Find-IcoInRepo {
 
     if (-not $token) {
         Write-Error "ERROR: GITHUB_TOKEN environment variable not set. Please set it before proceeding."
-        exit 1
+        continue
     }
 
     $headers = @{
@@ -40,7 +40,7 @@ function Find-IcoInRepo {
     }
     catch {
         Write-Error "ERROR: Failed to query GitHub API."
-        exit 1
+        continue
     }
 
     # Filter for files with .ico and .svg extensions
