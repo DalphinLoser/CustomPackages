@@ -313,15 +313,6 @@ function Get-Updates {
             # Append the path to the new nupkg file to the list of updated packages
             [void]($updatedPackages += $newPkg)
             
-            # Clean up the temporary directory after your operations are complete
-            try {
-                Remove-Item -Path $tempExtractPath -Recurse
-            }
-            catch {
-                Write-Error "Unable to remove temporary directory: $tempExtractPath"
-                continue
-            }
-            
         }
         else {
             Write-DebugLog "    No updates found for $package" -ForegroundColor Cyan
