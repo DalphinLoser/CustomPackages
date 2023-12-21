@@ -42,18 +42,18 @@ jobs:
           param (
             [string]$Message,
             [string]$Type = "INFO", # Default type is INFO
-            [System.Exception]$Exception
+            [System.Management.Automation.ErrorRecord]$ErrorRecord
           )
           $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
-    
-          if ($Exception) {
-            $logEntry += " Exception: $($Exception.Message), StackTrace: $($Exception.StackTrace)"
+
+          if ($ErrorRecord) {
+            $logEntry += " ErrorRecord: $($ErrorRecord.Exception.Message), Category: $($ErrorRecord.CategoryInfo), ErrorID: $($ErrorRecord.FullyQualifiedErrorId)"
           }
-    
+
           $logEntry | Out-File -Append -FilePath $Env:GITHUB_WORKSPACE\logs\update-log.txt
         }
-    
+
         $logFile = "$Env:GITHUB_WORKSPACE\logs\update-log.txt"
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
         
@@ -68,7 +68,7 @@ jobs:
                   dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
                   Log-Message "Successfully updated $packagePath"
                 } catch {
-                  Log-Message "Failed to push package: $packagePath" -Type "ERROR" -Exception $_
+                  Log-Message "Failed to push package: $packagePath" -Type "ERROR" -ErrorRecord $_
                 }
               } else {
                 Log-Message "Package path $packagePath not found." -Type "WARNING"
@@ -80,10 +80,9 @@ jobs:
     
           Log-Message "Completed package updates"
         } catch {
-          Log-Message "An error occurred while getting updates: $_" -Type "ERROR" -Exception $_
+          Log-Message "An error occurred while getting updates: $_" -Type "ERROR" -ErrorRecord $_
         }
       shell: pwsh
-    
 
     - name: Commit and Push to GitHub
       run: |
