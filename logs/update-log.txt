@@ -140,3 +140,18 @@
 2023-12-21 23:04:21 [ERROR] An error occurred while getting updates: Failed to expand Zip file: C:\Users\RUNNER~1\AppData\Local\Temp\wffi51xv.v23\project-gld.2.7.0.zip into C:\Users\RUNNER~1\AppData\Local\Temp\wffi51xv.v23. Error: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\wffi51xv.v23\_rels\.rels' because it does not exist. ErrorRecord: Failed to expand Zip file: C:\Users\RUNNER~1\AppData\Local\Temp\wffi51xv.v23\project-gld.2.7.0.zip into C:\Users\RUNNER~1\AppData\Local\Temp\wffi51xv.v23. Error: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\wffi51xv.v23\_rels\.rels' because it does not exist., Category: NotSpecified: (:) [Write-Error], WriteErrorException, ErrorID: Microsoft.PowerShell.Commands.WriteErrorException,Get-Updates
 2023-12-21 23:10:44 [INFO] Starting package updates
 2023-12-21 23:10:49 [ERROR] An error occurred while getting updates: Failed to expand Zip file: C:\Users\RUNNER~1\AppData\Local\Temp\ktatfn5j.mpt\project-gld.2.7.0.zip into C:\Users\RUNNER~1\AppData\Local\Temp\ktatfn5j.mpt. Error: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\ktatfn5j.mpt\_rels\.rels' because it does not exist. ErrorRecord: Failed to expand Zip file: C:\Users\RUNNER~1\AppData\Local\Temp\ktatfn5j.mpt\project-gld.2.7.0.zip into C:\Users\RUNNER~1\AppData\Local\Temp\ktatfn5j.mpt. Error: Cannot find path 'C:\Users\RUNNER~1\AppData\Local\Temp\ktatfn5j.mpt\_rels\.rels' because it does not exist., Category: NotSpecified: (:) [Write-Error], WriteErrorException, ErrorID: Microsoft.PowerShell.Commands.WriteErrorException,Get-Updates
+2023-12-21 23:22:57 [INFO] Starting package updates
+2023-12-21 23:23:35 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\lxsmwoa5.lhv
+2023-12-21 23:23:35 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\hslymcdo.1h5
+2023-12-21 23:23:35 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\vyw3ovp1.4sm
+2023-12-21 23:23:36 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\uzzazjgg.nzp
+2023-12-21 23:23:36 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\k2cpgdcv.vjb
+2023-12-21 23:23:36 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\db05rhgn.ayp
+2023-12-21 23:23:37 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\ustedlj2.cy3
+2023-12-21 23:23:37 [WARNING] Package path C:\Users\RUNNER~1\AppData\Local\Temp\hjp3z5rx.rli not found.
+2023-12-21 23:23:37 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\hd5xfauc.5ec
+2023-12-21 23:23:37 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\u0s2lguc.zvp
+2023-12-21 23:23:37 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\claezeyi.u51
+2023-12-21 23:23:38 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\nouopmt3.o2m
+2023-12-21 23:23:38 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg
+2023-12-21 23:23:38 [INFO] Completed package updates
