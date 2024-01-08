@@ -104,6 +104,8 @@ function Get-Updates {
 
         }
 
+        $toolsPath = Join-Path -Path $tempExtractPath -ChildPath "tools"
+
         Write-DebugLog "Verifying 'tools' directory exists at $toolsPath"
         if (-not (Test-Path -Path $toolsPath)) {
             Write-Error "The 'tools' directory does not exist in the path: $toolsPath"
@@ -126,7 +128,7 @@ function Get-Updates {
   
         # If the install file doesn't exist, skip this package
         if (-not $installFile) {
-            Write-Error "No install file found in directory $($tempExtractPath)\tools"
+            Write-Error "No install file found in directory $toolsPath"
             continue
         }
 
