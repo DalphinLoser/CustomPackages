@@ -107,8 +107,15 @@ function Get-Updates {
 
         Write-DebugLog "Getting chocolateyInstall.ps1"
         # Find the chocolateyInstall.ps1 file within the extracted directory
-        $installFile = Get-ChildItem -Path "$tempExtractPath\tools" -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
-        Write-DebugLog "    The installFile is: " $installFile
+        try {
+            $installFile = Get-ChildItem -Path "$tempExtractPath\tools" -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
+            Write-DebugLog "    The installFile is: " $installFile
+        }
+        catch {
+            Write-Error "Failed find installFile: $zipFilePath into $tempExtractPath. Error: $_"
+            continue # Skip to the next package if expansion fails
+        }
+
   
         # If the install file doesn't exist, skip this package
         if (-not $installFile) {
