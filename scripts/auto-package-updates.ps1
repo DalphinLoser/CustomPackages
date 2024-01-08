@@ -63,7 +63,7 @@ function Get-Updates {
             Write-DebugLog "Created Temp Name: $($tempExtractPath)"
         }
         catch {
-            Write-Error "Unable to create temporary directory at $env:TEMP with random name. Error: $_"
+            Write-Error "Unable to create temporary directory at $env:TEMP with random name."
             continue
         }
         
@@ -88,7 +88,7 @@ function Get-Updates {
                 Copy-Item -Path $nupkgFile.FullName -Destination $zipFilePath -Force
             }
             catch {
-                Write-Error "Failed to copy NuGet package to Zip: $($nupkgFile.FullName) to $zipFilePath. Error: $_"
+                Write-Error "Failed to copy NuGet package to Zip: $($nupkgFile.FullName) to $zipFilePath."
                 continue # Skip to the next package if copying fails
             }
             
@@ -98,7 +98,7 @@ function Get-Updates {
                 Expand-Archive -Path $zipFilePath -DestinationPath $tempExtractPath -Force
             }
             catch {
-                Write-Error "Failed to expand Zip file: $zipFilePath into $tempExtractPath. Error: $_"
+                Write-Error "Failed to expand Zip file: $zipFilePath into $tempExtractPath."
                 continue # Skip to the next package if expansion fails
             }
 
@@ -120,7 +120,7 @@ function Get-Updates {
             Write-DebugLog "The installFile is: $installFile"
         }
         catch {
-            Write-Error "An error occurred while searching for chocolateyInstall.ps1 in $toolsPath. Error: $_"
+            Write-Error "An error occurred while searching for chocolateyInstall.ps1 in $toolsPath."
             continue # Skip to the next package if an error occurs
         }
   
