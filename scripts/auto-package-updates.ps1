@@ -50,7 +50,14 @@ function Get-Updates {
     
         # Temporary directory to extract the contents of the .nupkg file
         try {
-            $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath ([System.IO.Path]::GetRandomFileName())
+            # Generate a random file name
+            $randomFileName = [System.IO.Path]::GetRandomFileName()
+
+            # Remove the extension to use it as a directory name
+            $randomDirName = $randomFileName -replace "\..*$", ""
+
+            # Combine the temp path with the random directory name
+            $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath $randomDirName
             # Ensure the directory is created
             New-Item -ItemType Directory -Path $tempExtractPath -Force
             Write-DebugLog "Created Temp Name: $($tempExtractPath)"
@@ -98,9 +105,10 @@ function Get-Updates {
         }
 
 
-    
+        Write-DebugLog "Getting chocolateyInstall.ps1"
         # Find the chocolateyInstall.ps1 file within the extracted directory
         $installFile = Get-ChildItem -Path "$tempExtractPath\tools" -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
+        Write-DebugLog "    The installFile is: " $installFile
   
         # If the install file doesn't exist, skip this package
         if (-not $installFile) {
