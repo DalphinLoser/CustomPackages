@@ -104,18 +104,25 @@ function Get-Updates {
 
         }
 
+        Write-DebugLog "Verifying 'tools' directory exists at $toolsPath"
+        if (-not (Test-Path -Path $toolsPath)) {
+            Write-Error "The 'tools' directory does not exist in the path: $toolsPath"
+            continue # Skip to the next package if the tools directory is not found
+        }
 
         Write-DebugLog "Getting chocolateyInstall.ps1"
-        # Find the chocolateyInstall.ps1 file within the extracted directory
         try {
-            $installFile = Get-ChildItem -Path "$tempExtractPath\tools" -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
-            Write-DebugLog "    The installFile is: " $installFile
+            $installFile = Get-ChildItem -Path $toolsPath -Filter "chocolateyInstall.ps1" -File | Select-Object -First 1
+            if ($null -eq $installFile) {
+                Write-Error "chocolateyInstall.ps1 not found in $toolsPath"
+                continue # Skip to the next package if the file is not found
+            }
+            Write-DebugLog "The installFile is: $installFile"
         }
         catch {
-            Write-Error "Failed find installFile: $zipFilePath into $tempExtractPath. Error: $_"
-            continue # Skip to the next package if expansion fails
+            Write-Error "An error occurred while searching for chocolateyInstall.ps1 in $toolsPath. Error: $_"
+            continue # Skip to the next package if an error occurs
         }
-
   
         # If the install file doesn't exist, skip this package
         if (-not $installFile) {
