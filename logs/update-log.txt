@@ -173,3 +173,37 @@
 2024-01-08 16:37:18 [ERROR] An error occurred while getting updates: Failed find installFile: C:\Users\RUNNER~1\AppData\Local\Temp\ql33bjfb\achievement-watcher.1.6.8.zip into C:\Users\RUNNER~1\AppData\Local\Temp\ql33bjfb. Error: Cannot process argument transformation on parameter 'ForegroundColor'. Cannot convert the "C:\Users\runneradmin\AppData\Local\Temp\ql33bjfb\tools\chocolateyInstall.ps1" value of type "System.IO.FileInfo" to type "System.ConsoleColor". ErrorRecord: Failed find installFile: C:\Users\RUNNER~1\AppData\Local\Temp\ql33bjfb\achievement-watcher.1.6.8.zip into C:\Users\RUNNER~1\AppData\Local\Temp\ql33bjfb. Error: Cannot process argument transformation on parameter 'ForegroundColor'. Cannot convert the "C:\Users\runneradmin\AppData\Local\Temp\ql33bjfb\tools\chocolateyInstall.ps1" value of type "System.IO.FileInfo" to type "System.ConsoleColor"., Category: NotSpecified: (:) [Write-Error], WriteErrorException, ErrorID: Microsoft.PowerShell.Commands.WriteErrorException,Get-Updates
 2024-01-08 16:52:02 [INFO] Starting package updates
 2024-01-08 16:52:03 [ERROR] An error occurred while getting updates: Value cannot be null. (Parameter 'The provided Path argument was null or an empty collection.') ErrorRecord: Value cannot be null. (Parameter 'The provided Path argument was null or an empty collection.'), Category: InvalidArgument: (:) [Test-Path], ArgumentNullException, ErrorID: NullPathNotPermitted,Microsoft.PowerShell.Commands.TestPathCommand
+2024-01-09 21:52:22 [INFO] Starting package updates
+2024-01-09 21:52:44 [INFO] Found 15 updated packages to push
+2024-01-09 21:52:44 [INFO] Updated packages: C:\Users\RUNNER~1\AppData\Local\Temp\d4xsy4hl, C:\Users\RUNNER~1\AppData\Local\Temp\fh5dwg15, C:\Users\RUNNER~1\AppData\Local\Temp\doceofco, C:\Users\RUNNER~1\AppData\Local\Temp\2gqgnhbb, C:\Users\RUNNER~1\AppData\Local\Temp\eewfp1ra, C:\Users\RUNNER~1\AppData\Local\Temp\wcl2wkap, C:\Users\RUNNER~1\AppData\Local\Temp\ejfbyqjw, C:\Users\RUNNER~1\AppData\Local\Temp\c13lybhl, C:\Users\RUNNER~1\AppData\Local\Temp\ia5p0rop, C:\Users\RUNNER~1\AppData\Local\Temp\ojrlum22, C:\Users\RUNNER~1\AppData\Local\Temp\ajsalqsl, C:\Users\RUNNER~1\AppData\Local\Temp\koppo4cs, D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg, D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg, D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1104.nupkg
+2024-01-09 21:52:44 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\d4xsy4hl
+2024-01-09 21:53:04 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\d4xsy4hl
+2024-01-09 21:53:04 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\fh5dwg15
+2024-01-09 21:53:05 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\fh5dwg15
+2024-01-09 21:53:05 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\doceofco
+2024-01-09 21:53:05 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\doceofco
+2024-01-09 21:53:05 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\2gqgnhbb
+2024-01-09 21:53:05 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\2gqgnhbb
+2024-01-09 21:53:05 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\eewfp1ra
+2024-01-09 21:53:06 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\eewfp1ra
+2024-01-09 21:53:06 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\wcl2wkap
+2024-01-09 21:53:06 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\wcl2wkap
+2024-01-09 21:53:06 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\ejfbyqjw
+2024-01-09 21:53:06 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\ejfbyqjw
+2024-01-09 21:53:06 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\c13lybhl
+2024-01-09 21:53:06 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\c13lybhl
+2024-01-09 21:53:06 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\ia5p0rop
+2024-01-09 21:53:07 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\ia5p0rop
+2024-01-09 21:53:07 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\ojrlum22
+2024-01-09 21:53:07 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\ojrlum22
+2024-01-09 21:53:07 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\ajsalqsl
+2024-01-09 21:53:07 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\ajsalqsl
+2024-01-09 21:53:07 [INFO] Pushing package: C:\Users\RUNNER~1\AppData\Local\Temp\koppo4cs
+2024-01-09 21:53:08 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\koppo4cs
+2024-01-09 21:53:08 [INFO] Pushing package: D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg
+2024-01-09 21:53:08 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg
+2024-01-09 21:53:08 [INFO] Pushing package: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg
+2024-01-09 21:53:09 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg
+2024-01-09 21:53:09 [INFO] Pushing package: D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1104.nupkg
+2024-01-09 21:53:10 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1104.nupkg
+2024-01-09 21:53:10 [INFO] Completed package updates
