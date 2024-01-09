@@ -60,52 +60,35 @@ function Get-Updates {
             $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath $randomDirName
             # Ensure the directory is created
             New-Item -ItemType Directory -Path $tempExtractPath -Force | Out-Null
-            Write-DebugLog "Created Temp Name: $($tempExtractPath)"
+            Write-DebugLog "Created Temp Directory: $($tempExtractPath)"
         }
         catch {
             Write-Error "Unable to create temporary directory at $env:TEMP with random name."
             continue
         }
-        
-        # Check if .nupkg file exists
+
+        # Verify the NuGet package file exists
         if (-not (Test-Path -Path $nupkgFile.FullName)) {
             Write-Error "NuGet package file not found: $($nupkgFile.FullName)"
             continue
-        } else {
-            # Proceed with copying and expanding
-            # Step 1: Construct the Zip file path from the NuGet package
-            $zipFilePath = Join-Path -Path $tempExtractPath -ChildPath ($nupkgFile.Name -replace '.nupkg', '.zip')
-            
-            # Checking if NuGet package exists
-            if (-not (Test-Path -Path $nupkgFile.FullName)) {
-                Write-Error "NuGet package file not found: $($nupkgFile.FullName)"
-                continue
-            }
-            
-            # Step 2: Copy the NuGet package, changing the extension to Zip
-            try {
-                Write-DebugLog "Copying NuGet package to Zip format: $($nupkgFile.FullName) to $zipFilePath"
-                Copy-Item -Path $nupkgFile.FullName -Destination $zipFilePath -Force
-            }
-            catch {
-                Write-Error "Failed to copy NuGet package to Zip: $($nupkgFile.FullName) to $zipFilePath."
-                continue # Skip to the next package if copying fails
-            }
-            
-            # Step 3: Expand the Zip file into the temporary directory
-            try {
-                Write-DebugLog "Expanding Zip file: $zipFilePath into $tempExtractPath"
-                Expand-Archive -Path $zipFilePath -DestinationPath $tempExtractPath -Force
-            }
-            catch {
-                Write-Error "Failed to expand Zip file: $zipFilePath into $tempExtractPath."
-                continue # Skip to the next package if expansion fails
-            }
+        }
+        Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
+        # Load the assembly for the Expand-Archive cmdlet
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+        # Extract the contents of the NuGet package file to the temp directory
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.Name, $tempExtractPath)
+        Write-DebugLog "Extracted NuGet package file $($nupkgFile.Name) to: $($tempExtractPath)"
+
+        # Print the contents of the temp directory
+        Write-DebugLog "Contents of $($tempExtractPath): "
+        Get-ChildItem -Path $tempExtractPath -Recurse | ForEach-Object {
+            Write-DebugLog "    $($_.FullName)"
         }
 
         $toolsPath = Join-Path -Path $tempExtractPath -ChildPath "tools"
-
+        # Verify the tools directory exists
         Write-DebugLog "Verifying 'tools' directory exists at $toolsPath"
         if (-not (Test-Path -Path $toolsPath)) {
             Write-Error "The 'tools' directory does not exist in the path: $toolsPath"
