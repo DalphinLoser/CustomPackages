@@ -14,7 +14,7 @@ jobs:
       run: |
         Add-Content -Path $env:GITHUB_ENV -Value "SCRIPTS_DIR=$env:GITHUB_WORKSPACE\scripts"
         Add-Content -Path $env:GITHUB_ENV -Value "PACKAGES_DIR=$env:GITHUB_WORKSPACE\packages"
-        Add-Content -Path $env:GITHUB_ENV -Value "LOG_DIR=$env:GITHUB_WORKSPACE\logs"
+        Add-Content -Path $env:GITHUB_ENV -Value "LOGS_DIR=$env:GITHUB_WORKSPACE\logs"
       shell: pwsh
     
     - name: Create Log File
