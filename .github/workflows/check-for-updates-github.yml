@@ -19,12 +19,13 @@ jobs:
     
     - name: Create Log File
       run: |
-        $logDir = "$env:GITHUB_WORKSPACE\logs"
-        $logFile = Join-Path $logDir -ChildPath "$(Get-Date -Format 'yyyy-MM-dd').log"
+        $dateStamp = Get-Date -Format "yyyy-MM-dd"
+        $logDir = Join-Path $env:LOGS_DIR -ChildPath "update-logs\$dateStamp"
+        $logFile = Join-Path $logDir -ChildPath "$(Get-Date -Format 'HH-mm-ss').log"
         
         if (-not (Test-Path $logDir)) {
           Write-Host "Creating log directory: $logDir"
-          New-Item -ItemType Directory -Path $logDir | Out-Null
+          New-Item -ItemType Directory -Path $logDir -Force | Out-Null
         }
         if (-not (Test-Path $logFile)) {
           Write-Host "Creating log file: $logFile"
@@ -32,6 +33,7 @@ jobs:
         }
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_FILE=$logFile"
       shell: pwsh
+    
       
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -41,7 +43,7 @@ jobs:
         function Log-Message {
           param (
             [string]$Message,
-            [string]$Type = "INFO", # Default type is INFO
+            [string]$Type = "INFO" # Default type is INFO
           )
           $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
