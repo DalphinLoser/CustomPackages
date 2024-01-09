@@ -173,3 +173,20 @@
 2024-01-08 16:37:18 [ERROR] An error occurred while getting updates: Failed find installFile: C:\Users\RUNNER~1\AppData\Local\Temp\ql33bjfb\achievement-watcher.1.6.8.zip into C:\Users\RUNNER~1\AppData\Local\Temp\ql33bjfb. Error: Cannot process argument transformation on parameter 'ForegroundColor'. Cannot convert the "C:\Users\runneradmin\AppData\Local\Temp\ql33bjfb\tools\chocolateyInstall.ps1" value of type "System.IO.FileInfo" to type "System.ConsoleColor". ErrorRecord: Failed find installFile: C:\Users\RUNNER~1\AppData\Local\Temp\ql33bjfb\achievement-watcher.1.6.8.zip into C:\Users\RUNNER~1\AppData\Local\Temp\ql33bjfb. Error: Cannot process argument transformation on parameter 'ForegroundColor'. Cannot convert the "C:\Users\runneradmin\AppData\Local\Temp\ql33bjfb\tools\chocolateyInstall.ps1" value of type "System.IO.FileInfo" to type "System.ConsoleColor"., Category: NotSpecified: (:) [Write-Error], WriteErrorException, ErrorID: Microsoft.PowerShell.Commands.WriteErrorException,Get-Updates
 2024-01-08 16:52:02 [INFO] Starting package updates
 2024-01-08 16:52:03 [ERROR] An error occurred while getting updates: Value cannot be null. (Parameter 'The provided Path argument was null or an empty collection.') ErrorRecord: Value cannot be null. (Parameter 'The provided Path argument was null or an empty collection.'), Category: InvalidArgument: (:) [Test-Path], ArgumentNullException, ErrorID: NullPathNotPermitted,Microsoft.PowerShell.Commands.TestPathCommand
+2024-01-09 20:23:42 [INFO] Starting package updates
+2024-01-09 20:24:21 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\5auvcpsi
+2024-01-09 20:24:22 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\2svotf5s
+2024-01-09 20:24:22 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\pdebbh24
+2024-01-09 20:24:22 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\yqbjldnz
+2024-01-09 20:24:22 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\1jxkcfzi
+2024-01-09 20:24:23 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\msbzxj21
+2024-01-09 20:24:23 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\hc35w2ox
+2024-01-09 20:24:23 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\ft3mjypu
+2024-01-09 20:24:24 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\i41xzvxg
+2024-01-09 20:24:24 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\xayntxxk
+2024-01-09 20:24:24 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\o2mw5hmp
+2024-01-09 20:24:25 [INFO] Successfully updated C:\Users\RUNNER~1\AppData\Local\Temp\k0p4bb5r
+2024-01-09 20:24:25 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg
+2024-01-09 20:24:26 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg
+2024-01-09 20:24:27 [INFO] Successfully updated D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1104.nupkg
+2024-01-09 20:24:27 [INFO] Completed package updates
