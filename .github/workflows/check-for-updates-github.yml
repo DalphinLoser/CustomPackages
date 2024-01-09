@@ -14,10 +14,21 @@ jobs:
       run: |
         echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
         echo "PACKAGES_DIR=$GITHUB_WORKSPACE\packages" >> $GITHUB_ENV
-        // Set the name and path of the log file
-        echo "LOG_FILE=$GITHUB_WORKSPACE\logs\update-log-$(Get-Date -Format "yyyy-MM-dd-HH-mm-ss").txt" >> $GITHUB_ENV
-        // Create the log file
-        New-Item -Path $Env:LOG_FILE -ItemType File -Force | Out-Null
+        echo "LOG_DIR=$GITHUB_WORKSPACE\logs" >> $GITHUB_ENV
+
+        $logDir = "${{ env.LOG_DIR }}"
+        $logFile = "$logDir\$(Get-Date -Format 'yyyy-MM-dd').log"
+        
+        if (-not (Test-Path $logDir)) {
+          echo "Creating log directory: $logDir"
+          New-Item -ItemType Directory -Path $logDir | Out-Null
+        }
+        if (-not (Test-Path $logFile)) {
+          echo "Creating log file: $logFile"
+          New-Item -ItemType File -Path $logFile | Out-Null
+        }
+        echo "LOG_FILE=$logFile" >> $GITHUB_ENV
+
       shell: bash
 
     - name: Checkout Code
