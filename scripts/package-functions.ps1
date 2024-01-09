@@ -257,12 +257,12 @@ function New-ChocolateyPackage {
         Write-DebugLog $NuspecPath
     }
     # Remove any existing packages in the package directory
-    # Write-DebugLog "    Removing existing packages from package directory..."
-    # Remove-Item -Path "$PackageDir\*.nupkg" -Force
+    Write-DebugLog "    Removing existing packages from package directory..."
+    Remove-Item -Path "$PackageDir\*.nupkg" -Force
     # Create Chocolatey package and save the path
     try {
         Write-DebugLog "    Creating Chocolatey package..."
-        $output = choco pack $NuspecPath -Force --debug --out $PackageDir
+        $output = choco pack $NuspecPath --debug --out $PackageDir
         Write-DebugLog "    Output: " -NoNewline -ForegroundColor Yellow
         Write-DebugLog $output
         # Set the package path to the nupkg file in PackageDir if it exists. Select the most recent package if multiple packages exist.
