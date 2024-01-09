@@ -60,7 +60,7 @@ jobs:
         try {
           Log-Message "Starting package updates"
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
-          
+          Write-Host "The output of Get-Updates is: $updatedPackages"
           if ($updatedPackages.Count -gt 0) {
             Log-Message "Found $($updatedPackages.Count) updated packages to push"
             Log-Message "Updated packages: $($updatedPackages -join ', ')"
