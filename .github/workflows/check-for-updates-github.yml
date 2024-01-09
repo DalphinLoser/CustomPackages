@@ -14,6 +14,8 @@ jobs:
       run: |
         echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
         echo "PACKAGES_DIR=$GITHUB_WORKSPACE\packages" >> $GITHUB_ENV
+        // Create log file with timestamp
+        echo "LOG_FILE=$GITHUB_WORKSPACE\logs\update-log-$(Get-Date -Format "yyyy-MM-dd-HH-mm-ss").txt" >> $GITHUB_ENV
       shell: bash
 
     - name: Checkout Code
@@ -21,14 +23,23 @@ jobs:
 
     - name: Install Dependencies (Chocolatey)
       run: |
-        $logFile = "$Env:GITHUB_WORKSPACE\logs\update-log.txt"
+        function Log-Message {
+          param (
+            [string]$Message,
+            [string]$Type = "INFO", # Default type is INFO
+          )
+          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+          $logEntry = "$timestamp [$Type] $Message"
+
+          $logEntry | Out-File -Append -FilePath $Env:LOG_FILE
+        }
+
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
           Write-Host "Chocolatey is not installed. Installing now..."
           Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
           if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
             Write-Host "Chocolatey failed to install. Exiting..."
-            # log that chocolatey failed to install
-            "Chocolatey failed to install." | Out-File -Append -FilePath $logFile
+            Log-Message "Chocolatey failed to install. Exiting..." -Type "ERROR"
             exit 1
           }
         }
@@ -51,10 +62,9 @@ jobs:
             $logEntry += " ErrorRecord: $($ErrorRecord.Exception.Message), Category: $($ErrorRecord.CategoryInfo), ErrorID: $($ErrorRecord.FullyQualifiedErrorId)"
           }
 
-          $logEntry | Out-File -Append -FilePath $Env:GITHUB_WORKSPACE\logs\update-log.txt
+          $logEntry | Out-File -Append -FilePath $Env:LOG_FILE
         }
 
-        $logFile = "$Env:GITHUB_WORKSPACE\logs\update-log.txt"
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
         
         try {
@@ -78,7 +88,7 @@ jobs:
               }
             }
           } else {
-            Log-Message "No updated packages to push."
+            Log-Message "No updated packages to push." -Type "INFO"
           }
     
           Log-Message "Completed package updates"
