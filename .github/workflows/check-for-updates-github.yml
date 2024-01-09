@@ -12,25 +12,25 @@ jobs:
     steps:
     - name: Set Global Variables and Create Log File
       run: |
-        echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
-        echo "PACKAGES_DIR=$GITHUB_WORKSPACE\packages" >> $GITHUB_ENV
-        echo "LOG_DIR=$GITHUB_WORKSPACE\logs" >> $GITHUB_ENV
+        Add-Content -Path $env:GITHUB_ENV -Value "SCRIPTS_DIR=$env:GITHUB_WORKSPACE\scripts"
+        Add-Content -Path $env:GITHUB_ENV -Value "PACKAGES_DIR=$env:GITHUB_WORKSPACE\packages"
+        Add-Content -Path $env:GITHUB_ENV -Value "LOG_DIR=$env:GITHUB_WORKSPACE\logs"
 
-        $logDir = "${{ env.LOG_DIR }}"
-        $logFile = "$logDir\$(Get-Date -Format 'yyyy-MM-dd').log"
+        $logDir = "${env:LOG_DIR}"
+        $logFile = Join-Path $logDir -ChildPath "$(Get-Date -Format 'yyyy-MM-dd').log"
         
         if (-not (Test-Path $logDir)) {
-          echo "Creating log directory: $logDir"
+          Write-Host "Creating log directory: $logDir"
           New-Item -ItemType Directory -Path $logDir | Out-Null
         }
         if (-not (Test-Path $logFile)) {
-          echo "Creating log file: $logFile"
+          Write-Host "Creating log file: $logFile"
           New-Item -ItemType File -Path $logFile | Out-Null
         }
-        echo "LOG_FILE=$logFile" >> $GITHUB_ENV
+        Add-Content -Path $env:GITHUB_ENV -Value "LOG_FILE=$logFile"
 
-      shell: bash
-
+      shell: pwsh
+    
     - name: Checkout Code
       uses: actions/checkout@v4
 
