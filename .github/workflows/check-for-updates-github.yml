@@ -10,12 +10,14 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Set Global Variables
+    - name: Set Global Variables and Create Log File
       run: |
         echo "SCRIPTS_DIR=$GITHUB_WORKSPACE\scripts" >> $GITHUB_ENV
         echo "PACKAGES_DIR=$GITHUB_WORKSPACE\packages" >> $GITHUB_ENV
-        // Create log file with timestamp
+        // Set the name and path of the log file
         echo "LOG_FILE=$GITHUB_WORKSPACE\logs\update-log-$(Get-Date -Format "yyyy-MM-dd-HH-mm-ss").txt" >> $GITHUB_ENV
+        // Create the log file
+        New-Item -Path $Env:LOG_FILE -ItemType File -Force | Out-Null
       shell: bash
 
     - name: Checkout Code
