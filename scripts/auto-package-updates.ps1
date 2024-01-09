@@ -59,7 +59,7 @@ function Get-Updates {
             # Combine the temp path with the random directory name
             $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath $randomDirName
             # Ensure the directory is created
-            New-Item -ItemType Directory -Path $tempExtractPath -Force
+            New-Item -ItemType Directory -Path $tempExtractPath -Force | Out-Null
             Write-DebugLog "Created Temp Name: $($tempExtractPath)"
         }
         catch {
