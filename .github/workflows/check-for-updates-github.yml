@@ -62,7 +62,10 @@ jobs:
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
           
           if ($updatedPackages.Count -gt 0) {
+            Log-Message "Found $($updatedPackages.Count) updated packages to push"
+            Log-Message "Updated packages: $($updatedPackages -join ', ')"
             foreach ($packagePath in $updatedPackages) {
+              Log-Message "Pushing package: $packagePath"
               if (Test-Path $packagePath) {
                 try {
                   dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
