@@ -10,13 +10,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Set Global Variables and Create Log File
+    - name: Set Global Variables
       run: |
         Add-Content -Path $env:GITHUB_ENV -Value "SCRIPTS_DIR=$env:GITHUB_WORKSPACE\scripts"
         Add-Content -Path $env:GITHUB_ENV -Value "PACKAGES_DIR=$env:GITHUB_WORKSPACE\packages"
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_DIR=$env:GITHUB_WORKSPACE\logs"
-
-        $logDir = "${env:LOG_DIR}"
+      shell: pwsh
+    
+    - name: Create Log File
+      run: |
+        $logDir = "$env:GITHUB_WORKSPACE\logs"
         $logFile = Join-Path $logDir -ChildPath "$(Get-Date -Format 'yyyy-MM-dd').log"
         
         if (-not (Test-Path $logDir)) {
@@ -28,9 +31,8 @@ jobs:
           New-Item -ItemType File -Path $logFile | Out-Null
         }
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_FILE=$logFile"
-
       shell: pwsh
-    
+      
     - name: Checkout Code
       uses: actions/checkout@v4
 
