@@ -75,13 +75,16 @@ function Get-Updates {
         Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
         try {
-            # Check and display dotnet version
-            Write-DebugLog "Checking dotnet version..."
+            # Check and display dotnet version and powershell version. List all installed versions of each.
+            Write-DebugLog "Checking dotnet version: "
             $dotnetVersion = dotnet --version
-            Write-DebugLog "dotnet version: $dotnetVersion"
+            Write-DebugLog "    dotnet version: $dotnetVersion"
+            Write-DebugLog "Checking powershell version: "
+            $powershellVersion = $PSVersionTable.PSVersion
+            Write-DebugLog "    powershell version: $powershellVersion"
         }
         catch {
-            Write-Error "Failed to check dotnet version: $_"
+            Write-Error "Failed to check dotnet and/or powershell versions: $_"
         }
 
         # Check if System.IO.Compression.FileSystem assembly is loaded
