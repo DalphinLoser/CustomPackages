@@ -105,9 +105,6 @@ function Get-Updates {
                     $entryStream.Dispose()
                 }
             }
-        } finally {
-            $zipArchive.Dispose()
-        }
 
 
             # Now extract the files
