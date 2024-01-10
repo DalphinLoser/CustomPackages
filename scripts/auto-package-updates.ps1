@@ -76,12 +76,17 @@ function Get-Updates {
 
         try {
             # Load the assembly for the Expand-Archive cmdlet if it is not already loaded
-            if (-not ([System.Management.Automation.PSTypeName]'System.IO.Compression.FileSystem').Type) {
+            Write-DebugLog "Checking if assembly for Expand-Archive cmdlet is loaded."
+            if (-not ([System.Management.Automation.PSTypeName]'Microsoft.PowerShell.Archive\Expand-Archive').Type) {
+                Write-DebugLog "Assembly for Expand-Archive cmdlet is not loaded. Loading assembly."
                 Add-Type -AssemblyName System.IO.Compression.FileSystem
+            }
+            else {
+                Write-DebugLog "Assembly for Expand-Archive cmdlet is already loaded."
             }
         }
         catch {
-            Write-Error "Error occurred while loading the assembly for Expand-Archive cmdlet."
+            Write-Error "Error occurred while loading the assembly for Expand-Archive cmdlet." 
             continue
         }
 
