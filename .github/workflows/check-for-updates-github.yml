@@ -87,29 +87,29 @@ jobs:
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
           
           if ($updatedPackages.Count -gt 0) {            
-            foreach ($package in $updatedPackages) {
-              # Package is a psCustomObject with properties: Path, Name, OldVersion, NewVersion
-              Log-Message "Updated package: $($package.Name) from $($package.OldVersion) to $($package.NewVersion)"
-            }
-            Log-Message "Pushing updated packages"
-            foreach ($package in $updatedPackages) {
-              if (Test-Path $package.Path) {
-                try {
-                  dotnet nuget push "$package.Path" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
-                  Log-Message "Successfully pushed $package or this version $package.NewVersion already exists." -Type "INFO"
-                } catch {
-                  Log-Message "Failed to push package: $package" -Type "ERROR" -ErrorRecord $_
-                }
-              } else {
-                Log-Message "Package path $package.Path not found." -Type "WARNING"
+              foreach ($package in $updatedPackages) {
+                  # Package is a psCustomObject with properties: Path, Name, OldVersion, NewVersion
+                  Log-Message "Updated package: $($package.Name) from $($package.OldVersion) to $($package.NewVersion)"
               }
-            }
+              Log-Message "Pushing updated packages"
+              foreach ($package in $updatedPackages) {
+                  if (Test-Path $package.Path) {
+                      try {
+                          dotnet nuget push $($package.Path) --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
+                          Log-Message "Successfully pushed $($package.Name) or this version $($package.NewVersion) already exists." -Type "INFO"
+                      } catch {
+                          Log-Message "Failed to push package: $($package.Name)" -Type "ERROR" -ErrorRecord $_
+                      }
+                  } else {
+                      Log-Message "Package path $($package.Path) not found." -Type "WARNING"
+                  }
+              }
           } else {
-            Log-Message "No updated packages to push." -Type "INFO"
+              Log-Message "No updated packages to push." -Type "INFO"
           }
           Log-Message "Completed package updates"
         } catch {
-          Log-Message "Failed to update packages: $($_.Exception.Message)" -Type "ERROR" -ErrorRecord $_
+            Log-Message "Failed to update packages: $($_.Exception.Message)" -Type "ERROR" -ErrorRecord $_
         }
       shell: pwsh
 
