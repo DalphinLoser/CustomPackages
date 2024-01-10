@@ -42,11 +42,13 @@ jobs:
         function Log-Message {
           param (
             [string]$Message,
-            [string]$Type = "INFO", # Default type is INFO
-            [System.Management.Automation.ErrorRecord]$ErrorRecord
+            [string]$Type = "INFO" # Default type is INFO
           )
           $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
+          if ($Type -eq "ERROR") {
+            $logEntry += " $($ErrorRecord.Exception.Message)"
+          }
           $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }
 
