@@ -115,6 +115,11 @@ function Get-Updates {
             foreach ($entry in $zip.Entries) {
                 Write-DebugLog "    $($entry.FullName)"
             }
+
+            # Print content using ZipArchive toString method
+            $contentTest= [System.IO.Compression.ZipArchive]::ToString($zip)
+            Write-DebugLog "Content of NuGet package file using ZipArchive toString method: $($nupkgFile.FullName)"
+            Write-DebugLog $contentTest
             
             # Filter the entries to only include content, tools, and .nuspec files
             Write-DebugLog "Filtering entries for content, tools, and .nuspec files."
@@ -131,11 +136,10 @@ function Get-Updates {
                 Write-DebugLog "    $($entry.FullName)"
             }
             # Extract the filtered entries
-            Write-DebugLog "Extracting filtered entries."
             foreach ($entry in $entries) {
                 # Extract the file
                 Write-DebugLog "Extracting file: $($entry.FullName) to: $tempExtractPath"
-                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $tempExtractPath, $true)
+                [System.IO.Compression.FileSystem]::ExtractToFile($entry, $tempExtractPath, $true)
                 Write-DebugLog "Extracted file: $($entry.FullName) to: $tempExtractPath"
             }
 
