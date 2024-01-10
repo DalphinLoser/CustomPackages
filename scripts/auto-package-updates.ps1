@@ -85,19 +85,20 @@ function Get-Updates {
 
         try {
             # Extract the contents of the NuGet package file to the temp directory
-            Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+            Write-DebugLog "Checking requirements before extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
             
-            # Check is dotnet is installed
+            # Check if dotnet is installed
             if (-not (Get-Command -Name dotnet -ErrorAction SilentlyContinue)) {
-                Write-Error "dotnet is not installed. Please install dotnet to use this script."
+                Write-DebugLog "dotnet is not installed. Please install dotnet to use this script."
                 continue
             }
             else {
                 Write-DebugLog "dotnet is installed."
             }
+            
             # Check if System.IO.Compression.ZipFile is available
             if (-not (Get-Command -Name System.IO.Compression.ZipFile -ErrorAction SilentlyContinue)) {
-                Write-Error "System.IO.Compression.ZipFile is not available. Please install dotnet to use this script."
+                Write-DebugLog "System.IO.Compression.ZipFile is not available. Please install dotnet to use this script."
                 continue
             }
             else {
@@ -105,11 +106,11 @@ function Get-Updates {
             }
 
             # Extract the contents of the NuGet package file to the temp directory
+            Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
             [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
-            
         }
         catch {
-            Write-Error "Failed to extract NuGet package file: $($_.Exception.Message)"
+            Write-DebugLog "Failed to extract NuGet package file: $($_.Exception.Message)"
             continue
         }
 
@@ -118,7 +119,7 @@ function Get-Updates {
         Write-DebugLog "Verifying 'tools' directory exists at $toolsPath"
         if (-not (Test-Path -Path $toolsPath)) {
             Write-Error "The 'tools' directory does not exist in the path: $toolsPath"
-            continue # Skip to the next package if the tools directory is not found
+            continue
         }
 
         Write-DebugLog "Getting chocolateyInstall.ps1"
