@@ -134,7 +134,7 @@ function Get-Updates {
             foreach ($entry in $entries) {
                 # Extract the file
                 Write-DebugLog "Extracting file: $($entry.FullName) to: $tempExtractPath"
-                [System.IO.Compression.FileSystem]::ExtractToFile($entry, $tempExtractPath, $true)
+                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $tempExtractPath, $true)
                 Write-DebugLog "Extracted file: $($entry.FullName) to: $tempExtractPath"
             }
 
