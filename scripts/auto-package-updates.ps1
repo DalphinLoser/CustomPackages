@@ -137,19 +137,28 @@ function Get-Updates {
                 foreach ($entry in $entries) {
                     # Determine the target path
                     $targetPath = Join-Path $tempExtractPath $entry.FullName
-                
-                    # Create the directory if it does not exist
-                    $targetDir = Split-Path $targetPath -Parent
-                    If (!(Test-Path -Path $targetDir)) {
-                        New-Item -ItemType Directory -Path $targetDir -Force
-                    }
-                
-                    # Extract the file
-                    try {
-                        [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $targetPath, $true)
-                        Write-DebugLog "Extracted file: $($entry.FullName) to: $targetPath"
-                    } catch {
-                        Write-Error "Failed to extract file: $($_.Exception.Message)"
+        
+                    # Check if the entry is a directory
+                    if ($entry.FullName -match '/$') {
+                        # Create the directory if it does not exist
+                        if (!(Test-Path -Path $targetPath)) {
+                            New-Item -ItemType Directory -Path $targetPath -Force
+                            Write-DebugLog "Created directory: $targetPath"
+                        }
+                    } else {
+                        # For files, create the directory of the file if it does not exist
+                        $targetDir = Split-Path $targetPath -Parent
+                        If (!(Test-Path -Path $targetDir)) {
+                            New-Item -ItemType Directory -Path $targetDir -Force
+                        }
+        
+                        # Extract the file
+                        try {
+                            [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $targetPath, $true)
+                            Write-DebugLog "Extracted file: $($entry.FullName) to: $targetPath"
+                        } catch {
+                            Write-Error "Failed to extract file: $($_.Exception.Message)"
+                        }
                     }
                 }
             }
