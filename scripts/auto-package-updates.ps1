@@ -89,7 +89,7 @@ function Get-Updates {
             
             # Check if dotnet is installed
             if (-not (Get-Command -Name dotnet -ErrorAction SilentlyContinue)) {
-                Write-Error "dotnet is not installed. Please install dotnet to use this script."
+                Write-DebugLog "dotnet is not installed. Please install dotnet to use this script."
                 continue
             }
             else {
@@ -98,7 +98,7 @@ function Get-Updates {
             
             # Check if System.IO.Compression.ZipFile is available
             if (-not (Get-Command -Name System.IO.Compression.ZipFile -ErrorAction SilentlyContinue)) {
-                Write-Error "System.IO.Compression.ZipFile is not available. Please install dotnet to use this script."
+                Write-DebugLog "System.IO.Compression.ZipFile is not available. Please install dotnet to use this script."
                 continue
             }
             else {
