@@ -95,6 +95,10 @@ jobs:
               foreach ($package in $updatedPackages) {
                   if (Test-Path $package.Path) {
                       try {
+                          Log-Message "Pushing package: $($package.Name)"
+                          Log-Message "     Old version: $($package.OldVersion)"
+                          Log-Message "     New version: $($package.NewVersion)"
+                          Log-Message "     Package path: $($package.Path)"
                           dotnet nuget push $($package.Path) --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
                           Log-Message "Successfully pushed $($package.Name) or this version $($package.NewVersion) already exists." -Type "INFO"
                       } catch {

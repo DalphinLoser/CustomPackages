@@ -440,7 +440,10 @@ function Get-Updates {
     else {
         Write-DebugLog "Automatically Updated Packages: " -ForegroundColor Green
         $updatedPackages | ForEach-Object {
-            Write-DebugLog "    $($_.Name) - $($_.OldVersion) -> $($_.NewVersion)"
+            Write-DebugLog "    $($_.Name)"
+            Write-DebugLog "        Old Version: $($_.OldVersion)"
+            Write-DebugLog "        New Version: $($_.NewVersion)"
+            Write-DebugLog "        Path: $($_.Path)"
         }
     }
 
