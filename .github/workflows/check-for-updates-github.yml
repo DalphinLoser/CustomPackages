@@ -15,7 +15,7 @@ jobs:
         Add-Content -Path $env:GITHUB_ENV -Value "SCRIPTS_DIR=$env:GITHUB_WORKSPACE\scripts"
         Add-Content -Path $env:GITHUB_ENV -Value "PACKAGES_DIR=$env:GITHUB_WORKSPACE\packages"
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_DIR=$env:GITHUB_WORKSPACE\logs"
-      shell: powershell
+      shell: pwsh
     
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
           New-Item -ItemType File -Path $logFile | Out-Null
         }
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_FILE=$logFile"
-      shell: powershell
+      shell: pwsh
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
@@ -66,7 +66,7 @@ jobs:
             exit 1
           }
         }
-      shell: powershell
+      shell: pwsh
 
     - name: Update and Push Packages
       env:
@@ -113,7 +113,7 @@ jobs:
         } catch {
           Log-Message "An error occurred while getting updates: $_" -Type "ERROR" -ErrorRecord $_
         }
-      shell: powershell
+      shell: pwsh
 
     - name: Commit and Push to GitHub
       run: |
@@ -124,4 +124,4 @@ jobs:
         git add packages/*.nupkg
         git commit -m "Update packages and log" -a || echo "No changes to commit"
         git push origin ${{ github.ref }}
-      shell: powershell
+      shell: pwsh
