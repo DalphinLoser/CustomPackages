@@ -17,6 +17,9 @@ jobs:
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_DIR=$env:GITHUB_WORKSPACE\logs"
       shell: pwsh
     
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
     - name: Create Log File
       run: |
         $dateStamp = Get-Date -Format "yyyy-MM-dd"
@@ -33,10 +36,6 @@ jobs:
         }
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_FILE=$logFile"
       shell: pwsh
-    
-      
-    - name: Checkout Code
-      uses: actions/checkout@v4
 
     - name: Install Dependencies (Chocolatey)
       run: |
