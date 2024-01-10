@@ -110,36 +110,33 @@ function Get-Updates {
             # Open the NuGet package file
             $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkgFile.FullName)
 
-            # Get the entries in the ZIP file and display them with indentation corresponding to the directory structure
+            # Display the files in the package
             Write-DebugLog "Files in NuGet package file: $($nupkgFile.FullName)"
             foreach ($entry in $zip.Entries) {
-                # Determine the depth by counting the slashes in the FullName property
-                $depth = ($entry.FullName -split '/', -1, 'SimpleMatch').Count - 1
-            
-                # Generate indentation based on the depth
-                $indentation = '    ' * $depth
-            
-                # Log the entry with indentation
-                Write-DebugLog "${indentation}$($entry.FullName)"
+                Write-DebugLog "    $($entry.FullName)"
             }
             
-            # Filter the entries - modify the patterns as necessary
+            # Filter the entries to only include content, tools, and .nuspec files
             Write-DebugLog "Filtering entries for content, tools, and .nuspec files."
             $patterns = @('content/*', 'tools/*', '*.nuspec')
             $entries = $zip.Entries | Where-Object {
+                # Get the full path of the entry
                 $path = $_.FullName
                 # Check if any pattern matches the path
                 $matchCount = ($patterns | Where-Object { $path -like $_ } | Measure-Object).Count
                 $matchCount -gt 0
             }
-            # Extract the filtered entries
+            Write-DebugLog "Filtered entries: "
             foreach ($entry in $entries) {
-                # Determine the target path
-                $targetPath = Join-Path $tempExtractPath $entry.FullName
-
+                Write-DebugLog "    $($entry.FullName)"
+            }
+            # Extract the filtered entries
+            Write-DebugLog "Extracting filtered entries."
+            foreach ($entry in $entries) {
                 # Extract the file
-                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $targetPath, $true)
-                Write-DebugLog "Extracted file: $($entry.FullName) to: $targetPath"
+                Write-DebugLog "Extracting file: $($entry.FullName) to: $tempExtractPath"
+                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $tempExtractPath, $true)
+                Write-DebugLog "Extracted file: $($entry.FullName) to: $tempExtractPath"
             }
 
             # Release the ZIP file resource
