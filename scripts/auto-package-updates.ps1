@@ -75,9 +75,11 @@ function Get-Updates {
         Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
         # Load the assembly for the Expand-Archive cmdlet
+        Write-DebugLog "Loading System.IO.Compression.FileSystem assembly"
         Add-Type -AssemblyName System.IO.Compression.FileSystem
 
         # Extract the contents of the NuGet package file to the temp directory
+        Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
         [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
         Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
 
