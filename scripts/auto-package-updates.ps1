@@ -82,12 +82,12 @@ function Get-Updates {
         }
         Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
-        Write-DebugLog "Checking if temp directory already exists at $($tempExtractPath)"
+        Write-DebugLog "Verifying directory exists at $($tempExtractPath)"
         try {
             # Check if the target directory for extraction exists
             if (Test-Path -Path $tempExtractPath) {
                 # Check if the target directory is empty
-                Write-DebugLog "Checking if temp directory contains files at $($tempExtractPath)"
+                Write-DebugLog "Verifying directory is empty at $($tempExtractPath)"
                 if ((Get-ChildItem -Path $tempExtractPath).Count -gt 0) {
                     Write-DebugLog "Temp directory already exists at $($tempExtractPath) and contains the following files: "
                     Get-ChildItem -Path $tempExtractPath -Recurse | ForEach-Object {
@@ -95,9 +95,6 @@ function Get-Updates {
                     }
                     Write-DebugLog "Removing existing files in $($tempExtractPath)"
                     Remove-Item -Path $tempExtractPath -Recurse -Force
-                }
-                else {
-                    Write-DebugLog "Temp directory exists at $($tempExtractPath) but is empty."
                 }
             }
             else {
@@ -113,7 +110,21 @@ function Get-Updates {
             # Open the NuGet package file
             $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkgFile.FullName)
 
+            # Get the entries in the ZIP file and display them with indentation corresponding to the directory structure
+            Write-DebugLog "Files in NuGet package file: $($nupkgFile.FullName)"
+            foreach ($entry in $zip.Entries) {
+                # Determine the depth by counting the slashes in the FullName property
+                $depth = ($entry.FullName -split '/', -1, 'SimpleMatch').Count - 1
+            
+                # Generate indentation based on the depth
+                $indentation = '    ' * $depth
+            
+                # Log the entry with indentation
+                Write-DebugLog "${indentation}$($entry.FullName)"
+            }
+            
             # Filter the entries - modify the patterns as necessary
+            Write-DebugLog "Filtering entries for content, tools, and .nuspec files."
             $patterns = @('content/*', 'tools/*', '*.nuspec')
             $entries = $zip.Entries | Where-Object {
                 $path = $_.FullName
@@ -126,14 +137,9 @@ function Get-Updates {
                 # Determine the target path
                 $targetPath = Join-Path $tempExtractPath $entry.FullName
 
-                # Create the directory if it does not exist
-                $targetDir = Split-Path $targetPath -Parent
-                If (!(Test-Path -Path $targetDir)) {
-                    New-Item -ItemType Directory -Path $targetDir -Force
-                }
-
                 # Extract the file
                 [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $targetPath, $true)
+                Write-DebugLog "Extracted file: $($entry.FullName) to: $targetPath"
             }
 
             # Release the ZIP file resource
@@ -142,6 +148,7 @@ function Get-Updates {
             Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
         }
     catch {
+        Write-DebugLog "Failed to extract NuGet package file: $($nupkgFile.FullName)"
         Write-Error "Failed to extract NuGet package file: $($_.Exception.Message)"
         continue
     }
