@@ -74,8 +74,16 @@ function Get-Updates {
         }
         Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
-        # Load the assembly for the Expand-Archive cmdlet
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        try {
+            # Load the assembly for the Expand-Archive cmdlet if it is not already loaded
+            if (-not ([System.Management.Automation.PSTypeName]'System.IO.Compression.FileSystem').Type) {
+                Add-Type -AssemblyName System.IO.Compression.FileSystem
+            }
+        }
+        catch {
+            Write-Error "Error occurred while loading the assembly for Expand-Archive cmdlet."
+            continue
+        }
 
         try {
             # Ensure the target directory for extraction is empty
