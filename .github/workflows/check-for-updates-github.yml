@@ -37,8 +37,30 @@ jobs:
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_FILE=$logFile"
       shell: pwsh
 
-    - name: Install .NET SDK
-      uses: actions/setup-dotnet@v1
+    - name: Install .NET 5.0
+      run: |
+        function Log-Message {
+          param (
+            [string]$Message,
+            [string]$Type = "INFO", # Default type is INFO
+            [System.Management.Automation.ErrorRecord]$ErrorRecord
+          )
+          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+          $logEntry = "$timestamp [$Type] $Message"
+          $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
+        }
+
+        if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+          Write-Host "dotnet is not installed. Installing now..."
+          Log-Message "dotnet is not installed. Installing now..."
+          choco install dotnetcore-sdk --yes --version 5.0.301
+          if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+            Write-Host "dotnet failed to install. Exiting..."
+            Log-Message "dotnet failed to install. Exiting..." -Type "ERROR"
+            exit 1
+          }
+        }
+      shell: pwsh
 
     - name: Install Chocolatey
       run: |
