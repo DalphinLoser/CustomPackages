@@ -89,12 +89,13 @@ function Get-Updates {
 
         # Check if System.IO.Compression.FileSystem assembly is loaded
         if (-not ([System.Management.Automation.PSTypeName]'System.IO.Compression.FileSystem').Type) {
-            Write-DebugLog "System.IO.Compression.FileSystem assembly is not loaded. Loading assembly."
+            Write-DebugLog "System.IO.Compression.FileSystem assembly is not loaded."
             try {
+                Write-DebugLog "Loading System.IO.Compression.FileSystem assembly."
                 Add-Type -AssemblyName System.IO.Compression.FileSystem
             }
             catch {
-                Write-Error "Failed to load System.IO.Compression.FileSystem assembly: $_"
+                Write-DebugLog "Failed to load System.IO.Compression.FileSystem assembly: $_"
             }
         }
         else {
@@ -102,26 +103,42 @@ function Get-Updates {
         }
         
 
+        Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
         try {
-            # Ensure the target directory for extraction is empty
-            if (Test-Path -Path $tempExtractPath -and (Get-ChildItem -Path $tempExtractPath).Count -gt 0) {
-                Write-DebugLog "Temp directory already exists at $($tempExtractPath) which contains the following files: "
-                Get-ChildItem -Path $tempExtractPath -Recurse | ForEach-Object {
-                    Write-DebugLog "    $($_.FullName)"
+            # Check if the target directory for extraction exists
+            Write-DebugLog "Checking if temp directory already exists at $($tempExtractPath)"
+            if (Test-Path -Path $tempExtractPath) {
+                # Check if the target directory is empty
+                Write-DebugLog "Checking if temp directory contains files at $($tempExtractPath)"
+                if ((Get-ChildItem -Path $tempExtractPath).Count -gt 0) {
+                    Write-DebugLog "Temp directory already exists at $($tempExtractPath) and contains the following files: "
+                    Get-ChildItem -Path $tempExtractPath -Recurse | ForEach-Object {
+                        Write-DebugLog "    $($_.FullName)"
+                    }
+                    Write-DebugLog "Removing existing files in $($tempExtractPath)"
+                    Remove-Item -Path $tempExtractPath -Recurse -Force
                 }
-                Write-DebugLog "Removing existing files in $($tempExtractPath)"
-                Remove-Item -Path $tempExtractPath -Recurse -Force
+                else {
+                    Write-DebugLog "Temp directory exists at $($tempExtractPath) but is empty."
+                }
             }
-
-            # Extract the contents of the NuGet package file to the temp directory
-            Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
-            Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+            else {
+                Write-DebugLog "Temp directory does not exist at $($tempExtractPath)."
+            }
         }
         catch {
-            Write-Error "Error occurred while extracting NuGet package file: $($nupkgFile.FullName)"
-            continue
+            Write-Error "Error occurred while checking and removing existing files in temp directory: $($tempExtractPath) - $_"
         }
+            try {
+                # Extract the contents of the NuGet package file to the temp directory
+                Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+                [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+                Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+            }
+            catch {
+                Write-Error "Failed to extract NuGet package file: $($_.Exception.Message)"
+                continue
+            }
 
         # Print the contents of the temp directory
         Write-DebugLog "Contents of $($tempExtractPath): "
