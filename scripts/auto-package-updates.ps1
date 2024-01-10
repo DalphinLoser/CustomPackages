@@ -142,14 +142,14 @@ function Get-Updates {
                     if ($entry.FullName -match '/$') {
                         # Create the directory if it does not exist
                         if (!(Test-Path -Path $targetPath)) {
-                            New-Item -ItemType Directory -Path $targetPath -Force
+                            New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
                             Write-DebugLog "Created directory: $targetPath"
                         }
                     } else {
                         # For files, create the directory of the file if it does not exist
                         $targetDir = Split-Path $targetPath -Parent
                         If (!(Test-Path -Path $targetDir)) {
-                            New-Item -ItemType Directory -Path $targetDir -Force
+                            New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
                         }
         
                         # Extract the file
