@@ -95,7 +95,7 @@ jobs:
               if (Test-Path $packagePath) {
                 try {
                   dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
-                  Log-Message "Package $packagePath pushed successfully or version already exists"
+                  Log-Message "Successfully updated $packagePath or this version already exists"
                 } catch {
                   Log-Message "Failed to push package: $packagePath" -Type "ERROR" -ErrorRecord $_
                 }
@@ -106,7 +106,6 @@ jobs:
           } else {
             Log-Message "No updated packages to push." -Type "INFO"
           }
-    
           Log-Message "Completed package updates"
         } catch {
           Log-Message "An error occurred while getting updates: $_" -Type "ERROR" -ErrorRecord $_
