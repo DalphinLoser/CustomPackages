@@ -1,0 +1,11 @@
+2024-01-10 22:01:18 [INFO] Updating packages
+2024-01-10 22:01:32 [INFO] Updated package: D:\a\CustomPackages\CustomPackages\packages\adguard\adguard.7.15.4386.nupkg
+2024-01-10 22:01:32 [INFO] Updated package: D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg
+2024-01-10 22:01:32 [INFO] Updated package: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg
+2024-01-10 22:01:32 [INFO] Updated package: D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1104.nupkg
+2024-01-10 22:01:32 [INFO] Pushing updated packages
+2024-01-10 22:01:44 [INFO] Successfully pushed D:\a\CustomPackages\CustomPackages\packages\adguard\adguard.7.15.4386.nupkg or this version already exists
+2024-01-10 22:01:45 [INFO] Successfully pushed D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg or this version already exists
+2024-01-10 22:01:46 [INFO] Successfully pushed D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg or this version already exists
+2024-01-10 22:01:46 [INFO] Successfully pushed D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1104.nupkg or this version already exists
+2024-01-10 22:01:46 [INFO] Completed package updates
