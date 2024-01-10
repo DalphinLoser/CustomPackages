@@ -1,0 +1,2 @@
+2024-01-10 18:34:05 [INFO] Updating packages
+2024-01-10 18:34:05 [ERROR] An error occurred while getting updates: Error occurred while extracting NuGet package file: D:\a\CustomPackages\CustomPackages\packages\achievement-watcher\achievement-watcher.1.6.8.nupkg
