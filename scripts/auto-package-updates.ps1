@@ -75,20 +75,24 @@ function Get-Updates {
         Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
         try {
-            # Load the assembly for the Expand-Archive cmdlet if it is not already loaded
-            Write-DebugLog "Checking if assembly for Expand-Archive cmdlet is loaded."
-            if (-not ([System.Management.Automation.PSTypeName]'Microsoft.PowerShell.Archive\Expand-Archive').Type) {
-                Write-DebugLog "Assembly for Expand-Archive cmdlet is not loaded. Loading assembly."
-                Add-Type -AssemblyName System.IO.Compression.FileSystem
-            }
-            else {
-                Write-DebugLog "Assembly for Expand-Archive cmdlet is already loaded."
-            }
+            # Check and display dotnet version
+            Write-DebugLog "Checking dotnet version..."
+            $dotnetVersion = dotnet --version
+            Write-DebugLog "dotnet version: $dotnetVersion"
         }
         catch {
-            Write-Error "Error occurred while loading the assembly for Expand-Archive cmdlet." 
-            continue
+            Write-Error "Failed to check dotnet version: $_"
         }
+
+        # Check if System.IO.Compression.FileSystem assembly is loaded
+        if (-not ([System.Management.Automation.PSTypeName]'System.IO.Compression.FileSystem').Type) {
+            Write-DebugLog "System.IO.Compression.FileSystem assembly is not loaded. Loading assembly."
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+        }
+        else {
+            Write-DebugLog "System.IO.Compression.FileSystem assembly is already loaded."
+        }
+        
 
         try {
             # Ensure the target directory for extraction is empty
