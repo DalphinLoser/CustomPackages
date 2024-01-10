@@ -80,6 +80,10 @@ function Get-Updates {
         try {
             # Ensure the target directory for extraction is empty
             if (Test-Path -Path $tempExtractPath) {
+                Write-DebugLog "Temp directory already exists at $($tempExtractPath) which contains the following files: "
+                Get-ChildItem -Path $tempExtractPath -Recurse | ForEach-Object {
+                    Write-DebugLog "    $($_.FullName)"
+                }
                 Write-DebugLog "Removing existing files in $($tempExtractPath)"
                 Remove-Item -Path $tempExtractPath -Recurse -Force
             }
