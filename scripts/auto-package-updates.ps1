@@ -74,63 +74,25 @@ function Get-Updates {
         }
         Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
-        try {
-            # Load the assembly for the Expand-Archive cmdlet
-            Write-DebugLog "Loading System.IO.Compression.FileSystem assembly"
-            Add-Type -AssemblyName System.IO.Compression.FileSystem
+        # Load the assembly for the Expand-Archive cmdlet
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+        # Extract the contents of the NuGet package file to the temp directory
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+        Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+
+        # Print the contents of the temp directory
+        Write-DebugLog "Contents of $($tempExtractPath): "
+        Get-ChildItem -Path $tempExtractPath -Recurse | ForEach-Object {
+            Write-DebugLog "    $($_.FullName)"
         }
-        catch {
-            Write-Error "Failed to load System.IO.Compression.FileSystem assembly: $($_.Exception.Message)"
-        }
-
-        $zipArchive = [System.IO.Compression.ZipFile]::OpenRead($nupkgFile.FullName)
-
-        try {
-            foreach ($entry in $zipArchive.Entries) {
-                $destinationPath = [System.IO.Path]::Combine($tempExtractPath, $entry.FullName)
-
-                # Ensure destination directory exists
-                $destinationDir = [System.IO.Path]::GetDirectoryName($destinationPath)
-                if (-not (Test-Path $destinationDir)) {
-                    New-Item -ItemType Directory -Path $destinationDir -Force | Out-Null
-                }
-
-                # Extract file using IO streams if ExtractToFile is not available
-                $fileStream = [System.IO.File]::Create($destinationPath)
-                $entryStream = $entry.Open()
-                try {
-                    $entryStream.CopyTo($fileStream)
-                } finally {
-                    $fileStream.Dispose()
-                    $entryStream.Dispose()
-                }
-            }
-
-
-            # Now extract the files
-            foreach ($path in $filesToExtract.Keys) {
-                $entry = $filesToExtract[$path]
-
-                # Create directory if it doesn't exist
-                $destinationDir = [System.IO.Path]::GetDirectoryName($path)
-                if (-not (Test-Path $destinationDir)) {
-                    New-Item -ItemType Directory -Path $destinationDir -Force | Out-Null
-                }
-
-                # Extract file
-                $entry.ExtractToFile($path, $true)
-            }
-        } finally {
-            $zipArchive.Dispose()
-        }
-
 
         $toolsPath = Join-Path -Path $tempExtractPath -ChildPath "tools"
         # Verify the tools directory exists
         Write-DebugLog "Verifying 'tools' directory exists at $toolsPath"
         if (-not (Test-Path -Path $toolsPath)) {
             Write-Error "The 'tools' directory does not exist in the path: $toolsPath"
-            continue
+            continue # Skip to the next package if the tools directory is not found
         }
 
         Write-DebugLog "Getting chocolateyInstall.ps1"
