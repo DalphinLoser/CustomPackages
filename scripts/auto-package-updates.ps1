@@ -48,6 +48,19 @@ function Get-Updates {
             continue
         }
     
+        try {
+            # Check and display dotnet version and powershell version. List all installed versions of each.
+            Write-DebugLog "Checking dotnet version: "
+            $dotnetVersion = dotnet --version
+            Write-DebugLog "    dotnet version: $dotnetVersion"
+            Write-DebugLog "Checking powershell version: "
+            $powershellVersion = $PSVersionTable.PSVersion
+            Write-DebugLog "    powershell version: $powershellVersion"
+        }
+        catch {
+            Write-Error "Failed to check dotnet and/or powershell versions: $_"
+        }
+
         # Temporary directory to extract the contents of the .nupkg file
         try {
             # Generate a random file name
