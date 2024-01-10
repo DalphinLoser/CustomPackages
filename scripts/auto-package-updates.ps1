@@ -145,7 +145,9 @@ function Get-Updates {
             $patterns = @('content/*', 'tools/*', '*.nuspec')
             $entries = $zip.Entries | Where-Object {
                 $path = $_.FullName
-                $patterns | Where-Object { $path -like $_ } | Measure-Object | Select-Object -ExpandProperty Count -gt 0
+                # Check if any pattern matches the path
+                $matchCount = ($patterns | Where-Object { $path -like $_ } | Measure-Object).Count
+                $matchCount -gt 0
             }
             # Extract the filtered entries
             foreach ($entry in $entries) {
