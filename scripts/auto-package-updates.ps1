@@ -131,11 +131,23 @@ function Get-Updates {
             }
             # Extract the filtered entries
             foreach ($entry in $entries) {
+                # Determine the target path
+                $targetPath = Join-Path $tempExtractPath $entry.FullName
+            
+                # Create the directory if it does not exist
+                $targetDir = Split-Path $targetPath -Parent
+                If (!(Test-Path -Path $targetDir)) {
+                    New-Item -ItemType Directory -Path $targetDir -Force
+                }
+            
                 # Extract the file
-                Write-DebugLog "Extracting file: $($entry.FullName) to: $tempExtractPath"
-                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, "$tempExtractPath\$($entry.FullName)", $true)
-                Write-DebugLog "Extracted file: $($entry.FullName) to: $tempExtractPath"
-            }
+                try {
+                    [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $targetPath, $true)
+                    Write-DebugLog "Extracted file: $($entry.FullName) to: $targetPath"
+                } catch {
+                    Write-Error "Failed to extract file: $($_.Exception.Message)"
+                }
+            }            
 
             # Release the ZIP file resource
             $zip.Dispose()
