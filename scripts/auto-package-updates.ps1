@@ -328,7 +328,19 @@ function Get-Updates {
             $installFileContent | Set-Content -Path $installFile.FullName -Force
             Write-DebugLog "    Install file updated successfully." -ForegroundColor Green
 
-            $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
+            # The following method was resulting in duplicate files in the package, this surely can be addressed in a better way but this works for now
+            # $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
+            
+            # Create a new nupkg file using the reverse of the method we used to extract the contents of the original nupkg file
+            $newPkg = Join-Path -Path $dirInfo.FullName -ChildPath "$package.$latestVersion.nupkg"
+            Write-DebugLog "    Creating new nupkg file: $newPkg"
+            try {
+                [System.IO.Compression.ZipFile]::CreateFromDirectory($tempExtractPath, $newPkg)
+            }
+            catch {
+                Write-Error "Error occurred while creating new nupkg file: $newPkg"
+                continue
+            }
 
             # Append the path to the new nupkg file to the list of updated packages
             [void]($updatedPackages += $newPkg)
