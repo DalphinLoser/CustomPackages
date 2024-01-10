@@ -85,31 +85,6 @@ function Get-Updates {
 
         try {
             # Extract the contents of the NuGet package file to the temp directory
-            Write-DebugLog "Checking requirements before extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-            
-            # Check if dotnet is installed
-            if (-not (Get-Command -Name dotnet -ErrorAction SilentlyContinue)) {
-                Write-DebugLog "dotnet is not installed. Please install dotnet to use this script."
-                continue
-            }
-            else {
-                Write-DebugLog "dotnet is installed."
-            }
-            
-            try {
-                # Attempt to access a member of the ZipFile class
-                [void][System.IO.Compression.ZipFile]::OpenRead("")
-            
-                # If the above line doesn't throw an exception, the class is available
-                Write-DebugLog "System.IO.Compression.ZipFile is available."
-            }
-            catch {
-                # Handle the error if the ZipFile class is not available
-                Write-Error "System.IO.Compression.ZipFile is not available."
-            }
-            
-
-            # Extract the contents of the NuGet package file to the temp directory
             Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
             [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
         }
