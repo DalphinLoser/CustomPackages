@@ -14,13 +14,13 @@ jobs:
       run: |
         Add-Content -Path $env:GITHUB_ENV -Value "SCRIPTS_DIR=$env:GITHUB_WORKSPACE\scripts"
         Add-Content -Path $env:GITHUB_ENV -Value "PACKAGES_DIR=$env:GITHUB_WORKSPACE\packages"
-        Add-Content -Path $env:GITHUB_ENV -Value "LOGS_DIR=$env:GITHUB_WORKSPACE\logs"
+        Add-Content -Path $env:GITHUB_ENV -Value "LOG_DIR=$env:GITHUB_WORKSPACE\logs"
       shell: pwsh
     
     - name: Create Log File
       run: |
         $dateStamp = Get-Date -Format "yyyy-MM-dd"
-        $logDir = Join-Path $env:LOGS_DIR -ChildPath "update-logs\$dateStamp"
+        $logDir = Join-Path $env:LOG_DIR -ChildPath "update-logs\$dateStamp"
         $logFile = Join-Path $logDir -ChildPath "$(Get-Date -Format 'HH-mm-ss').log"
         
         if (-not (Test-Path $logDir)) {
@@ -48,7 +48,7 @@ jobs:
           $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
 
-          $logEntry | Out-File -Append -FilePath $Env:LOG_FILE
+          $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }
 
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
@@ -79,7 +79,7 @@ jobs:
             $logEntry += " ErrorRecord: $($ErrorRecord.Exception.Message), Category: $($ErrorRecord.CategoryInfo), ErrorID: $($ErrorRecord.FullyQualifiedErrorId)"
           }
 
-          $logEntry | Out-File -Append -FilePath $Env:LOG_FILE
+          $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }
 
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
