@@ -1,0 +1,2 @@
+2024-01-10 17:18:37 [INFO] Starting package updates
+2024-01-10 17:18:37 [ERROR] An error occurred while getting updates: Method invocation failed because [System.IO.Compression.ZipArchiveEntry] does not contain a method named 'ExtractToFile'.
