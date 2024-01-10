@@ -404,7 +404,7 @@ function Get-Updates {
             }
 
             # Replace the version field in the nuspec file with the new version number
-            $nuspecFileContent = $nuspecFileContent -replace '<version>(.*?)<\/version>', "<version>$latestVersion</version>"
+            $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($currentVersionNuspec), $latestVersion
 
             # Decode HTML entities in the release notes
             $latestReleaseNotes = [System.Net.WebUtility]::HtmlDecode($latestReleaseObj.body)
