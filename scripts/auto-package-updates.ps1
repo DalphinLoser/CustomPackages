@@ -82,9 +82,7 @@ function Get-Updates {
         catch {
             Write-Error "Failed to load System.IO.Compression.FileSystem assembly: $($_.Exception.Message)"
         }
-
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-
+        
         $zipArchive = [System.IO.Compression.ZipFile]::OpenRead($nupkgFile.FullName)
         $filesToExtract = @{}
 
