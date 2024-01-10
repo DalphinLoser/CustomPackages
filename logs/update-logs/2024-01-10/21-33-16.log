@@ -1,0 +1,2 @@
+2024-01-10 21:33:17 [INFO] Updating packages
+2024-01-10 21:33:18 [ERROR] Failed to update packages: Failed to extract NuGet package file: Cannot find an overload for "ExtractToFile" and the argument count: "3". 
