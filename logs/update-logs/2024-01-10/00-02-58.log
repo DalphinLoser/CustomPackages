@@ -1,0 +1,2 @@
+2024-01-10 00:02:59 [INFO] Starting package updates
+2024-01-10 00:02:59 [ERROR] An error occurred while getting updates: Exception calling "ExtractToDirectory" with "2" argument(s): "Could not find file 'D:\a\CustomPackages\CustomPackages\achievement-watcher.1.6.8.nupkg'." ErrorRecord: Exception calling "ExtractToDirectory" with "2" argument(s): "Could not find file 'D:\a\CustomPackages\CustomPackages\achievement-watcher.1.6.8.nupkg'.", Category: NotSpecified: (:) [Get-Updates], MethodInvocationException, ErrorID: FileNotFoundException,Get-Updates
