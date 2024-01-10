@@ -105,13 +105,12 @@ function Get-Updates {
             Write-Error "Error occurred while checking and removing existing files in temp directory: $($tempExtractPath) - $_"
         }
 
-        Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
         try {
             # Open the NuGet package file
             $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkgFile.FullName)
 
             # Display the files in the package
-            Write-DebugLog "Files in NuGet package file: $($nupkgFile.FullName)"
+            Write-DebugLog "Files in NuGet package: $($nupkgFile.FullName)"
             foreach ($entry in $zip.Entries) {
                 Write-DebugLog "    $($entry.FullName)"
             }
@@ -134,7 +133,7 @@ function Get-Updates {
             foreach ($entry in $entries) {
                 # Extract the file
                 Write-DebugLog "Extracting file: $($entry.FullName) to: $tempExtractPath"
-                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, "$tempExtractPath\$($entry.FullName)", $true)
+                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($nupkgFile.FullName, "$tempExtractPath\$($entry.FullName)", $true)
                 Write-DebugLog "Extracted file: $($entry.FullName) to: $tempExtractPath"
             }
 
