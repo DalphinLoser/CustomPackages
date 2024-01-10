@@ -122,7 +122,7 @@ function Get-Updates {
                 # Get the full path of the entry
                 $path = $_.FullName
                 # Check if any pattern matches the path
-                $patterns | Where-Object { $path -like $_ } | Measure-Object | Select-Object -ExpandProperty Count -gt 0
+                ($patterns | Where-Object { $path -like $_ } | Measure-Object).Count -gt 0
             }
         
             if ($entries.Count -eq 0) {
