@@ -90,7 +90,12 @@ function Get-Updates {
         # Check if System.IO.Compression.FileSystem assembly is loaded
         if (-not ([System.Management.Automation.PSTypeName]'System.IO.Compression.FileSystem').Type) {
             Write-DebugLog "System.IO.Compression.FileSystem assembly is not loaded. Loading assembly."
-            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            try {
+                Add-Type -AssemblyName System.IO.Compression.FileSystem
+            }
+            catch {
+                Write-Error "Failed to load System.IO.Compression.FileSystem assembly: $_"
+            }
         }
         else {
             Write-DebugLog "System.IO.Compression.FileSystem assembly is already loaded."
