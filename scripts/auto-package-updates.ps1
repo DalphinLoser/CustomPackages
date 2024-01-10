@@ -30,41 +30,13 @@ function Get-Updates {
     $packageDirNames | ForEach-Object {
         Write-DebugLog "    $($_.FullName)"
     }
-
+    
     try {
-        # Check and display dotnet version and powershell version. List all installed versions of each.
-        Write-DebugLog "Checking dotnet version: "
-        $dotnetVersion = dotnet --version
-        Write-DebugLog "    dotnet version: $dotnetVersion"
-        Write-DebugLog "Checking powershell version: "
-        $powershellVersion = $PSVersionTable.PSVersion
-        Write-DebugLog "    powershell version: $powershellVersion"
+        Write-DebugLog "Loading System.IO.Compression.FileSystem assembly."
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
     }
     catch {
-        Write-Error "Failed to check dotnet and/or powershell versions: $_"
-    }
-
-    # Check if System.IO.Compression.FileSystem assembly is loaded
-    Write-DebugLog "Checking if System.IO.Compression.FileSystem assembly is loaded."
-    if (-not ([System.Management.Automation.PSTypeName]'System.IO.Compression.FileSystem').Type) {
-        Write-DebugLog "System.IO.Compression.FileSystem assembly is not loaded."
-        try {
-            Write-DebugLog "Loading System.IO.Compression.FileSystem assembly."
-            Add-Type -AssemblyName System.IO.Compression.FileSystem
-            # Check if the assembly was loaded
-            if (-not ([System.Management.Automation.PSTypeName]'System.IO.Compression.FileSystem').Type) {
-                Write-Error "Failed to load System.IO.Compression.FileSystem assembly."
-            }
-            else {
-                Write-DebugLog "System.IO.Compression.FileSystem assembly loaded successfully."
-            }
-        }
-        catch {
-            Write-DebugLog "Failed to load System.IO.Compression.FileSystem assembly: $_"
-        }
-    }
-    else {
-        Write-DebugLog "System.IO.Compression.FileSystem assembly is already loaded."
+        Write-DebugLog "Failed to load System.IO.Compression.FileSystem assembly: $_"
     }
 
     foreach ($dirInfo in $packageDirNames) {
