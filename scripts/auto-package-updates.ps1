@@ -74,19 +74,23 @@ function Get-Updates {
         }
         Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
-        # Load the assembly for the Expand-Archive cmdlet
-        Write-DebugLog "Loading System.IO.Compression.FileSystem assembly"
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        try {
+            # Load the assembly for the Expand-Archive cmdlet
+            Write-DebugLog "Loading System.IO.Compression.FileSystem assembly"
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+        }
+        catch {
+            Write-Error "Failed to load System.IO.Compression.FileSystem assembly: $($_.Exception.Message)"
+        }
 
-        # Extract the contents of the NuGet package file to the temp directory
-        Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
-        Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-
-        # Print the contents of the temp directory
-        Write-DebugLog "Contents of $($tempExtractPath): "
-        Get-ChildItem -Path $tempExtractPath -Recurse | ForEach-Object {
-            Write-DebugLog "    $($_.FullName)"
+        try {
+            # Extract the contents of the NuGet package file to the temp directory
+            Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+            Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+        }
+        catch {
+            Write-Error "Failed to extract NuGet package file: $($_.Exception.Message)"
         }
 
         $toolsPath = Join-Path -Path $tempExtractPath -ChildPath "tools"
