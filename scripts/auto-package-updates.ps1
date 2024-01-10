@@ -391,6 +391,7 @@ function Get-Updates {
             # Compare versions from the tag and the nuspec file
             $areVersionsSame = Compare-VersionNumbers $currentVersionTag $currentVersionNuspec
 
+            # I have no idea what I was thinking when I wrote this part, but I dont want to break anything so I'm leaving it for now
             if ($areVersionsSame) {
                 $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($currentVersionNuspec), $latestVersion
             }
@@ -401,6 +402,9 @@ function Get-Updates {
                 Write-DebugLog $currentVersionTag
                 Write-DebugLog "    The version number is not the tag..."
             }
+
+            # Replace the version field in the nuspec file with the new version number
+            $nuspecFileContent = $nuspecFileContent -replace '<version>(.*?)<\/version>', "<version>$latestVersion</version>"
 
             # Decode HTML entities in the release notes
             $latestReleaseNotes = [System.Net.WebUtility]::HtmlDecode($latestReleaseObj.body)
