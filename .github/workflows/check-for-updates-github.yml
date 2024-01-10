@@ -24,7 +24,7 @@ jobs:
       run: |
         $dateStamp = Get-Date -Format "yyyy-MM-dd"
         $logDir = Join-Path $env:LOG_DIR -ChildPath "update-logs\$dateStamp"
-        $logFile = Join-Path $logDir -ChildPath "$(Get-Date -Format "yyyy-MM-dd_HH-mm-ss").log"
+        $logFile = Join-Path $logDir -ChildPath "$(Get-Date -Format "HH-mm-ss").log"
         
         if (-not (Test-Path $logDir)) {
           Write-Host "Creating log directory: $logDir"
@@ -45,7 +45,7 @@ jobs:
             [string]$Type = "INFO", # Default type is INFO
             [System.Management.Automation.ErrorRecord]$ErrorRecord
           )
-          $timestamp = Get-Date -Format "HH:mm:ss"
+          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
           $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }
@@ -71,7 +71,7 @@ jobs:
             [string]$Type = "INFO", # Default type is INFO
             [System.Management.Automation.ErrorRecord]$ErrorRecord
           )
-          $timestamp = Get-Date -Format "HH:mm:ss"
+          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
           $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }

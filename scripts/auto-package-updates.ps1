@@ -86,7 +86,8 @@ function Get-Updates {
 
             # Extract the contents of the NuGet package file to the temp directory
             Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+            # Extract only the content directory, tools directory, and the .nuspec file
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath, $true, 'content/*', 'tools/*', '*.nuspec')
             Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
         }
         catch {
@@ -328,19 +329,7 @@ function Get-Updates {
             $installFileContent | Set-Content -Path $installFile.FullName -Force
             Write-DebugLog "    Install file updated successfully." -ForegroundColor Green
 
-            # The following method was resulting in duplicate files in the package, this surely can be addressed in a better way but this works for now
-            # $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
-            
-            # Create a new nupkg file using the reverse of the method we used to extract the contents of the original nupkg file
-            $newPkg = Join-Path -Path $dirInfo.FullName -ChildPath "$package.$latestVersion.nupkg"
-            Write-DebugLog "    Creating new nupkg file: $newPkg"
-            try {
-                [System.IO.Compression.ZipFile]::CreateFromDirectory($tempExtractPath, $newPkg)
-            }
-            catch {
-                Write-Error "Error occurred while creating new nupkg file: $newPkg"
-                continue
-            }
+            $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
 
             # Append the path to the new nupkg file to the list of updated packages
             [void]($updatedPackages += $newPkg)
