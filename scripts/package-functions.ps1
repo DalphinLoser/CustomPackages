@@ -268,7 +268,7 @@ function New-ChocolateyPackage {
         # Create a new empty directory, then move it to the package directory
         $tempDir = New-Item -Path "$env:TEMP" -Name "chocolateyTemp" -ItemType Directory -Force
         # Create the package
-        New-ChocolateyPackage $NuspecPath -OutputDirectory $tempDir
+        $output = choco pack $NuspecPath --debug --out $tempDir
         # Set tempPackagePath to the path of the package (the only nupkg file in the temp directory)
         $tempPackagePath = Get-ChildItem -Path $tempDir -Filter *.nupkg -Recurse | Select-Object -ExpandProperty FullName
         # Move the package to the package directory
