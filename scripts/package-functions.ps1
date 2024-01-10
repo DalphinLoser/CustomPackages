@@ -265,11 +265,18 @@ function New-ChocolateyPackage {
     # Create Chocolatey package and save the path
     try {
         Write-DebugLog "    Creating Chocolatey package..."
-        $output = choco pack $NuspecPath --debug --out $PackageDir
-        #Write-DebugLog "    Output: " -NoNewline -ForegroundColor Yellow
-        #Write-DebugLog $output
-        # Set the package path to the nupkg file in PackageDir if it exists. Select the most recent package if multiple packages exist.
-        $packagePath = Get-ChildItem -Path $PackageDir -Filter "*.nupkg" | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
+        # Create package in a new empty randomly named directory, then move it to the package directory
+        $tempDir = New-TemporaryDirectory
+        $tempPackagePath = Join-Path $tempDir "$($Metadata.PackageName).nupkg"
+        Write-DebugLog "    Package Path: " -NoNewline -ForegroundColor Yellow
+        Write-DebugLog $tempPackagePath
+        New-ChocolateyPackage -Path $NuspecPath -OutputDirectory $tempDir
+        Move-Item -Path $tempPackagePath -Destination $PackageDir -Force     
+        Write-DebugLog "    Package moved to: " -NoNewline -ForegroundColor Green
+        Write-DebugLog $PackageDir
+        # Set the package path to the new location
+        $packagePath = Join-Path $PackageDir "$($Metadata.PackageName).nupkg"   
+
     }
     catch {
         Write-Error "Failed to create Chocolatey package... Exception: $_"
