@@ -132,7 +132,7 @@ function Get-Updates {
             try {
                 # Extract the contents of the NuGet package file to the temp directory
                 Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-                [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+                [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath, $true, 'content/*', 'tools/*', '*.nuspec')
                 Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
             }
             catch {
