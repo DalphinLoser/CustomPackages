@@ -250,7 +250,7 @@ function Get-Updates {
         }
         # Find the version number in the nuspec file
         if ($nuspecFileContent -match '<version>(.*?)<\/version>') {
-            $version = $matches[1]
+            $currentVersionNuspec = $matches[1]
         }
         else {
             Write-Error "No <version> tag found."
@@ -293,10 +293,10 @@ function Get-Updates {
             # Remove any alpha characters from the tag and
             $currentVersionNoAlpha = $currentTag -replace '[a-zA-Z]', ''
             # Trim everything before the first number
-            $currentVersion = $currentVersionNoAlpha -replace '^[^0-9]*', ''
+            $currentVersionTag = $currentVersionNoAlpha -replace '^[^0-9]*', ''
             # Trim everything after the last number (including dashes and dots)
-            $currentVersion = $currentVersion -replace '[^0-9]*$', ''
-            #$currentVersion = $currentVersion -replace '\D+$', ''
+            $currentVersionTag = $currentVersionTag -replace '[^0-9]*$', ''
+            #$currentVersionTag = $currentVersionTag -replace '\D+$', ''
 
 
             
@@ -308,7 +308,7 @@ function Get-Updates {
             $latestVersion = $latestVersion -replace '[^0-9]*$', ''
             #$latestVersion = $latestVersion -replace '\D+$', ''
 
-            if ($currentVersion -eq $latestVersion) {
+            if ($currentVersionTag -eq $latestVersion) {
                 Write-DebugLog "    No update available for: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog "$currentAssetName"
                 continue
@@ -317,20 +317,20 @@ function Get-Updates {
             Write-DebugLog "    Checking if package: " -NoNewline -ForegroundColor Yellow
             Write-DebugLog "$currentAssetName" -NoNewline
             Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
-            Write-DebugLog "$currentVersion"
+            Write-DebugLog "$currentVersionTag"
             # If the name contains the original tag without the alpha characters, remove the numeric tag from the package name
-            if ($currentAssetName -match $currentVersion) {
+            if ($currentAssetName -match $currentVersionTag) {
                 Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog "$currentAssetName" -NoNewline
                 Write-DebugLog " contains tag: " -NoNewline -ForegroundColor Yellow
-                Write-DebugLog "$currentVersion"
-                $latestAssetName = $currentAssetName -replace $currentVersion, $latestVersion
+                Write-DebugLog "$currentVersionTag"
+                $latestAssetName = $currentAssetName -replace $currentVersionTag, $latestVersion
             }
             else {
                 Write-DebugLog "        Package name: " -NoNewline -ForegroundColor Yellow
                 Write-DebugLog "$currentAssetName" -NoNewline
                 Write-DebugLog " does not contain tag: " -NoNewline -ForegroundColor Yellow
-                Write-DebugLog "$currentVersion"
+                Write-DebugLog "$currentVersionTag"
                 $latestAssetName = $currentAssetName
             }
             Write-DebugLog "    Latest Asset Name: " -NoNewline -ForegroundColor Yellow
@@ -351,7 +351,7 @@ function Get-Updates {
         } 
         else {
             # Get the URL of the asset that matches the packageSourceUrl with the version number replaced the newest version number
-            $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($currentVersion), $latestVersion
+            $latestReleaseUrl = $packageSourceUrl -replace [regex]::Escape($currentVersionTag), $latestVersion
             Write-DebugLog "    Latest  URL: $latestReleaseUrl"
             # Compare the two URLs
             if ($latestReleaseUrl -eq $packageSourceUrl) {
@@ -384,21 +384,21 @@ function Get-Updates {
             Write-DebugLog $latestReleaseUrl
             # Replace the packageSourceUrl in the nuspec file with the new URL
             $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($packageSourceUrl), $latestReleaseUrl
-            Write-DebugLog "    The latest version is:     " -NoNewline -ForegroundColor Yellow
+            Write-DebugLog "    The latest version is: " -NoNewline -ForegroundColor Yellow
             # tag_name without any alpha characters
             Write-DebugLog $latestVersion
 
-            # Compare versions
-            $areVersionsSame = Compare-VersionNumbers $currentVersion $version
+            # Compare versions from the tag and the nuspec file
+            $areVersionsSame = Compare-VersionNumbers $currentVersionTag $currentVersionNuspec
 
             if ($areVersionsSame) {
-                $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($version), $latestVersion
+                $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($currentVersionNuspec), $latestVersion
             }
             else {
                 Write-DebugLog "    Version number from nuspec: " -NoNewline -ForegroundColor Yellow
-                Write-DebugLog $version
+                Write-DebugLog $currentVersionNuspec
                 Write-DebugLog "    Version number from Tag:    " -NoNewline -ForegroundColor Yellow
-                Write-DebugLog $currentVersion
+                Write-DebugLog $currentVersionTag
                 Write-DebugLog "    The version number is not the tag..."
             }
 
@@ -421,7 +421,8 @@ function Get-Updates {
             $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
 
             # Append the updated package name to the list of updated packages
-            [void]($updatedPackages += $latestAssetName)
+            # Format of string is: "Package Name: Old Package Version > Package Version"
+            [void]($updatedPackages += "$($package): $currentVersionNuspec > $latestVersion")
             
         }
         else {
