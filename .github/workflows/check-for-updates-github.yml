@@ -108,7 +108,7 @@ jobs:
           }
           Log-Message "Completed package updates"
         } catch {
-          Log-Message "Failed to update packages: " -Type "ERROR" -ErrorRecord $_
+          Log-Message "Failed to update packages: $($_.Exception.Message)" -Type "ERROR" -ErrorRecord $_
         }
       shell: pwsh
 
