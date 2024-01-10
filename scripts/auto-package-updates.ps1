@@ -74,55 +74,12 @@ function Get-Updates {
         }
         Write-DebugLog "Found NuGet package file: $($nupkgFile.FullName)"
 
-        try {
-            # Check and display dotnet version and powershell version. List all installed versions of each.
-            Write-DebugLog "Checking dotnet version: "
-            $dotnetVersion = dotnet --version
-            Write-DebugLog "    dotnet version: $dotnetVersion"
-            Write-DebugLog "Checking powershell version: "
-            $powershellVersion = $PSVersionTable.PSVersion
-            Write-DebugLog "    powershell version: $powershellVersion"
-        }
-        catch {
-            Write-Error "Failed to check dotnet and/or powershell versions: $_"
-        }
+        # Load the assembly for the Expand-Archive cmdlet
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-        # Check if System.IO.Compression.FileSystem assembly is loaded
-        if (-not ([System.Management.Automation.PSTypeName]'System.IO.Compression.FileSystem').Type) {
-            Write-DebugLog "System.IO.Compression.FileSystem assembly is not loaded. Loading assembly."
-            try {
-                Add-Type -AssemblyName System.IO.Compression.FileSystem
-            }
-            catch {
-                Write-Error "Failed to load System.IO.Compression.FileSystem assembly: $_"
-            }
-        }
-        else {
-            Write-DebugLog "System.IO.Compression.FileSystem assembly is already loaded."
-        }
-        
-
-        try {
-            # Ensure the target directory for extraction is empty
-            if (Test-Path -Path $tempExtractPath -and (Get-ChildItem -Path $tempExtractPath).Count -gt 0) {
-                Write-DebugLog "Temp directory already exists at $($tempExtractPath) which contains the following files: "
-                Get-ChildItem -Path $tempExtractPath -Recurse | ForEach-Object {
-                    Write-DebugLog "    $($_.FullName)"
-                }
-                Write-DebugLog "Removing existing files in $($tempExtractPath)"
-                Remove-Item -Path $tempExtractPath -Recurse -Force
-            }
-
-            # Extract the contents of the NuGet package file to the temp directory
-            Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-            # Extract only the content directory, tools directory, and the .nuspec file
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath, $true, 'content/*', 'tools/*', '*.nuspec')
-            Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-        }
-        catch {
-            Write-Error "Error occurred while extracting NuGet package file: $($nupkgFile.FullName)"
-            continue
-        }
+        # Extract the contents of the NuGet package file to the temp directory
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+        Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
 
         # Print the contents of the temp directory
         Write-DebugLog "Contents of $($tempExtractPath): "
