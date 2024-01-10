@@ -77,9 +77,22 @@ function Get-Updates {
         # Load the assembly for the Expand-Archive cmdlet
         Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-        # Extract the contents of the NuGet package file to the temp directory
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
-        Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+        try {
+            # Ensure the target directory for extraction is empty
+            if (Test-Path -Path $tempExtractPath) {
+                Write-DebugLog "Removing existing files in $($tempExtractPath)"
+                Remove-Item -Path $tempExtractPath -Recurse -Force
+            }
+
+            # Extract the contents of the NuGet package file to the temp directory
+            Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+            Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
+        }
+        catch {
+            Write-Error "Error occurred while extracting NuGet package file: $($nupkgFile.FullName)"
+            continue
+        }
 
         # Print the contents of the temp directory
         Write-DebugLog "Contents of $($tempExtractPath): "
