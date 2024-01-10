@@ -115,11 +115,6 @@ function Get-Updates {
             foreach ($entry in $zip.Entries) {
                 Write-DebugLog "    $($entry.FullName)"
             }
-
-            # Print content using ZipArchive toString method
-            $contentTest= [System.IO.Compression.ZipArchive]::ToString($zip)
-            Write-DebugLog "Content of NuGet package file using ZipArchive toString method: $($nupkgFile.FullName)"
-            Write-DebugLog $contentTest
             
             # Filter the entries to only include content, tools, and .nuspec files
             Write-DebugLog "Filtering entries for content, tools, and .nuspec files."
