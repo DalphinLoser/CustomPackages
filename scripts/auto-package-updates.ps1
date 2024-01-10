@@ -421,8 +421,13 @@ function Get-Updates {
             $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
 
             # Append the updated package name to the list of updated packages
-            # Format of string is: "Package Name: Old Package Version > Package Version"
-            [void]($updatedPackages += "$($package): $currentVersionNuspec > $latestVersion")
+            # Save Package Path, Name, Current Version, Latest Version as a json object
+            [void]($updatedPackages += [PSCustomObject]@{
+                Path = $newPkg
+                Name = $package
+                OldVersion = $currentVersionTag
+                NewVersion = $latestVersion
+            })
             
         }
         else {

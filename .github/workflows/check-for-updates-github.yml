@@ -88,19 +88,20 @@ jobs:
           
           if ($updatedPackages.Count -gt 0) {            
             foreach ($package in $updatedPackages) {
-              Log-Message "Updated package: $package"
+              # Package is a psCustomObject with properties: Path, Name, OldVersion, NewVersion
+              Log-Message "Updated package: $($package.Name) from $($package.OldVersion) to $($package.NewVersion)"
             }
             Log-Message "Pushing updated packages"
-            foreach ($packagePath in $updatedPackages) {
-              if (Test-Path $packagePath) {
+            foreach ($package in $updatedPackages) {
+              if (Test-Path $package.Path) {
                 try {
-                  dotnet nuget push "$packagePath" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
-                  Log-Message "Successfully pushed $packagePath or this version already exists"
+                  dotnet nuget push "$package.Path" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
+                  Log-Message "Successfully pushed $package or this version $package.NewVersion already exists." -Type "INFO"
                 } catch {
-                  Log-Message "Failed to push package: $packagePath" -Type "ERROR" -ErrorRecord $_
+                  Log-Message "Failed to push package: $package" -Type "ERROR" -ErrorRecord $_
                 }
               } else {
-                Log-Message "Package path $packagePath not found." -Type "WARNING"
+                Log-Message "Package path $package.Path not found." -Type "WARNING"
               }
             }
           } else {
