@@ -64,8 +64,8 @@ function Get-Updates {
             # Remove the extension to use it as a directory name
             $randomDirName = $randomFileName -replace "\..*$", ""
 
-            # Combine the temp path with the random directory name
-            $tempExtractPath = Join-Path -Path $env:TEMP -ChildPath $randomDirName
+            # Create a path to the temp directory under the project root
+            $tempExtractPath = Join-Path -Path $PSScriptRoot -ChildPath $randomDirName
             # Ensure the directory is created
             New-Item -ItemType Directory -Path $tempExtractPath -Force | Out-Null
             Write-DebugLog "Created Temp Directory: $($tempExtractPath)"
