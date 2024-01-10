@@ -45,7 +45,7 @@ jobs:
             [string]$Type = "INFO", # Default type is INFO
             [System.Management.Automation.ErrorRecord]$ErrorRecord
           )
-          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+          $timestamp = Get-Date -Format "HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
           $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }
@@ -71,7 +71,7 @@ jobs:
             [string]$Type = "INFO", # Default type is INFO
             [System.Management.Automation.ErrorRecord]$ErrorRecord
           )
-          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+          $timestamp = Get-Date -Format "HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
           $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }
@@ -79,12 +79,13 @@ jobs:
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
         
         try {
-          Log-Message "Starting package updates"
+          Log-Message "Updating packages"
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
           
-          if ($updatedPackages.Count -gt 0) {
-            Log-Message "Found $($updatedPackages.Count) updated packages to push"
-            Log-Message "Updated packages: $($updatedPackages -join ', ')"
+          if ($updatedPackages.Count -gt 0) {            
+            foreach ($package in $updatedPackages) {
+              Log-Message "Updated package: $package"
+            }
             Log-Message "Pushing updated packages"
             foreach ($packagePath in $updatedPackages) {
               if (Test-Path $packagePath) {
