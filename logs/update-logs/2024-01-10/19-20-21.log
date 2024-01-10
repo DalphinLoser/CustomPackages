@@ -1,0 +1,9 @@
+2024-01-10 19:20:22 [INFO] Updating packages
+2024-01-10 19:20:50 [INFO] Updated package: D:\a\CustomPackages\CustomPackages\packages\adguard\adguard.7.15.4386.nupkg
+2024-01-10 19:20:50 [INFO] Updated package: D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg
+2024-01-10 19:20:50 [INFO] Updated package: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg
+2024-01-10 19:20:50 [INFO] Pushing updated packages
+2024-01-10 19:21:06 [INFO] Successfully pushed D:\a\CustomPackages\CustomPackages\packages\adguard\adguard.7.15.4386.nupkg or this version already exists
+2024-01-10 19:21:06 [INFO] Successfully pushed D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.2.7.0.nupkg or this version already exists
+2024-01-10 19:21:07 [INFO] Successfully pushed D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg or this version already exists
+2024-01-10 19:21:07 [INFO] Completed package updates
