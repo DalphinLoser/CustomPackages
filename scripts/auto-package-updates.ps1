@@ -290,11 +290,23 @@ function Get-Updates {
             $currentTag = $updateData.tag
             $latestTag = $latestReleaseObj.tag_name
             
-            # Remove any alpha characters from the tag and Trim everything before the first number
+            # Remove any alpha characters from the tag and
             $currentVersionNoAlpha = $currentTag -replace '[a-zA-Z]', ''
             # Trim everything before the first number
             $currentVersion = $currentVersionNoAlpha -replace '^[^0-9]*', ''
+            # Trim everything after the last number (including dashes and dots)
+            $currentVersion = $currentVersion -replace '[^0-9]*$', ''
+            #$currentVersion = $currentVersion -replace '\D+$', ''
+
+
+            
+            # Remove any alpha characters from the tag and Trim everything before the first number
             $latestVersion = $latestTag -replace '[a-zA-Z]', ''
+            # Trim everything before the first number
+            $latestVersion = $latestVersion -replace '^[^0-9]*', ''
+            # Trim everything after the last number (including dashes and dots)
+            $latestVersion = $latestVersion -replace '[^0-9]*$', ''
+            #$latestVersion = $latestVersion -replace '\D+$', ''
 
             if ($currentVersion -eq $latestVersion) {
                 Write-DebugLog "    No update available for: " -NoNewline -ForegroundColor Yellow
@@ -408,8 +420,8 @@ function Get-Updates {
 
             $newPkg = New-ChocolateyPackage -NuspecPath "$($nuspecFile.FullName)" -PackageDir "$($dirInfo.FullName)"
 
-            # Append the path to the new nupkg file to the list of updated packages
-            [void]($updatedPackages += $newPkg)
+            # Append the updated package name to the list of updated packages
+            [void]($updatedPackages += $latestAssetName)
             
         }
         else {
