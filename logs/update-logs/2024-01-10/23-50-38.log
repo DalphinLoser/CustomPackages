@@ -1,0 +1,3 @@
+2024-01-10 23:50:40 [INFO] Updating packages
+2024-01-10 23:50:42 [ERROR] Failed to update packages: Failed to create Chocolatey package... Exception: The term 'New-TemporaryDirectory' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again. 
