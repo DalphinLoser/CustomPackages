@@ -78,8 +78,8 @@ function Get-Updates {
         Add-Type -AssemblyName System.IO.Compression.FileSystem
 
         # Extract the contents of the NuGet package file to the temp directory
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.Name, $tempExtractPath)
-        Write-DebugLog "Extracted NuGet package file $($nupkgFile.Name) to: $($tempExtractPath)"
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+        Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
 
         # Print the contents of the temp directory
         Write-DebugLog "Contents of $($tempExtractPath): "
