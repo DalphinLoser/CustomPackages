@@ -37,11 +37,6 @@ jobs:
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_FILE=$logFile"
       shell: pwsh
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '6.0.x'
-
     - name: Install Chocolatey
       run: |
         function Log-Message {
@@ -111,7 +106,7 @@ jobs:
           }
           Log-Message "Completed package updates"
         } catch {
-          Log-Message "An error occurred while getting updates: $_" -Type "ERROR" -ErrorRecord $_
+          Log-Message "Failed to update packages: " -Type "ERROR" -ErrorRecord $_
         }
       shell: pwsh
 
