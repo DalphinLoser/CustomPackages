@@ -1,0 +1,6 @@
+2024-01-10 17:09:23 [INFO] Starting package updates
+2024-01-10 17:09:32 [INFO] Found 1 updated packages to push
+2024-01-10 17:09:32 [INFO] Updated packages: D:\a\CustomPackages\CustomPackages\packages\adguard\adguard.7.15.4386.nupkg
+2024-01-10 17:09:32 [INFO] Pushing updated packages
+2024-01-10 17:10:05 [INFO] Successfully pushed D:\a\CustomPackages\CustomPackages\packages\adguard\adguard.7.15.4386.nupkg or this version already exists
+2024-01-10 17:10:05 [INFO] Completed package updates
