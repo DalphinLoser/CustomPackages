@@ -83,15 +83,43 @@ function Get-Updates {
             Write-Error "Failed to load System.IO.Compression.FileSystem assembly: $($_.Exception.Message)"
         }
 
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+        $zipArchive = [System.IO.Compression.ZipFile]::OpenRead($nupkgFile.FullName)
+        $filesToExtract = @{}
+
         try {
-            # Extract the contents of the NuGet package file to the temp directory
-            Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
+            foreach ($entry in $zipArchive.Entries) {
+                $destinationPath = [System.IO.Path]::Combine($tempExtractPath, $entry.FullName)
+
+                if ($filesToExtract.ContainsKey($destinationPath)) {
+                    $existingEntry = $filesToExtract[$destinationPath]
+                    # Compare last write times and keep the newer file
+                    if ($existingEntry.LastWriteTime -lt $entry.LastWriteTime) {
+                        $filesToExtract[$destinationPath] = $entry
+                    }
+                } else {
+                    $filesToExtract[$destinationPath] = $entry
+                }
+            }
+
+            # Now extract the files
+            foreach ($path in $filesToExtract.Keys) {
+                $entry = $filesToExtract[$path]
+
+                # Create directory if it doesn't exist
+                $destinationDir = [System.IO.Path]::GetDirectoryName($path)
+                if (-not (Test-Path $destinationDir)) {
+                    New-Item -ItemType Directory -Path $destinationDir -Force | Out-Null
+                }
+
+                # Extract file
+                $entry.ExtractToFile($path, $true)
+            }
+        } finally {
+            $zipArchive.Dispose()
         }
-        catch {
-            Write-DebugLog "Failed to extract NuGet package file: $($_.Exception.Message)"
-            continue
-        }
+
 
         $toolsPath = Join-Path -Path $tempExtractPath -ChildPath "tools"
         # Verify the tools directory exists
