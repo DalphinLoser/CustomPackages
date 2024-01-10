@@ -1,0 +1,2 @@
+2024-01-10 20:21:15 [INFO] Updating packages
+2024-01-10 20:21:21 [ERROR] Failed to update packages: Failed to extract NuGet package file: A parameter cannot be found that matches parameter name 'gt'. 
