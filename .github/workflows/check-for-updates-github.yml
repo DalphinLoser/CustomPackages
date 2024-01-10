@@ -37,16 +37,19 @@ jobs:
         Add-Content -Path $env:GITHUB_ENV -Value "LOG_FILE=$logFile"
       shell: pwsh
 
-    - name: Install Dependencies (Chocolatey)
+    - name: Install .NET SDK
+      uses: actions/setup-dotnet@v1
+
+    - name: Install Chocolatey
       run: |
         function Log-Message {
           param (
             [string]$Message,
-            [string]$Type = "INFO" # Default type is INFO
+            [string]$Type = "INFO", # Default type is INFO
+            [System.Management.Automation.ErrorRecord]$ErrorRecord
           )
           $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
-
           $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }
 
@@ -73,11 +76,6 @@ jobs:
           )
           $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
           $logEntry = "$timestamp [$Type] $Message"
-
-          if ($ErrorRecord) {
-            $logEntry += " ErrorRecord: $($ErrorRecord.Exception.Message), Category: $($ErrorRecord.CategoryInfo), ErrorID: $($ErrorRecord.FullyQualifiedErrorId)"
-          }
-
           $logEntry | Out-File -Append -FilePath ${{ env.LOG_FILE }}
         }
 
