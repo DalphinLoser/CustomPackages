@@ -290,7 +290,10 @@ function Get-Updates {
             $currentTag = $updateData.tag
             $latestTag = $latestReleaseObj.tag_name
             
-            $currentVersion = $currentTag -replace '[a-zA-Z]', ''
+            # Remove any alpha characters from the tag and Trim everything before the first number
+            $currentVersionNoAlpha = $currentTag -replace '[a-zA-Z]', ''
+            # Trim everything before the first number
+            $currentVersion = $currentVersionNoAlpha -replace '^[^0-9]*', ''
             $latestVersion = $latestTag -replace '[a-zA-Z]', ''
 
             if ($currentVersion -eq $latestVersion) {
