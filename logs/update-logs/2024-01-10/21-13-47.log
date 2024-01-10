@@ -1,0 +1,2 @@
+2024-01-10 21:13:49 [INFO] Updating packages
+2024-01-10 21:13:49 [ERROR] Failed to update packages: Failed to extract NuGet package file: Unable to find type [System.IO.Compression.FileSystem]. 
