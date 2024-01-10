@@ -87,10 +87,10 @@ function Get-Updates {
             # Extract the contents of the NuGet package file to the temp directory
             Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
             [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgFile.FullName, $tempExtractPath)
-            Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
         }
         catch {
             Write-Error "Failed to extract NuGet package file: $($_.Exception.Message)"
+            continue
         }
 
         $toolsPath = Join-Path -Path $tempExtractPath -ChildPath "tools"
