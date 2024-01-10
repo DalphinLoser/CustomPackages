@@ -71,7 +71,7 @@ function Get-Updates {
             Write-DebugLog "Created Temp Directory: $($tempExtractPath)"
         }
         catch {
-            Write-Error "Unable to create temporary directory at $env:TEMP with random name."
+            Write-Error "Unable to create temporary directory at $($tempExtractPath)"
             continue
         }
 
@@ -108,7 +108,7 @@ function Get-Updates {
         try {
             # Open the NuGet package file
             $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkgFile.FullName)
-
+        
             # Display the files in the package
             Write-DebugLog "Files in NuGet package: $($nupkgFile.FullName)"
             foreach ($entry in $zip.Entries) {
@@ -122,44 +122,49 @@ function Get-Updates {
                 # Get the full path of the entry
                 $path = $_.FullName
                 # Check if any pattern matches the path
-                $matchCount = ($patterns | Where-Object { $path -like $_ } | Measure-Object).Count
-                $matchCount -gt 0
+                $patterns | Where-Object { $path -like $_ } | Measure-Object | Select-Object -ExpandProperty Count -gt 0
             }
-            Write-DebugLog "Filtered entries: "
-            foreach ($entry in $entries) {
-                Write-DebugLog "    $($entry.FullName)"
+        
+            if ($entries.Count -eq 0) {
+                Write-DebugLog "No entries found matching the specified patterns."
+            } else {
+                Write-DebugLog "Filtered entries: "
+                foreach ($entry in $entries) {
+                    Write-DebugLog "    $($entry.FullName)"
+                }
+        
+                # Extract the filtered entries
+                foreach ($entry in $entries) {
+                    # Determine the target path
+                    $targetPath = Join-Path $tempExtractPath $entry.FullName
+                
+                    # Create the directory if it does not exist
+                    $targetDir = Split-Path $targetPath -Parent
+                    If (!(Test-Path -Path $targetDir)) {
+                        New-Item -ItemType Directory -Path $targetDir -Force
+                    }
+                
+                    # Extract the file
+                    try {
+                        [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $targetPath, $true)
+                        Write-DebugLog "Extracted file: $($entry.FullName) to: $targetPath"
+                    } catch {
+                        Write-Error "Failed to extract file: $($_.Exception.Message)"
+                    }
+                }
             }
-            # Extract the filtered entries
-            foreach ($entry in $entries) {
-                # Determine the target path
-                $targetPath = Join-Path $tempExtractPath $entry.FullName
-            
-                # Create the directory if it does not exist
-                $targetDir = Split-Path $targetPath -Parent
-                If (!(Test-Path -Path $targetDir)) {
-                    New-Item -ItemType Directory -Path $targetDir -Force
-                }
-            
-                # Extract the file
-                try {
-                    [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $targetPath, $true)
-                    Write-DebugLog "Extracted file: $($entry.FullName) to: $targetPath"
-                } catch {
-                    Write-Error "Failed to extract file: $($_.Exception.Message)"
-                }
-            }            
-
+        
             # Release the ZIP file resource
             $zip.Dispose()
-
+        
             Write-DebugLog "Extracted NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
         }
-    catch {
-        Write-DebugLog "Failed to extract NuGet package file: $($nupkgFile.FullName)"
-        Write-DebugLog "Exception: $($_.Exception.Message)"
-        Write-Error "Failed to extract NuGet package file: $($_.Exception.Message)"
-        continue
-    }
+        catch {
+            Write-DebugLog "Failed to extract NuGet package file: $($nupkgFile.FullName)"
+            Write-DebugLog "Exception: $($_.Exception.Message)"
+            Write-Error "Failed to extract NuGet package file: $($_.Exception.Message)"
+            continue
+        }
 
         $toolsPath = Join-Path -Path $tempExtractPath -ChildPath "tools"
         # Verify the tools directory exists
