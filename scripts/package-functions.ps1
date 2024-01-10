@@ -267,11 +267,10 @@ function New-ChocolateyPackage {
         Write-DebugLog "    Creating Chocolatey package..."
         # Create a new empty directory, then move it to the package directory
         $tempDir = New-Item -Path "$env:TEMP" -Name "chocolateyTemp" -ItemType Directory -Force
-        $tempPackagePath = Join-Path $tempDir "$($Metadata.PackageName).nupkg"
-        Write-DebugLog "    Package Path: " -NoNewline -ForegroundColor Yellow
-        Write-DebugLog $tempPackagePath
         # Create the package
         New-ChocolateyPackage -Path $NuspecPath -OutputDirectory $tempDir
+        # Set tempPackagePath to the path of the package (the only nupkg file in the temp directory)
+        $tempPackagePath = Get-ChildItem -Path $tempDir -Filter *.nupkg -Recurse | Select-Object -ExpandProperty FullName
         # Move the package to the package directory
         Move-Item -Path $tempPackagePath -Destination $PackageDir -Force     
         Write-DebugLog "    Package moved to: " -NoNewline -ForegroundColor Green
