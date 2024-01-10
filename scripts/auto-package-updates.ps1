@@ -96,14 +96,18 @@ function Get-Updates {
                 Write-DebugLog "dotnet is installed."
             }
             
-            # Check if System.IO.Compression.ZipFile is available
-            if (-not (Get-Command -Name System.IO.Compression.ZipFile -ErrorAction SilentlyContinue)) {
-                Write-DebugLog "System.IO.Compression.ZipFile is not available. Please install dotnet to use this script."
-                continue
-            }
-            else {
+            try {
+                # Attempt to access a member of the ZipFile class
+                [void][System.IO.Compression.ZipFile]::OpenRead("")
+            
+                # If the above line doesn't throw an exception, the class is available
                 Write-DebugLog "System.IO.Compression.ZipFile is available."
             }
+            catch {
+                # Handle the error if the ZipFile class is not available
+                Write-Error "System.IO.Compression.ZipFile is not available."
+            }
+            
 
             # Extract the contents of the NuGet package file to the temp directory
             Write-DebugLog "Extracting NuGet package file $($nupkgFile.FullName) to: $($tempExtractPath)"
