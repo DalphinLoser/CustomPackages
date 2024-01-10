@@ -149,6 +149,7 @@ function Get-Updates {
         }
     catch {
         Write-DebugLog "Failed to extract NuGet package file: $($nupkgFile.FullName)"
+        Write-DebugLog "Exception: $($_.Exception.Message)"
         Write-Error "Failed to extract NuGet package file: $($_.Exception.Message)"
         continue
     }
