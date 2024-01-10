@@ -82,24 +82,33 @@ function Get-Updates {
         catch {
             Write-Error "Failed to load System.IO.Compression.FileSystem assembly: $($_.Exception.Message)"
         }
-        
+
         $zipArchive = [System.IO.Compression.ZipFile]::OpenRead($nupkgFile.FullName)
-        $filesToExtract = @{}
 
         try {
             foreach ($entry in $zipArchive.Entries) {
                 $destinationPath = [System.IO.Path]::Combine($tempExtractPath, $entry.FullName)
 
-                if ($filesToExtract.ContainsKey($destinationPath)) {
-                    $existingEntry = $filesToExtract[$destinationPath]
-                    # Compare last write times and keep the newer file
-                    if ($existingEntry.LastWriteTime -lt $entry.LastWriteTime) {
-                        $filesToExtract[$destinationPath] = $entry
-                    }
-                } else {
-                    $filesToExtract[$destinationPath] = $entry
+                # Ensure destination directory exists
+                $destinationDir = [System.IO.Path]::GetDirectoryName($destinationPath)
+                if (-not (Test-Path $destinationDir)) {
+                    New-Item -ItemType Directory -Path $destinationDir -Force | Out-Null
+                }
+
+                # Extract file using IO streams if ExtractToFile is not available
+                $fileStream = [System.IO.File]::Create($destinationPath)
+                $entryStream = $entry.Open()
+                try {
+                    $entryStream.CopyTo($fileStream)
+                } finally {
+                    $fileStream.Dispose()
+                    $entryStream.Dispose()
                 }
             }
+        } finally {
+            $zipArchive.Dispose()
+        }
+
 
             # Now extract the files
             foreach ($path in $filesToExtract.Keys) {
