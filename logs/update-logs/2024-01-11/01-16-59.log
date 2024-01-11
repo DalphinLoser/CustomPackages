@@ -1,0 +1,21 @@
+2024-01-11 01:17:00 [INFO] Updating packages
+2024-01-11 01:17:14 [INFO] Updated package: adguard from 7.15.1 to 7.16.0
+2024-01-11 01:17:14 [INFO] Updated package: proton-vpn from 3.2.8 to 3.2.9
+2024-01-11 01:17:14 [INFO] Updated package: ryujinx.ava from 1.1.1100 to 1.1.1104
+2024-01-11 01:17:14 [INFO] Pushing updated packages
+2024-01-11 01:17:14 [INFO] Pushing package: adguard
+2024-01-11 01:17:14 [INFO]      Old version: 7.15.1
+2024-01-11 01:17:14 [INFO]      New version: 7.16.0
+2024-01-11 01:17:14 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\adguard\adguard.7.16.0.nupkg
+2024-01-11 01:17:47 [INFO] Successfully pushed adguard or version already exists.
+2024-01-11 01:17:47 [INFO] Pushing package: proton-vpn
+2024-01-11 01:17:47 [INFO]      Old version: 3.2.8
+2024-01-11 01:17:47 [INFO]      New version: 3.2.9
+2024-01-11 01:17:47 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.9.nupkg
+2024-01-11 01:17:48 [INFO] Successfully pushed proton-vpn or version already exists.
+2024-01-11 01:17:48 [INFO] Pushing package: ryujinx.ava
+2024-01-11 01:17:48 [INFO]      Old version: 1.1.1100
+2024-01-11 01:17:48 [INFO]      New version: 1.1.1104
+2024-01-11 01:17:48 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1104.nupkg
+2024-01-11 01:17:48 [INFO] Successfully pushed ryujinx.ava or version already exists.
+2024-01-11 01:17:48 [INFO] Completed package updates
