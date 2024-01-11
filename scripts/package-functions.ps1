@@ -264,20 +264,29 @@ function New-ChocolateyPackage {
     # Remove-Item -Path "$PackageDir\*.nupkg" -Force
     # Create Chocolatey package and save the path
     try {
-        Write-DebugLog "    Creating Chocolatey package..."
+        Write-DebugLog "Starting Chocolatey package creation..."
         # Create a new empty directory, then move it to the package directory
-        $tempDir = New-Item -Path "$env:TEMP" -Name "chocolateyTemp" -ItemType Directory -Force
-        # Create the package
+        Write-DebugLog "    Creating temporary directory..."
+        $tempDir = New-Item -Path $PSScriptRoot -Name "temp" -ItemType Directory -Force
+        Write-DebugLog "    Temporary directory created at: $tempDir"
+        # Create the package using the nuspec file
+        Write-DebugLog "    Creating package..."
         $output = choco pack $NuspecPath --debug --out $tempDir
+        Write-DebugLog "    Package created"
         # Set tempPackagePath to the path of the package (the only nupkg file in the temp directory)
-        $tempPackagePath = Get-ChildItem -Path $tempDir -Filter *.nupkg -Recurse | Select-Object -ExpandProperty FullName
+        # Get the name of the package file by searching the temp directory for the only nupkg file, then get the full path. Save both as variables
+        Write-DebugLog "    Getting package name..."
+        $newPackageName = Get-ChildItem -Path $tempDir -Filter *.nupkg | Select-Object -ExpandProperty Name
+        Write-DebugLog "    Package name: $newPackageName"
+        Write-DebugLog "    Getting temp package path..."
+        $tempPackagePath = Join-Path $tempDir $newPackageName
+        Write-DebugLog "    Temp package path: $tempPackagePath"
         # Move the package to the package directory
-        Move-Item -Path $tempPackagePath -Destination $PackageDir -Force     
-        Write-DebugLog "    Package moved to: " -NoNewline -ForegroundColor Green
-        Write-DebugLog $PackageDir
-        # Set the package path to the new location
-        $packagePath = Join-Path $PackageDir "$($Metadata.PackageName).nupkg"   
-
+        Write-DebugLog "    Moving package to package directory..."
+        $packagePath = Move-Item -Path $tempPackagePath -Destination $PackageDir -Force
+        Write-DebugLog "    Package moved to: $packagePath"
+        # Set the package path to the new location using the package name and the package directory
+        $packagePath = Join-Path $PackageDir $newPackageName
     }
     catch {
         Write-Error "Failed to create Chocolatey package... Exception: $_"
