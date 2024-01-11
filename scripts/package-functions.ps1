@@ -265,9 +265,13 @@ function New-ChocolateyPackage {
     # Create Chocolatey package and save the path
     try {
         Write-DebugLog "    Creating Chocolatey package..."
-        $output = choco pack $NuspecPath --debug --out $PackageDir
-        #Write-DebugLog "    Output: " -NoNewline -ForegroundColor Yellow
-        #Write-DebugLog $output
+        
+        try {
+            choco pack $NuspecPath --debug --out $PackageDir
+        } catch {
+            Write-Error "Failed to create Chocolatey package... Exception: $_"
+            continue
+        }
         # Set the package path to the nupkg file in PackageDir if it exists. Select the most recent package if multiple packages exist.
         $packagePath = Get-ChildItem -Path $PackageDir -Filter "*.nupkg" | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
     }
