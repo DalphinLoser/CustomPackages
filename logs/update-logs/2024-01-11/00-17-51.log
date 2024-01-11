@@ -1,9 +1,0 @@
-2024-01-11 00:17:52 [INFO] Updating packages
-2024-01-11 00:18:08 [INFO] Updated package: adguard from 7.15.1 to 7.16.0
-2024-01-11 00:18:08 [INFO] Pushing updated packages
-2024-01-11 00:18:08 [INFO] Pushing package: adguard
-2024-01-11 00:18:08 [INFO]      Old version: 7.15.1
-2024-01-11 00:18:08 [INFO]      New version: 7.16.0
-2024-01-11 00:18:08 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\adguard\
-2024-01-11 00:18:33 [INFO] Successfully pushed adguard or version already exists.
-2024-01-11 00:18:33 [INFO] Completed package updates
