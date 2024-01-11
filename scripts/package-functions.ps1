@@ -276,7 +276,7 @@ function New-ChocolateyPackage {
         # Set tempPackagePath to the path of the package (the only nupkg file in the temp directory)
         # Get the name of the package file by searching the temp directory for the only nupkg file, then get the full path. Save both as variables
         Write-DebugLog "    Getting package name..."
-        $newPackageName = Get-ChildItem -Path $tempDir -Filter *.nupkg | Select-Object -ExpandProperty Name
+        $newPackageName = Get-ChildItem -Path $tempDir -Filter "*.nupkg"| Select-Object -First 1 -ExpandProperty Name
         Write-DebugLog "    Package name: $newPackageName"
         Write-DebugLog "    Getting temp package path..."
         $tempPackagePath = Join-Path $tempDir $newPackageName
