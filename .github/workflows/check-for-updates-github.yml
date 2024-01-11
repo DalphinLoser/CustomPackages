@@ -83,7 +83,7 @@ jobs:
         . "${{ env.SCRIPTS_DIR }}\auto-package-updates.ps1"
         
         try {
-          Log-Message "Updating packages"
+          Log-Message "Checking for updates"
           $updatedPackages = (Get-Updates -PackagesDir "${{ env.PACKAGES_DIR }}")
           
           if ($updatedPackages.Count -gt 0) {            
@@ -100,7 +100,7 @@ jobs:
                           Log-Message "     New version: $($package.NewVersion)"
                           Log-Message "     Package path: $($package.Path)"
                           dotnet nuget push $($package.Path) --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
-                          Log-Message "Successfully pushed $($package.Name) or version already exists." -Type "INFO"
+                          Log-Message "Push complete" -Type "INFO"
                       } catch {
                           Log-Message "Failed to push package: $($package.Name)" -Type "ERROR" -ErrorRecord $_
                       }
@@ -113,7 +113,7 @@ jobs:
           }
           Log-Message "Completed package updates"
         } catch {
-            Log-Message "Failed to update packages: $($_.Exception.Message)" -Type "ERROR" -ErrorRecord $_
+            Log-Message "Failure during package update process: $($_.Exception.Message)" -Type "ERROR" -ErrorRecord $_
         }
       shell: pwsh
 
