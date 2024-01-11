@@ -258,7 +258,8 @@ function New-ChocolateyPackage {
     }
     # Print the package info from the nuspec file, one per line
     Write-DebugLog "    Package Info From Nuspec ($NuspecPath):"
-    Get-Content $NuspecPath | Where-Object {$_ -match "<id>|<version>|<authors>|<description>|<projectUrl>|<packageSourceUrl>|<releaseNotes>|<licenseUrl>|<iconUrl>|<tags>"} | ForEach-Object {Write-DebugLog "        $_"}
+    # Display the entire nuspec maintaining its formatting
+    Get-Content $NuspecPath | ForEach-Object {Write-DebugLog "        $_"}
     # Remove any existing packages in the package directory
     # Write-DebugLog "    Removing existing packages from package directory..."
     # Remove-Item -Path "$PackageDir\*.nupkg" -Force
