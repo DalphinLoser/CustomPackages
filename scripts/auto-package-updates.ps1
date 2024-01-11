@@ -406,8 +406,14 @@ function Get-Updates {
             # Replace the version field in the nuspec file with the new version number
             $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($currentVersionNuspec), $latestVersion
 
-            # Decode HTML entities in the release notes
-            $latestReleaseNotes = [System.Net.WebUtility]::HtmlDecode($latestReleaseObj.body)
+            # Get the latest release notes
+            $latestReleaseNotesRaw = $latestReleaseObj.body
+            # Decode HTML entities
+            $latestReleaseNotesDecoded = [System.Net.WebUtility]::HtmlDecode($latestReleaseNotesRaw)
+            # Wrap in CDATA tags
+            $latestReleaseNotesCData = "<![CDATA[" + $latestReleaseNotesDecoded + "]]>"
+            # Construct the release notes element
+            $latestReleaseNotes = "<releaseNotes>" + $latestReleaseNotesCData + "</releaseNotes>"
 
             # Update the release notes
             $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($releaseNotes), $latestReleaseNotes

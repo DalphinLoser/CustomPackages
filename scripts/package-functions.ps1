@@ -264,31 +264,12 @@ function New-ChocolateyPackage {
     # Remove-Item -Path "$PackageDir\*.nupkg" -Force
     # Create Chocolatey package and save the path
     try {
-        Write-DebugLog "Starting Chocolatey package creation..."
-        # Create a new empty directory, then move it to the package directory
-        Write-DebugLog "    Creating temporary directory..."
-        $tempDir = New-Item -Path $PSScriptRoot -Name "temp" -ItemType Directory -Force
-        Write-DebugLog "    Temporary directory created at: $tempDir"
-        # Create the package using the nuspec file
-        Write-DebugLog "    Creating package..."
-        $output = choco pack $NuspecPath --debug --out $tempDir
-        Write-DebugLog "    Output: $output"
-        # Set tempPackagePath to the path of the package (the only nupkg file in the temp directory)
-        # Get the name of the package file by searching the temp directory for the only nupkg file, then get the full path. Save both as variables
-        Write-DebugLog "    Complete contents of temp directory: "
-        Get-ChildItem -Path $tempDir -Recurse | ForEach-Object {Write-DebugLog "        $_"}
-        Write-DebugLog "    Getting package name..."
-        $newPackageName = Get-ChildItem -Path $tempDir -Filter "*.nupkg"| Select-Object -First 1 -ExpandProperty Name
-        Write-DebugLog "    Package name: $newPackageName"
-        Write-DebugLog "    Getting temp package path..."
-        $tempPackagePath = Join-Path $tempDir $newPackageName
-        Write-DebugLog "    Temp package path: $tempPackagePath"
-        # Move the package to the package directory
-        Write-DebugLog "    Moving package to package directory..."
-        $packagePath = Move-Item -Path $tempPackagePath -Destination $PackageDir -Force
-        Write-DebugLog "    Package moved to: $packagePath"
-        # Set the package path to the new location using the package name and the package directory
-        $packagePath = Join-Path $PackageDir $newPackageName
+        Write-DebugLog "    Creating Chocolatey package..."
+        $output = choco pack $NuspecPath --debug --out $PackageDir
+        #Write-DebugLog "    Output: " -NoNewline -ForegroundColor Yellow
+        #Write-DebugLog $output
+        # Set the package path to the nupkg file in PackageDir if it exists. Select the most recent package if multiple packages exist.
+        $packagePath = Get-ChildItem -Path $PackageDir -Filter "*.nupkg" | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
     }
     catch {
         Write-Error "Failed to create Chocolatey package... Exception: $_"
