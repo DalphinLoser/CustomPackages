@@ -272,9 +272,11 @@ function New-ChocolateyPackage {
         # Create the package using the nuspec file
         Write-DebugLog "    Creating package..."
         $output = choco pack $NuspecPath --debug --out $tempDir
-        Write-DebugLog "    Package created"
+        Write-DebugLog "    Output: $output"
         # Set tempPackagePath to the path of the package (the only nupkg file in the temp directory)
         # Get the name of the package file by searching the temp directory for the only nupkg file, then get the full path. Save both as variables
+        Write-DebugLog "    Complete contents of temp directory: "
+        Get-ChildItem -Path $tempDir -Recurse | ForEach-Object {Write-DebugLog "        $_"}
         Write-DebugLog "    Getting package name..."
         $newPackageName = Get-ChildItem -Path $tempDir -Filter "*.nupkg"| Select-Object -First 1 -ExpandProperty Name
         Write-DebugLog "    Package name: $newPackageName"
