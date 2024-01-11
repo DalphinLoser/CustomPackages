@@ -407,12 +407,17 @@ function Get-Updates {
             $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($currentVersionNuspec), $latestVersion
 
             # Decode HTML entities in the release notes
-            $latestReleaseNotes = [System.Net.WebUtility]::HtmlDecode($latestReleaseObj.body)
-            # Further sanitize the release notes
-            $latestReleaseNotes = $latestReleaseNotes -replace '<br\s*\/?>', "`r`n"
+            $latestReleaseNotesDecoded = [System.Net.WebUtility]::HtmlDecode($latestReleaseObj.body)
+            # Wrap in CDATA
+            $latestReleaseNotesCData = "<![CDATA[" + $latestReleaseNotesDecoded + "]]>"
+            # Construct the release notes element
+            $latestReleaseNotesElement = "<releaseNotes>" + $latestReleaseNotesCData + "</releaseNotes>"
 
-            # Update the release notes
-            $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($releaseNotes), $latestReleaseNotes
+            # Regex pattern to find and replace the existing release notes section
+            $releaseNotesPattern = '<releaseNotes>.*?</releaseNotes>'
+
+            # Update the release notes in the nuspec file
+            $nuspecFileContent = $nuspecFileContent -replace $releaseNotesPattern, $latestReleaseNotesElement, 'Singleline'
 
             # Update the install file with the new URL
             $installFileContent = $installFileContent -replace [regex]::Escape($url), $latestReleaseUrl
