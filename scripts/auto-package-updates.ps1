@@ -408,6 +408,8 @@ function Get-Updates {
 
             # Decode HTML entities in the release notes
             $latestReleaseNotes = [System.Net.WebUtility]::HtmlDecode($latestReleaseObj.body)
+            # Further sanitize the release notes
+            $latestReleaseNotes = $latestReleaseNotes -replace '<br\s*\/?>', "`r`n"
 
             # Update the release notes
             $nuspecFileContent = $nuspecFileContent -replace [regex]::Escape($releaseNotes), $latestReleaseNotes
