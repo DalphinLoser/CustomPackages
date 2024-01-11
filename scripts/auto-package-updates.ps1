@@ -417,7 +417,7 @@ function Get-Updates {
             $releaseNotesPattern = '<releaseNotes>.*?</releaseNotes>'
 
             # Update the release notes in the nuspec file
-            $nuspecFileContent = $nuspecFileContent -replace $releaseNotesPattern, $latestReleaseNotesElement, 'Singleline'
+            $nuspecFileContent = $nuspecFileContent -replace $releaseNotesPattern, $latestReleaseNotesElement
 
             # Update the install file with the new URL
             $installFileContent = $installFileContent -replace [regex]::Escape($url), $latestReleaseUrl
