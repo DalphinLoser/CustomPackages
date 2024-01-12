@@ -1,9 +1,11 @@
 
 ## Description
-A free tool designed to automate the package creation, maintenance, and delivery process on Windows. Currently supports creating packages for Chocolatey from GitHub releases with plans to expand support more packaging formats and sources.
+A free tool designed to automate the package creation, maintenance, and delivery process on Windows. It currently supports creating Chocolatey packages from GitHub releases, but its design allows for future expansion, with plans to support more packaging formats and sources.
 
-## Note
-Originally, this was intended only for my personal use in installing and updating releases from other GitHub-hosted projects. The original objective was to fully automate the creation and updating of Chocolatey packages, which can be quite tedious. Chocolatey provides an official automatic package builder, which seems to take a similar approach, but is only available with Chocolatey for Business which is priced at $17/year/license with a minimum of 100 licenses. I developed this project to provide this functionality to individuals who appreciate automation but don't necessarily have $1,700 to burn for the sake of convenience. The project's current focus is on GitHub releases, but its design allows for future expansion. Development is now centered on supporting various package types as well as additional sources. Please note that when I began this project, I saw it as an opportunity to learn PowerShell. So, while the project is functional, I am aware that much of the code can be optimized and rewritten for clarity. I plan to do so once the remaining major features are implemented.
+## Notes
+- Originally, this project was intended for my personal use to automate the creation and updating of Chocolatey packages from GitHub-hosted project releases. Please note that when I began this project, I saw it as an opportunity to learn PowerShell. While the project is functional, I am aware that the code can be optimized and rewritten for enhanced clarity. I plan to do so after implementing the remaining major features.
+
+- Chocolatey offers an official automatic package builder, which seems to take a similar approach, but it is only available with Chocolatey for Business, priced at $17/year per license with a minimum purchase of 100 licenses. I developed this project to provide similar functionality for individuals who appreciate automation but might not have $1,700 to burn for the sake of convenience.
 
 ## Features
 ### Completed Features
