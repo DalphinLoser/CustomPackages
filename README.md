@@ -1,4 +1,3 @@
-
 ## Description
 A free tool designed to automate the package creation, maintenance, and delivery process on Windows. It currently supports creating Chocolatey packages from GitHub releases, but its design allows for future expansion, with plans to support more packaging formats and sources.
 
@@ -37,9 +36,12 @@ A free tool designed to automate the package creation, maintenance, and delivery
    - Remember to include your GitHub username and personal access token when configuring the source.
 
 ## Usage Guidelines
-1. **Link Selection**: Copy the direct link to the desired file in the release, or use the URL of the main GitHub repository page. 
-   - *Note*: If you don't specify an asset, the program selects the first supported file type available in the release.
-2. **Automatic Processing**: Once the link is provided, the program takes over. It automatically creates the package and will continue to check for updates periodically.
+1. **Input URLs for Package Creation**: Enter the URL(s) as input to the GitHub Action named "create-package-github". 
+   - For single package creation, input the direct link to the desired file in the release, or use the URL of the main GitHub repository page.
+   - For creating multiple packages at once, enter a space-separated list of URLs.
+   - *Note*: If you don't specify an asset for a URL, the program selects the first supported file type available in the release.
+2. **Automatic Processing**: Once the URL(s) are provided, the program takes over. It automatically creates the package(s) and will continue to check for updates periodically.
 
 #### Example
-- To package a release from `https://github.com/exampleuser/exampleproject`, simply input this URL. The program will identify the latest release, select the appropriate file, create the package, and monitor for future updates.
+- To package a single release from `https://github.com/exampleuser/exampleproject`, simply input this URL. The program will identify the latest release, select the appropriate file, create the package, and monitor for future updates.
+- To create multiple packages, enter URLs like `https://github.com/user1/project1 https://github.com/user2/project2`. Each project will be processed in parallel.
