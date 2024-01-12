@@ -10,8 +10,8 @@ A free tool designed to automate the package creation, maintenance, and delivery
 ### Completed Features
 - **Package Creation**: Generates packages from GitHub repository links containing software installers and zips.
   - **Data Retrieval**: Automatically gathers package data (name, icon, description, release notes, version, etc.).
-    - **Installer Data Extraction**: Identifies installer type and sets appropriate command line arguments.
-    - **GitHub Repository Data**: Retrieves release notes and descriptions, if available.
+    - **Installer Data Extraction**: Identifies installer type to set appropriate command line arguments. Identifies and extracts icons and information.
+    - **GitHub Repository Data**: Retrieves release notes and descriptions, and icons if available.
     - **Icon Retrieval**: Sources icons from linked project sites as a fallback method.
 - **Update Checks**: Uses GitHub Actions to periodically check and update packages for new releases.
   - **Release Identification**: Detects new software releases.
