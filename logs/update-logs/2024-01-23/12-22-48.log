@@ -1,0 +1,9 @@
+2024-01-23 12:22:49 [INFO] Checking for updates
+2024-01-23 12:23:01 [INFO] Updated package: sunshine from 0.21.0 to 0.14.0
+2024-01-23 12:23:01 [INFO] Pushing updated packages
+2024-01-23 12:23:01 [INFO] Pushing package: sunshine
+2024-01-23 12:23:01 [INFO]      Old version: 0.21.0
+2024-01-23 12:23:01 [INFO]      New version: 0.14.0
+2024-01-23 12:23:01 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\sunshine\sunshine.0.14.0.nupkg
+2024-01-23 12:23:32 [INFO] Push complete
+2024-01-23 12:23:32 [INFO] Completed package updates
