@@ -1,0 +1,9 @@
+2024-01-31 00:52:11 [INFO] Checking for updates
+2024-01-31 00:52:29 [INFO] Updated package: ryujinx.ava from 1.1.1151 to 1.1.1152
+2024-01-31 00:52:29 [INFO] Pushing updated packages
+2024-01-31 00:52:29 [INFO] Pushing package: ryujinx.ava
+2024-01-31 00:52:29 [INFO]      Old version: 1.1.1151
+2024-01-31 00:52:29 [INFO]      New version: 1.1.1152
+2024-01-31 00:52:29 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1152.nupkg
+2024-01-31 00:52:51 [INFO] Push complete
+2024-01-31 00:52:51 [INFO] Completed package updates
