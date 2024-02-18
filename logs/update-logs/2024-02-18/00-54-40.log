@@ -1,0 +1,2 @@
+2024-02-18 00:54:41 [INFO] Checking for updates
+2024-02-18 00:54:47 [ERROR] Failure during package update process: Response status code does not indicate success: 403 (rate limit exceeded). 
