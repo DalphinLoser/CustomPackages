@@ -1,0 +1,15 @@
+2024-03-04 12:25:22 [INFO] Checking for updates
+2024-03-04 12:25:33 [INFO] Updated package: proton-vpn from 3.2.9 to 3.2.10.1
+2024-03-04 12:25:33 [INFO] Updated package: sunshine from 0.21.0 to 0.22.0
+2024-03-04 12:25:33 [INFO] Pushing updated packages
+2024-03-04 12:25:33 [INFO] Pushing package: proton-vpn
+2024-03-04 12:25:33 [INFO]      Old version: 3.2.9
+2024-03-04 12:25:33 [INFO]      New version: 3.2.10.1
+2024-03-04 12:25:33 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.10.1.nupkg
+2024-03-04 12:25:38 [INFO] Push complete
+2024-03-04 12:25:38 [INFO] Pushing package: sunshine
+2024-03-04 12:25:38 [INFO]      Old version: 0.21.0
+2024-03-04 12:25:38 [INFO]      New version: 0.22.0
+2024-03-04 12:25:38 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\sunshine\sunshine.0.22.0.nupkg
+2024-03-04 12:25:43 [INFO] Push complete
+2024-03-04 12:25:43 [INFO] Completed package updates
