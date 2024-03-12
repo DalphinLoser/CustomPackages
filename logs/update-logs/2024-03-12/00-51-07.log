@@ -1,0 +1,15 @@
+2024-03-12 00:51:08 [INFO] Checking for updates
+2024-03-12 00:51:23 [INFO] Updated package: proton-vpn from 3.2.9 to 3.2.10.2
+2024-03-12 00:51:23 [INFO] Updated package: ryujinx.ava from 1.1.1223 to 1.1.1224
+2024-03-12 00:51:23 [INFO] Pushing updated packages
+2024-03-12 00:51:23 [INFO] Pushing package: proton-vpn
+2024-03-12 00:51:23 [INFO]      Old version: 3.2.9
+2024-03-12 00:51:23 [INFO]      New version: 3.2.10.2
+2024-03-12 00:51:23 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.10.2.nupkg
+2024-03-12 00:51:43 [INFO] Push complete
+2024-03-12 00:51:43 [INFO] Pushing package: ryujinx.ava
+2024-03-12 00:51:43 [INFO]      Old version: 1.1.1223
+2024-03-12 00:51:43 [INFO]      New version: 1.1.1224
+2024-03-12 00:51:43 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1224.nupkg
+2024-03-12 00:51:44 [INFO] Push complete
+2024-03-12 00:51:44 [INFO] Completed package updates
