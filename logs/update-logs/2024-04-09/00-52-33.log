@@ -1,0 +1,21 @@
+2024-04-09 00:52:34 [INFO] Checking for updates
+2024-04-09 00:52:43 [INFO] Updated package: obsidian from 1.5.8 to 1.5.12
+2024-04-09 00:52:43 [INFO] Updated package: proton-vpn from 3.2.9 to 3.2.10.2
+2024-04-09 00:52:43 [INFO] Updated package: ryujinx.ava from 1.1.1268 to 1.1.1269
+2024-04-09 00:52:43 [INFO] Pushing updated packages
+2024-04-09 00:52:43 [INFO] Pushing package: obsidian
+2024-04-09 00:52:43 [INFO]      Old version: 1.5.8
+2024-04-09 00:52:43 [INFO]      New version: 1.5.12
+2024-04-09 00:52:43 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\obsidian\obsidian.1.5.12.nupkg
+2024-04-09 00:52:54 [INFO] Push complete
+2024-04-09 00:52:54 [INFO] Pushing package: proton-vpn
+2024-04-09 00:52:54 [INFO]      Old version: 3.2.9
+2024-04-09 00:52:54 [INFO]      New version: 3.2.10.2
+2024-04-09 00:52:54 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.10.2.nupkg
+2024-04-09 00:52:54 [INFO] Push complete
+2024-04-09 00:52:54 [INFO] Pushing package: ryujinx.ava
+2024-04-09 00:52:54 [INFO]      Old version: 1.1.1268
+2024-04-09 00:52:54 [INFO]      New version: 1.1.1269
+2024-04-09 00:52:54 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\ryujinx.ava\ryujinx.ava.1.1.1269.nupkg
+2024-04-09 00:52:55 [INFO] Push complete
+2024-04-09 00:52:55 [INFO] Completed package updates
