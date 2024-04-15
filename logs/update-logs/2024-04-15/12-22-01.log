@@ -1,0 +1,21 @@
+2024-04-15 12:22:01 [INFO] Checking for updates
+2024-04-15 12:22:15 [INFO] Updated package: obsidian from 1.5.8 to 1.5.12
+2024-04-15 12:22:15 [INFO] Updated package: playnite from 10.32 to 10.33
+2024-04-15 12:22:15 [INFO] Updated package: proton-vpn from 3.2.9 to 3.2.11
+2024-04-15 12:22:15 [INFO] Pushing updated packages
+2024-04-15 12:22:15 [INFO] Pushing package: obsidian
+2024-04-15 12:22:15 [INFO]      Old version: 1.5.8
+2024-04-15 12:22:15 [INFO]      New version: 1.5.12
+2024-04-15 12:22:15 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\obsidian\obsidian.1.5.12.nupkg
+2024-04-15 12:22:28 [INFO] Push complete
+2024-04-15 12:22:28 [INFO] Pushing package: playnite
+2024-04-15 12:22:28 [INFO]      Old version: 10.32
+2024-04-15 12:22:28 [INFO]      New version: 10.33
+2024-04-15 12:22:28 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\playnite\playnite.10.33.0.nupkg
+2024-04-15 12:22:29 [INFO] Push complete
+2024-04-15 12:22:29 [INFO] Pushing package: proton-vpn
+2024-04-15 12:22:29 [INFO]      Old version: 3.2.9
+2024-04-15 12:22:29 [INFO]      New version: 3.2.11
+2024-04-15 12:22:29 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.11.nupkg
+2024-04-15 12:22:30 [INFO] Push complete
+2024-04-15 12:22:30 [INFO] Completed package updates
