@@ -1,0 +1,2 @@
+2024-04-19 12:04:45 [INFO] Checking for updates
+2024-04-19 12:04:54 [ERROR] Failure during package update process:    No assets found for the latest release. URL used: https://api.github.com/repos/Ryujinx/release-channel-master/releases/latest 
