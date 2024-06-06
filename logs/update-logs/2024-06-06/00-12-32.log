@@ -1,0 +1,15 @@
+2024-06-06 00:12:33 [INFO] Checking for updates
+2024-06-06 00:12:42 [INFO] Updated package: obsidian from 1.5.8 to 1.5.12
+2024-06-06 00:12:42 [INFO] Updated package: proton-vpn from 3.2.9 to 3.2.11
+2024-06-06 00:12:42 [INFO] Pushing updated packages
+2024-06-06 00:12:42 [INFO] Pushing package: obsidian
+2024-06-06 00:12:42 [INFO]      Old version: 1.5.8
+2024-06-06 00:12:42 [INFO]      New version: 1.5.12
+2024-06-06 00:12:42 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\obsidian\obsidian.1.5.12.nupkg
+2024-06-06 00:13:12 [INFO] Push complete
+2024-06-06 00:13:12 [INFO] Pushing package: proton-vpn
+2024-06-06 00:13:12 [INFO]      Old version: 3.2.9
+2024-06-06 00:13:12 [INFO]      New version: 3.2.11
+2024-06-06 00:13:12 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.11.nupkg
+2024-06-06 00:13:12 [INFO] Push complete
+2024-06-06 00:13:12 [INFO] Completed package updates
