@@ -1,0 +1,9 @@
+2024-06-21 12:04:56 [INFO] Checking for updates
+2024-06-21 12:05:05 [INFO] Updated package: proton-vpn from 3.2.9 to 3.2.11
+2024-06-21 12:05:05 [INFO] Pushing updated packages
+2024-06-21 12:05:05 [INFO] Pushing package: proton-vpn
+2024-06-21 12:05:05 [INFO]      Old version: 3.2.9
+2024-06-21 12:05:05 [INFO]      New version: 3.2.11
+2024-06-21 12:05:05 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.11.nupkg
+2024-06-21 12:05:31 [INFO] Push complete
+2024-06-21 12:05:31 [INFO] Completed package updates
