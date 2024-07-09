@@ -1,0 +1,15 @@
+2024-07-09 00:12:55 [INFO] Checking for updates
+2024-07-09 00:13:06 [INFO] Updated package: project-gld from 3.99 to 4.00
+2024-07-09 00:13:06 [INFO] Updated package: proton-vpn from 3.2.9 to 3.2.11
+2024-07-09 00:13:06 [INFO] Pushing updated packages
+2024-07-09 00:13:06 [INFO] Pushing package: project-gld
+2024-07-09 00:13:06 [INFO]      Old version: 3.99
+2024-07-09 00:13:06 [INFO]      New version: 4.00
+2024-07-09 00:13:06 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\project-gld\project-gld.4.0.0.nupkg
+2024-07-09 00:13:30 [INFO] Push complete
+2024-07-09 00:13:30 [INFO] Pushing package: proton-vpn
+2024-07-09 00:13:30 [INFO]      Old version: 3.2.9
+2024-07-09 00:13:30 [INFO]      New version: 3.2.11
+2024-07-09 00:13:30 [INFO]      Package path: D:\a\CustomPackages\CustomPackages\packages\proton-vpn\proton-vpn.3.2.11.nupkg
+2024-07-09 00:13:30 [INFO] Push complete
+2024-07-09 00:13:30 [INFO] Completed package updates
